@@ -1,22 +1,73 @@
 export type PropertyStatus = "available" | "sold" | "booked"
 export type PropertyType = "apartment" | "villa" | "commercial" | "land"
 export type InvestmentType = "direct" | "installment" | "fractional"
-export type UserRole = "admin" | "investor" | "representative" | "advertiser"
+export type UserRole = "admin" | "superadmin" | "investor" | "representative" | "agent"
+export type LandSaleMode = "per_block" | "whole_land" | "fractional_share"
+export type PropertyChannel = "direct_buy" | "installment"
+
+export type FloorPlanItem = {
+  title: string
+  image_url: string
+  description?: string
+}
+
+export type CartLine = {
+  propertyId: number
+  title: string
+  slug: string
+  land_sale_mode: LandSaleMode
+  top_view_image: string
+  location_name: string
+  price_per_block: string
+  whole_land_price: string | null
+  share_price: string | null
+  available_blocks: number
+  available_shares: number | null
+  min_shares_per_order: number
+  blocks_owned: number
+  shares_owned: number
+  investment_type: "direct" | "installment"
+  duration_years: number
+}
 
 export type Property = {
   id: number
   title: string
   slug: string
   description: string
+  description_secondary: string
   property_type: PropertyType
+  property_channel: PropertyChannel
+  land_sale_mode: LandSaleMode
   total_blocks: number
   available_blocks: number
   price_per_block: string
+  whole_land_price: string | null
+  share_price: string | null
+  total_shares: number | null
+  available_shares: number | null
+  min_shares_per_order: number
   location_name: string
   latitude: string | null
   longitude: string | null
   video_url: string
   top_view_image: string
+  gallery_images: string[]
+  amenities: string[]
+  tags: string[]
+  floor_plans: FloorPlanItem[]
+  build_year: number | null
+  bedrooms: number | null
+  bathrooms: number | null
+  size_sqft: number | null
+  for_rent: boolean
+  for_sale: boolean
+  contact_website: string
+  rating_average: string | null
+  review_count: number
+  review_sample_author: string
+  review_sample_date: string | null
+  review_sample_text: string
   status: PropertyStatus
   representative: number | null
   representative_name: string | null
@@ -33,6 +84,7 @@ export type Investment = {
   roi_percent: string
   total_amount: string
   blocks_owned: number
+  shares_owned: number
   start_date: string
   end_date: string | null
 }
@@ -51,7 +103,8 @@ export type CreateInvestmentPayload = {
   property: number
   type: InvestmentType
   duration_years: number
-  blocks_owned: number
+  blocks_owned?: number
+  shares_owned?: number
   referral_code_used?: string
 }
 
@@ -64,6 +117,8 @@ export type MeResponse = {
   phone: string
   role: UserRole
   referral_code: string
+  referral_link: string
+  referral_commission_percent: string
   profile_photo: string
 }
 
@@ -86,7 +141,7 @@ export type RepresentativeDashboardData = {
   installment_requests: number
 }
 
-export type AdvertiserDashboardData = {
+export type AgentDashboardData = {
   managed_by_name: string
   managed_properties: number
   direct_buy_requests: number
@@ -118,15 +173,39 @@ export type PropertyUpsertPayload = {
   title: string
   slug: string
   description: string
+  description_secondary?: string
   property_type: PropertyType
+  property_channel?: PropertyChannel
+  land_sale_mode?: LandSaleMode
   total_blocks: number
   available_blocks: number
   price_per_block: string
+  whole_land_price?: string | null
+  share_price?: string | null
+  total_shares?: number | null
+  available_shares?: number | null
+  min_shares_per_order?: number
   location_name: string
   latitude?: string | null
   longitude?: string | null
   video_url?: string
   top_view_image?: string
+  gallery_images?: string[]
+  amenities?: string[]
+  tags?: string[]
+  floor_plans?: FloorPlanItem[]
+  build_year?: number | null
+  bedrooms?: number | null
+  bathrooms?: number | null
+  size_sqft?: number | null
+  for_rent?: boolean
+  for_sale?: boolean
+  contact_website?: string
+  rating_average?: string | null
+  review_count?: number
+  review_sample_author?: string
+  review_sample_date?: string | null
+  review_sample_text?: string
   status?: PropertyStatus
   representative?: number | null
 }
@@ -140,6 +219,7 @@ export type RepresentativeUser = {
   is_active: boolean
   phone: string
   role: "representative"
+  referral_commission_percent: string
   date_joined: string
 }
 
@@ -151,9 +231,10 @@ export type RepresentativeUpsertPayload = {
   phone?: string
   password?: string
   is_active?: boolean
+  referral_commission_percent?: string
 }
 
-export type AdvertiserUser = {
+export type AgentUser = {
   id: number
   username: string
   email: string
@@ -161,12 +242,13 @@ export type AdvertiserUser = {
   last_name: string
   is_active: boolean
   phone: string
-  role: "advertiser"
+  role: "agent"
+  referral_commission_percent: string
   managed_by: number | null
   date_joined: string
 }
 
-export type AdvertiserUpsertPayload = {
+export type AgentUpsertPayload = {
   username: string
   email: string
   first_name?: string
@@ -174,5 +256,6 @@ export type AdvertiserUpsertPayload = {
   phone?: string
   password?: string
   is_active?: boolean
+  referral_commission_percent?: string
   managed_by?: number | null
 }

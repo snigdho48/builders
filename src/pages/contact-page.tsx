@@ -1,6 +1,6 @@
 export function ContactPage() {
   return (
-    <main className="bg-slate-950 px-4 py-16 text-white sm:px-6">
+    <main className="bg-slate-950 px-4 py-16 pb-20 text-white sm:px-6">
       <div className="mx-auto grid max-w-7xl gap-8 sm:grid-cols-2">
         <section>
           <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Contact</p>

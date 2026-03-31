@@ -5,6 +5,19 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useToast } from "@/components/ui/use-toast"
 import { getMe, login } from "@/services/api"
 
+function safeInternalNext(raw: string | null): string | null {
+  if (!raw) {
+    return null
+  }
+  if (!raw.startsWith("/") || raw.startsWith("//")) {
+    return null
+  }
+  if (raw.includes("://")) {
+    return null
+  }
+  return raw
+}
+
 export function AuthPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -37,10 +50,12 @@ export function AuthPage() {
       }
       const me = await getMe(data.access)
       localStorage.setItem("userRole", me.role)
+      localStorage.setItem("userId", String(me.id))
       window.dispatchEvent(new Event("auth-state-changed"))
       setMessage("Login successful. Redirecting...")
       showToast("Login successful", "success")
-      navigate("/dashboard")
+      const next = safeInternalNext(new URLSearchParams(location.search).get("next"))
+      navigate(next ?? "/dashboard", { replace: true })
     } catch (error) {
       const err = error instanceof Error ? error.message : "Login failed"
       setMessage(err)

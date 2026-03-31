@@ -6,13 +6,16 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { ToastProvider } from "@/components/ui/toast-provider.tsx"
+import { CartProvider } from "@/contexts/cart-context"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
         <ToastProvider>
-          <App />
+          <CartProvider>
+            <App />
+          </CartProvider>
         </ToastProvider>
       </ThemeProvider>
     </BrowserRouter>

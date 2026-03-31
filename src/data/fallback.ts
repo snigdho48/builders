@@ -1,5 +1,32 @@
 import type { DashboardData, Property } from "@/types/domain"
 
+const baseFields = {
+  description_secondary: "",
+  property_channel: "direct_buy" as const,
+  land_sale_mode: "per_block" as const,
+  whole_land_price: null as string | null,
+  share_price: null as string | null,
+  total_shares: null as number | null,
+  available_shares: null as number | null,
+  min_shares_per_order: 1,
+  gallery_images: [] as string[],
+  amenities: [] as string[],
+  tags: [] as string[],
+  floor_plans: [] as { title: string; image_url: string; description?: string }[],
+  build_year: null as number | null,
+  bedrooms: null as number | null,
+  bathrooms: null as number | null,
+  size_sqft: null as number | null,
+  for_rent: false,
+  for_sale: true,
+  contact_website: "",
+  rating_average: null as string | null,
+  review_count: 0,
+  review_sample_author: "",
+  review_sample_date: null as string | null,
+  review_sample_text: "",
+}
+
 export const fallbackProperties: Property[] = [
   {
     id: 1,
@@ -22,6 +49,7 @@ export const fallbackProperties: Property[] = [
     representative_name: "Nadia Rahman",
     representative_email: "nadia@landblocks.dev",
     representative_phone: "01700000021",
+    ...baseFields,
   },
   {
     id: 2,
@@ -44,6 +72,8 @@ export const fallbackProperties: Property[] = [
     representative_name: "Nadia Rahman",
     representative_email: "nadia@landblocks.dev",
     representative_phone: "01700000021",
+    ...baseFields,
+    property_channel: "installment",
   },
   {
     id: 3,
@@ -66,6 +96,7 @@ export const fallbackProperties: Property[] = [
     representative_name: "Hasan Karim",
     representative_email: "hasan@landblocks.dev",
     representative_phone: "01700000022",
+    ...baseFields,
   },
 ]
 
@@ -86,6 +117,7 @@ export const fallbackDashboard: DashboardData = {
       roi_percent: "16.50",
       total_amount: "6000.00",
       blocks_owned: 20,
+      shares_owned: 0,
       start_date: "2026-01-12",
       end_date: "2031-01-12",
     },
@@ -98,6 +130,7 @@ export const fallbackDashboard: DashboardData = {
       roi_percent: "0.00",
       total_amount: "4000.00",
       blocks_owned: 12,
+      shares_owned: 0,
       start_date: "2026-02-05",
       end_date: null,
     },

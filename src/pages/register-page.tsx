@@ -1,12 +1,14 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 
 import { useToast } from "@/components/ui/use-toast"
 import { register } from "@/services/api"
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const refFromUrl = searchParams.get("ref")?.trim() ?? ""
   const { showToast } = useToast()
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
@@ -28,6 +30,7 @@ export function RegisterPage() {
         first_name: firstName || undefined,
         last_name: lastName || undefined,
         phone: phone || undefined,
+        ref: refFromUrl || undefined,
       })
       showToast("Registration successful. Please login.", "success")
       setMessage("Registration successful. Redirecting to sign in...")
@@ -48,6 +51,9 @@ export function RegisterPage() {
         <h1 className="mt-2 text-3xl font-semibold">Register (Investor)</h1>
         <p className="mt-2 text-sm text-slate-300">
           Self registration is enabled for investor role only.
+          {refFromUrl ? (
+            <span className="mt-1 block text-emerald-200/90">Referral code from link will be applied.</span>
+          ) : null}
         </p>
         <form onSubmit={handleRegister} className="mt-6 grid gap-3">
           <div className="grid gap-3 sm:grid-cols-2">

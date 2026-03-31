@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 
+import { RevealOnView } from "@/components/motion/reveal-on-view"
 import { PropertyCard } from "@/components/property-card"
 import { getProperties } from "@/services/api"
 import type { Property } from "@/types/domain"
@@ -26,7 +27,7 @@ export function ListingsPage() {
   return (
     <main className="bg-slate-950 px-4 py-14 text-white sm:px-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-wrap items-end gap-3">
+        <RevealOnView className="mb-8 flex w-full flex-wrap items-end gap-3" variant="fade-up">
           <div>
             <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Properties</p>
             <h1 className="text-3xl font-semibold">Explore all listings</h1>
@@ -50,13 +51,17 @@ export function ListingsPage() {
               <option value="land">Land</option>
             </select>
           </div>
-        </div>
+        </RevealOnView>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredProperties.map((property) => (
             <PropertyCard key={property.id} property={property} />
           ))}
         </div>
+
+        {filteredProperties.length === 0 && properties.length > 0 ? (
+          <p className="mt-8 text-center text-sm text-slate-400">No properties match your filters.</p>
+        ) : null}
       </div>
     </main>
   )

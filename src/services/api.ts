@@ -1,15 +1,18 @@
 import { fallbackDashboard, fallbackProperties } from "@/data/fallback"
 import type {
   AdminDashboardData,
-  AdvertiserDashboardData,
-  AdvertiserUpsertPayload,
-  AdvertiserUser,
+  AgentDashboardData,
+  AgentUpsertPayload,
+  AgentUser,
   ApiEnvelope,
   CreateInvestmentPayload,
   DashboardData,
+  FloorPlanItem,
   Investment,
+  LandSaleMode,
   MeResponse,
   Property,
+  PropertyChannel,
   PropertyUpsertPayload,
   RepresentativeUpsertPayload,
   RepresentativeDashboardData,
@@ -20,8 +23,6 @@ function normalizeDevApiBase(url: string): string {
   if (!import.meta.env.DEV) {
     return url
   }
-
-  // Django runserver is HTTP-only in local dev.
   return url.replace(/^https:\/\/(127\.0\.0\.1|localhost)/i, "http://$1")
 }
 
@@ -113,7 +114,6 @@ function redirectToAuthOnSessionExpired() {
   if (typeof window === "undefined") {
     return
   }
-
   const currentPath = window.location.pathname
   if (currentPath.startsWith("/auth")) {
     return
@@ -172,10 +172,97 @@ async function refreshAccessToken(): Promise<string | null> {
   return refreshPromise
 }
 
-export async function getProperties(): Promise<Property[]> {
+function asStringList(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []
+}
+
+function asFloorPlans(v: unknown): FloorPlanItem[] {
+  if (!Array.isArray(v)) {
+    return []
+  }
+  const out: FloorPlanItem[] = []
+  for (const row of v) {
+    if (!row || typeof row !== "object") {
+      continue
+    }
+    const o = row as Record<string, unknown>
+    const title = typeof o.title === "string" ? o.title : ""
+    const image_url = typeof o.image_url === "string" ? o.image_url : ""
+    if (!title && !image_url) {
+      continue
+    }
+    const description = typeof o.description === "string" ? o.description : undefined
+    const item: FloorPlanItem = { title, image_url }
+    if (description !== undefined) {
+      item.description = description
+    }
+    out.push(item)
+  }
+  return out
+}
+
+export function normalizeProperty(raw: Record<string, unknown>): Property {
+  const mode = (raw.land_sale_mode as LandSaleMode) || "per_block"
+  const rawChannel = raw.property_channel
+  let property_channel: PropertyChannel
+  if (rawChannel === "installment" || rawChannel === "direct_buy") {
+    property_channel = rawChannel
+  } else if (rawChannel == null || rawChannel === "") {
+    property_channel = mode === "fractional_share" ? "installment" : "direct_buy"
+  } else {
+    property_channel = "direct_buy"
+  }
+  return {
+    id: Number(raw.id),
+    title: String(raw.title ?? ""),
+    slug: String(raw.slug ?? ""),
+    description: String(raw.description ?? ""),
+    description_secondary: String(raw.description_secondary ?? ""),
+    property_type: (raw.property_type as Property["property_type"]) ?? "land",
+    property_channel,
+    land_sale_mode: mode,
+    total_blocks: Number(raw.total_blocks ?? 0),
+    available_blocks: Number(raw.available_blocks ?? 0),
+    price_per_block: String(raw.price_per_block ?? "0"),
+    whole_land_price: raw.whole_land_price != null ? String(raw.whole_land_price) : null,
+    share_price: raw.share_price != null ? String(raw.share_price) : null,
+    total_shares: raw.total_shares != null ? Number(raw.total_shares) : null,
+    available_shares: raw.available_shares != null ? Number(raw.available_shares) : null,
+    min_shares_per_order: Number(raw.min_shares_per_order ?? 1),
+    location_name: String(raw.location_name ?? ""),
+    latitude: raw.latitude != null ? String(raw.latitude) : null,
+    longitude: raw.longitude != null ? String(raw.longitude) : null,
+    video_url: String(raw.video_url ?? ""),
+    top_view_image: String(raw.top_view_image ?? ""),
+    gallery_images: asStringList(raw.gallery_images),
+    amenities: asStringList(raw.amenities),
+    tags: asStringList(raw.tags),
+    floor_plans: asFloorPlans(raw.floor_plans),
+    build_year: raw.build_year != null ? Number(raw.build_year) : null,
+    bedrooms: raw.bedrooms != null ? Number(raw.bedrooms) : null,
+    bathrooms: raw.bathrooms != null ? Number(raw.bathrooms) : null,
+    size_sqft: raw.size_sqft != null ? Number(raw.size_sqft) : null,
+    for_rent: Boolean(raw.for_rent),
+    for_sale: raw.for_sale !== false,
+    contact_website: String(raw.contact_website ?? ""),
+    rating_average: raw.rating_average != null ? String(raw.rating_average) : null,
+    review_count: Number(raw.review_count ?? 0),
+    review_sample_author: String(raw.review_sample_author ?? ""),
+    review_sample_date: raw.review_sample_date != null ? String(raw.review_sample_date) : null,
+    review_sample_text: String(raw.review_sample_text ?? ""),
+    status: (raw.status as Property["status"]) ?? "available",
+    representative: raw.representative != null ? Number(raw.representative) : null,
+    representative_name: raw.representative_name != null ? String(raw.representative_name) : null,
+    representative_email: raw.representative_email != null ? String(raw.representative_email) : null,
+    representative_phone: raw.representative_phone != null ? String(raw.representative_phone) : null,
+  }
+}
+
+export async function getProperties(options?: { pageSize?: number }): Promise<Property[]> {
+  const pageSize = Math.min(100, Math.max(10, options?.pageSize ?? 100))
   try {
-    const response = await request<Property[]>("/properties/?page_size=10")
-    return response.data
+    const response = await request<Record<string, unknown>[]>(`/properties/?page_size=${pageSize}`)
+    return response.data.map((row) => normalizeProperty(row))
   } catch {
     return fallbackProperties
   }
@@ -183,11 +270,20 @@ export async function getProperties(): Promise<Property[]> {
 
 export async function getPropertyById(id: string): Promise<Property | null> {
   try {
-    const response = await request<Property>(`/properties/${id}/`)
-    return response.data
+    const response = await request<Record<string, unknown>>(`/properties/${id}/`)
+    return normalizeProperty(response.data as Record<string, unknown>)
   } catch {
     const fallback = fallbackProperties.find((property) => property.id === Number(id))
     return fallback ?? null
+  }
+}
+
+export async function fetchPropertyFresh(id: string): Promise<Property | null> {
+  try {
+    const response = await request<Record<string, unknown>>(`/properties/${id}/`)
+    return normalizeProperty(response.data as Record<string, unknown>)
+  } catch {
+    return null
   }
 }
 
@@ -195,7 +291,6 @@ export async function getDashboard(token?: string): Promise<DashboardData> {
   if (!token) {
     return fallbackDashboard
   }
-
   try {
     const response = await request<DashboardData>("/dashboard/", { token })
     return response.data
@@ -206,13 +301,10 @@ export async function getDashboard(token?: string): Promise<DashboardData> {
 
 export async function getDashboardByRole(
   token: string
-): Promise<DashboardData | AdminDashboardData | RepresentativeDashboardData | AdvertiserDashboardData> {
+): Promise<DashboardData | AdminDashboardData | RepresentativeDashboardData | AgentDashboardData> {
   const response = await request<
-    DashboardData | AdminDashboardData | RepresentativeDashboardData | AdvertiserDashboardData
-  >(
-    "/dashboard/",
-    { token }
-  )
+    DashboardData | AdminDashboardData | RepresentativeDashboardData | AgentDashboardData
+  >("/dashboard/", { token })
   return response.data
 }
 
@@ -261,6 +353,7 @@ export async function register(payload: {
   first_name?: string
   last_name?: string
   phone?: string
+  ref?: string
 }) {
   const response = await request<{
     id: number
@@ -277,12 +370,12 @@ export async function register(payload: {
 }
 
 export async function createProperty(payload: PropertyUpsertPayload, token: string): Promise<Property> {
-  const response = await request<Property>("/properties/", {
+  const response = await request<Record<string, unknown>>("/properties/", {
     method: "POST",
     body: payload,
     token,
   })
-  return response.data
+  return normalizeProperty(response.data)
 }
 
 export async function updateProperty(
@@ -290,12 +383,12 @@ export async function updateProperty(
   payload: Partial<PropertyUpsertPayload>,
   token: string
 ): Promise<Property> {
-  const response = await request<Property>(`/properties/${id}/`, {
+  const response = await request<Record<string, unknown>>(`/properties/${id}/`, {
     method: "PATCH",
     body: payload,
     token,
   })
-  return response.data
+  return normalizeProperty(response.data)
 }
 
 export async function deleteProperty(id: number | string, token: string): Promise<void> {
@@ -306,8 +399,10 @@ export async function deleteProperty(id: number | string, token: string): Promis
 }
 
 export async function getManagedProperties(token: string): Promise<Property[]> {
-  const response = await request<Property[]>("/properties/?managed_by_me=1&page_size=100", { token })
-  return response.data
+  const response = await request<Record<string, unknown>[]>("/properties/?managed_by_me=1&page_size=100", {
+    token,
+  })
+  return response.data.map((row) => normalizeProperty(row))
 }
 
 export async function getRepresentatives(token: string): Promise<RepresentativeUser[]> {
@@ -347,16 +442,13 @@ export async function deleteRepresentative(id: number | string, token: string): 
   })
 }
 
-export async function getAdvertisers(token: string): Promise<AdvertiserUser[]> {
-  const response = await request<AdvertiserUser[]>("/advertisers/?page_size=100", { token })
+export async function getAgents(token: string): Promise<AgentUser[]> {
+  const response = await request<AgentUser[]>("/agents/?page_size=100", { token })
   return response.data
 }
 
-export async function createAdvertiser(
-  payload: AdvertiserUpsertPayload,
-  token: string
-): Promise<AdvertiserUser> {
-  const response = await request<AdvertiserUser>("/advertisers/", {
+export async function createAgent(payload: AgentUpsertPayload, token: string): Promise<AgentUser> {
+  const response = await request<AgentUser>("/agents/", {
     method: "POST",
     body: payload,
     token,
@@ -364,12 +456,12 @@ export async function createAdvertiser(
   return response.data
 }
 
-export async function updateAdvertiser(
+export async function updateAgent(
   id: number | string,
-  payload: Partial<AdvertiserUpsertPayload>,
+  payload: Partial<AgentUpsertPayload>,
   token: string
-): Promise<AdvertiserUser> {
-  const response = await request<AdvertiserUser>(`/advertisers/${id}/`, {
+): Promise<AgentUser> {
+  const response = await request<AgentUser>(`/agents/${id}/`, {
     method: "PATCH",
     body: payload,
     token,
@@ -377,8 +469,8 @@ export async function updateAdvertiser(
   return response.data
 }
 
-export async function deleteAdvertiser(id: number | string, token: string): Promise<void> {
-  await request<null>(`/advertisers/${id}/`, {
+export async function deleteAgent(id: number | string, token: string): Promise<void> {
+  await request<null>(`/agents/${id}/`, {
     method: "DELETE",
     token,
   })

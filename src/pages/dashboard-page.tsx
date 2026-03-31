@@ -3,8 +3,10 @@ import { Link } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBoxOpen, faCube } from "@fortawesome/free-solid-svg-icons"
 
+import { PropertyCard } from "@/components/property-card"
 import { getDashboard, getMe, getProperties } from "@/services/api"
 import type { DashboardData, Property } from "@/types/domain"
+import { pickDirectBuyTop, pickInstallmentTop } from "@/utils/property-lanes"
 
 export function DashboardPage() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
@@ -22,7 +24,22 @@ export function DashboardPage() {
     }
   }, [])
 
-  const suggestedProperties = useMemo(() => properties.slice(0, 3), [properties])
+  const availableProperties = useMemo(
+    () => properties.filter((p) => p.status === "available"),
+    [properties]
+  )
+
+  const dashboardLaneLimit = 5
+
+  const directSuggestions = useMemo(
+    () => pickDirectBuyTop(availableProperties, dashboardLaneLimit),
+    [availableProperties]
+  )
+
+  const installmentSuggestions = useMemo(
+    () => pickInstallmentTop(availableProperties, directSuggestions, dashboardLaneLimit),
+    [availableProperties, directSuggestions]
+  )
 
   if (!dashboard) {
     return (
@@ -111,7 +128,7 @@ export function DashboardPage() {
                   <tr>
                     <th className="px-4 py-3">Property</th>
                     <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3">Blocks</th>
+                    <th className="px-4 py-3">Blocks / shares</th>
                     <th className="px-4 py-3">Amount</th>
                     <th className="px-4 py-3">Duration</th>
                   </tr>
@@ -121,7 +138,11 @@ export function DashboardPage() {
                     <tr key={investment.id} className="border-t border-slate-100">
                       <td className="px-4 py-3">{investment.property_title}</td>
                       <td className="px-4 py-3 capitalize">{investment.type}</td>
-                      <td className="px-4 py-3">{investment.blocks_owned}</td>
+                      <td className="px-4 py-3">
+                        {investment.shares_owned > 0
+                          ? `${investment.shares_owned} sh`
+                          : `${investment.blocks_owned} blk`}
+                      </td>
                       <td className="px-4 py-3">{investment.total_amount}</td>
                       <td className="px-4 py-3">
                         {investment.duration_years ? `${investment.duration_years} years` : "Direct"}
@@ -159,33 +180,46 @@ export function DashboardPage() {
           </article>
         </section>
 
-        <section className="mt-10">
-          <div className="flex items-center justify-between">
+        <section className="mt-10 space-y-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-4xl font-semibold text-[#0b1f44]">Properties for you</h2>
             <Link to="/listings" className="text-sm font-semibold text-[#0d6aa8] hover:text-[#0b1f44]">
-              View All
+              View all
             </Link>
           </div>
-          <div className="mt-5 grid gap-5 lg:grid-cols-3">
-            {suggestedProperties.map((item) => (
-              <article key={item.id} className="overflow-hidden rounded-md border border-slate-200 bg-white">
-                <img src={item.top_view_image} alt={item.title} className="h-44 w-full object-cover" />
-                <div className="space-y-2 px-4 py-3">
-                  <p className="text-xs text-slate-500">{item.location_name}</p>
-                  <h3 className="text-xl font-semibold text-[#0b1f44]">{item.title}</h3>
-                  <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="font-semibold">{item.price_per_block}</span>
-                    <span className="text-slate-500">{Math.max(10, item.available_blocks)} investors</span>
+
+          <div>
+            <h3 className="text-center text-xl font-semibold text-[#0b1f44]">Direct buy</h3>
+            <p className="mt-1 text-center text-sm text-slate-600">Up to {dashboardLaneLimit} top picks</p>
+            {directSuggestions.length === 0 ? (
+              <p className="mt-6 text-center text-sm text-slate-500">No direct-buy listings available yet.</p>
+            ) : (
+              <div className="mt-5 flex flex-wrap justify-center gap-6">
+                {directSuggestions.map((item) => (
+                  <div key={`dash-direct-${item.id}`} className="w-full shrink-0 sm:w-[min(100%,340px)]">
+                    <PropertyCard property={item} />
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
-                    <span>Gross yield</span>
-                    <span className="text-right">{(Number(item.price_per_block) / 100).toFixed(2)}%</span>
-                    <span>1-year return</span>
-                    <span className="text-right">{(Number(item.price_per_block) / 80).toFixed(2)}%</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-center text-xl font-semibold text-[#0b1f44]">Installment</h3>
+            <p className="mt-1 text-center text-sm text-slate-600">Up to {dashboardLaneLimit} top picks</p>
+            {installmentSuggestions.length === 0 ? (
+              <p className="mt-6 text-center text-sm text-slate-500">
+                No installment-friendly listings available yet.
+              </p>
+            ) : (
+              <div className="mt-5 flex flex-wrap justify-center gap-6">
+                {installmentSuggestions.map((item) => (
+                  <div key={`dash-inst-${item.id}`} className="w-full shrink-0 sm:w-[min(100%,340px)]">
+                    <PropertyCard property={item} />
                   </div>
-                </div>
-              </article>
-            ))}
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </div>

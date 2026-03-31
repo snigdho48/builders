@@ -91,7 +91,32 @@ export function ProfilePage() {
               </div>
             )}
           </div>
-          <p className="mt-4 text-sm text-slate-600">Referral: {profile?.referral_code ?? "-"}</p>
+          <p className="mt-4 text-sm text-slate-600">Referral code: {profile?.referral_code ?? "-"}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Your referral commission: {profile?.referral_commission_percent ?? "-"}%
+          </p>
+          {profile?.referral_link ? (
+            <div className="mt-3">
+              <p className="text-xs font-medium text-slate-500">Share link</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                <input
+                  readOnly
+                  className="profile-input min-w-0 flex-1 text-xs"
+                  value={profile.referral_link}
+                />
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-[#0b1f44] hover:bg-slate-50"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(profile.referral_link)
+                    showToast("Link copied", "success")
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          ) : null}
         </aside>
         <article className="rounded-2xl border border-slate-200 bg-white p-6">
           <h1 className="text-2xl font-semibold">Profile Settings</h1>

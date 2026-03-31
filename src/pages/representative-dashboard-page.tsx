@@ -2,19 +2,19 @@ import { useEffect, useMemo, useState } from "react"
 
 import { useToast } from "@/components/ui/use-toast"
 import {
-  createAdvertiser,
+  createAgent,
   createProperty,
-  deleteAdvertiser,
+  deleteAgent,
   deleteProperty,
-  getAdvertisers,
+  getAgents,
   getDashboardByRole,
   getManagedProperties,
-  updateAdvertiser,
+  updateAgent,
   updateProperty,
 } from "@/services/api"
 import type {
-  AdvertiserUpsertPayload,
-  AdvertiserUser,
+  AgentUpsertPayload,
+  AgentUser,
   Property,
   PropertyUpsertPayload,
   RepresentativeDashboardData,
@@ -24,32 +24,56 @@ export function RepresentativeDashboardPage() {
   const PAGE_SIZE = 5
   const [data, setData] = useState<RepresentativeDashboardData | null>(null)
   const [properties, setProperties] = useState<Property[]>([])
-  const [advertisers, setAdvertisers] = useState<AdvertiserUser[]>([])
-  const [activeTab, setActiveTab] = useState<"properties" | "advertisers">("properties")
+  const [agents, setAgents] = useState<AgentUser[]>([])
+  const [activeTab, setActiveTab] = useState<"properties" | "agents">("properties")
   const [propertyPage, setPropertyPage] = useState(1)
-  const [advertiserPage, setAdvertiserPage] = useState(1)
+  const [agentPage, setAgentPage] = useState(1)
   const [propertyQuery, setPropertyQuery] = useState("")
-  const [advertiserQuery, setAdvertiserQuery] = useState("")
+  const [agentQuery, setAgentQuery] = useState("")
   const [showPropertyForm, setShowPropertyForm] = useState(false)
-  const [showAdvertiserForm, setShowAdvertiserForm] = useState(false)
+  const [showAgentForm, setShowAgentForm] = useState(false)
   const [editingPropertyId, setEditingPropertyId] = useState<number | null>(null)
-  const [editingAdvertiserId, setEditingAdvertiserId] = useState<number | null>(null)
+  const [editingAgentId, setEditingAgentId] = useState<number | null>(null)
   const [propertyForm, setPropertyForm] = useState<PropertyUpsertPayload>({
     title: "",
     slug: "",
     description: "",
+    description_secondary: "",
     property_type: "apartment",
+    property_channel: "direct_buy",
+    land_sale_mode: "per_block",
     total_blocks: 100,
     available_blocks: 100,
     price_per_block: "100.00",
+    whole_land_price: null,
+    share_price: null,
+    total_shares: null,
+    available_shares: null,
+    min_shares_per_order: 1,
     location_name: "",
     latitude: null,
     longitude: null,
     video_url: "",
     top_view_image: "",
+    gallery_images: [],
+    amenities: [],
+    tags: [],
+    floor_plans: [],
+    build_year: null,
+    bedrooms: null,
+    bathrooms: null,
+    size_sqft: null,
+    for_rent: false,
+    for_sale: true,
+    contact_website: "",
+    rating_average: null,
+    review_count: 0,
+    review_sample_author: "",
+    review_sample_date: null,
+    review_sample_text: "",
     status: "available",
   })
-  const [advertiserForm, setAdvertiserForm] = useState<AdvertiserUpsertPayload>({
+  const [agentForm, setAgentForm] = useState<AgentUpsertPayload>({
     username: "",
     email: "",
     first_name: "",
@@ -57,18 +81,19 @@ export function RepresentativeDashboardPage() {
     phone: "",
     password: "",
     is_active: true,
+    referral_commission_percent: "5.00",
   })
   const { showToast } = useToast()
 
   async function loadData(token: string) {
-    const [dashboardPayload, propertiesPayload, advertisersPayload] = await Promise.all([
+    const [dashboardPayload, propertiesPayload, agentsPayload] = await Promise.all([
       getDashboardByRole(token),
       getManagedProperties(token),
-      getAdvertisers(token),
+      getAgents(token),
     ])
     setData(dashboardPayload as RepresentativeDashboardData)
     setProperties(propertiesPayload)
-    setAdvertisers(advertisersPayload)
+    setAgents(agentsPayload)
   }
 
   useEffect(() => {
@@ -93,23 +118,47 @@ export function RepresentativeDashboardPage() {
       title: "",
       slug: "",
       description: "",
+      description_secondary: "",
       property_type: "apartment",
+      property_channel: "direct_buy",
+      land_sale_mode: "per_block",
       total_blocks: 100,
       available_blocks: 100,
       price_per_block: "100.00",
+      whole_land_price: null,
+      share_price: null,
+      total_shares: null,
+      available_shares: null,
+      min_shares_per_order: 1,
       location_name: "",
       latitude: null,
       longitude: null,
       video_url: "",
       top_view_image: "",
+      gallery_images: [],
+      amenities: [],
+      tags: [],
+      floor_plans: [],
+      build_year: null,
+      bedrooms: null,
+      bathrooms: null,
+      size_sqft: null,
+      for_rent: false,
+      for_sale: true,
+      contact_website: "",
+      rating_average: null,
+      review_count: 0,
+      review_sample_author: "",
+      review_sample_date: null,
+      review_sample_text: "",
       status: "available",
     })
   }
 
-  const resetAdvertiserForm = () => {
-    setEditingAdvertiserId(null)
-    setShowAdvertiserForm(false)
-    setAdvertiserForm({
+  const resetAgentForm = () => {
+    setEditingAgentId(null)
+    setShowAgentForm(false)
+    setAgentForm({
       username: "",
       email: "",
       first_name: "",
@@ -117,6 +166,7 @@ export function RepresentativeDashboardPage() {
       phone: "",
       password: "",
       is_active: true,
+      referral_commission_percent: "5.00",
     })
   }
 
@@ -165,69 +215,93 @@ export function RepresentativeDashboardPage() {
       title: item.title,
       slug: item.slug,
       description: item.description,
+      description_secondary: item.description_secondary,
       property_type: item.property_type,
+      property_channel: item.property_channel,
+      land_sale_mode: item.land_sale_mode,
       total_blocks: item.total_blocks,
       available_blocks: item.available_blocks,
       price_per_block: item.price_per_block,
+      whole_land_price: item.whole_land_price,
+      share_price: item.share_price,
+      total_shares: item.total_shares,
+      available_shares: item.available_shares,
+      min_shares_per_order: item.min_shares_per_order,
       location_name: item.location_name,
       latitude: item.latitude,
       longitude: item.longitude,
       video_url: item.video_url,
       top_view_image: item.top_view_image,
+      gallery_images: item.gallery_images ?? [],
+      amenities: item.amenities ?? [],
+      tags: item.tags ?? [],
+      floor_plans: item.floor_plans ?? [],
+      build_year: item.build_year,
+      bedrooms: item.bedrooms,
+      bathrooms: item.bathrooms,
+      size_sqft: item.size_sqft,
+      for_rent: item.for_rent,
+      for_sale: item.for_sale,
+      contact_website: item.contact_website,
+      rating_average: item.rating_average,
+      review_count: item.review_count,
+      review_sample_author: item.review_sample_author,
+      review_sample_date: item.review_sample_date,
+      review_sample_text: item.review_sample_text,
       status: item.status,
     })
   }
 
-  async function saveAdvertiser() {
+  async function saveAgent() {
     const token = localStorage.getItem("accessToken")
     if (!token) {
       return
     }
     try {
-      if (editingAdvertiserId) {
-        const payload = { ...advertiserForm }
+      if (editingAgentId) {
+        const payload = { ...agentForm }
         if (!payload.password) {
           delete payload.password
         }
-        await updateAdvertiser(editingAdvertiserId, payload, token)
-        showToast("Advertiser updated.", "success")
+        await updateAgent(editingAgentId, payload, token)
+        showToast("Agent updated.", "success")
       } else {
-        if (!advertiserForm.password) {
-          showToast("Password is required for new advertiser.", "error")
+        if (!agentForm.password) {
+          showToast("Password is required for new agent.", "error")
           return
         }
-        await createAdvertiser(advertiserForm, token)
-        showToast("Advertiser created.", "success")
+        await createAgent(agentForm, token)
+        showToast("Agent created.", "success")
       }
       await loadData(token)
-      resetAdvertiserForm()
-      setAdvertiserPage(1)
+      resetAgentForm()
+      setAgentPage(1)
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Advertiser save failed."
+      const message = error instanceof Error ? error.message : "Agent save failed."
       showToast(message, "error")
     }
   }
 
-  async function removeAdvertiser(id: number) {
+  async function removeAgent(id: number) {
     const token = localStorage.getItem("accessToken")
     if (!token) {
       return
     }
     try {
-      await deleteAdvertiser(id, token)
-      showToast("Advertiser deleted.", "success")
+      await deleteAgent(id, token)
+      showToast("Agent deleted.", "success")
       await loadData(token)
-      setAdvertiserPage(1)
+      setAgentPage(1)
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Advertiser delete failed."
+      const message = error instanceof Error ? error.message : "Agent delete failed."
       showToast(message, "error")
     }
   }
 
-  function editAdvertiser(item: AdvertiserUser) {
-    setEditingAdvertiserId(item.id)
-    setShowAdvertiserForm(true)
-    setAdvertiserForm({
+  function editAgent(item: AgentUser) {
+    setEditingAgentId(item.id)
+    setShowAgentForm(true)
+    setAgentForm({
       username: item.username,
       email: item.email,
       first_name: item.first_name,
@@ -235,6 +309,7 @@ export function RepresentativeDashboardPage() {
       phone: item.phone,
       password: "",
       is_active: item.is_active,
+      referral_commission_percent: item.referral_commission_percent,
     })
   }
 
@@ -257,21 +332,21 @@ export function RepresentativeDashboardPage() {
     return filteredProperties.slice(start, start + PAGE_SIZE)
   }, [filteredProperties, propertyPage, PAGE_SIZE])
 
-  const filteredAdvertisers = useMemo(() => {
-    const query = advertiserQuery.trim().toLowerCase()
+  const filteredAgents = useMemo(() => {
+    const query = agentQuery.trim().toLowerCase()
     if (!query) {
-      return advertisers
+      return agents
     }
-    return advertisers.filter((item) =>
+    return agents.filter((item) =>
       [item.username, item.email, item.first_name, item.last_name, item.phone].join(" ").toLowerCase().includes(query)
     )
-  }, [advertisers, advertiserQuery])
+  }, [agents, agentQuery])
 
-  const advertiserTotalPages = Math.max(1, Math.ceil(filteredAdvertisers.length / PAGE_SIZE))
-  const paginatedAdvertisers = useMemo(() => {
-    const start = (advertiserPage - 1) * PAGE_SIZE
-    return filteredAdvertisers.slice(start, start + PAGE_SIZE)
-  }, [filteredAdvertisers, advertiserPage, PAGE_SIZE])
+  const agentTotalPages = Math.max(1, Math.ceil(filteredAgents.length / PAGE_SIZE))
+  const paginatedAgents = useMemo(() => {
+    const start = (agentPage - 1) * PAGE_SIZE
+    return filteredAgents.slice(start, start + PAGE_SIZE)
+  }, [filteredAgents, agentPage, PAGE_SIZE])
 
   if (!data) {
     return (
@@ -308,12 +383,12 @@ export function RepresentativeDashboardPage() {
                 Property Management
               </button>
               <button
-                onClick={() => setActiveTab("advertisers")}
+                onClick={() => setActiveTab("agents")}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                  activeTab === "advertisers" ? "bg-emerald-500 text-slate-950" : "text-slate-200"
+                  activeTab === "agents" ? "bg-emerald-500 text-slate-950" : "text-slate-200"
                 }`}
               >
-                Advertiser Management
+                Agent Management
               </button>
             </div>
             {activeTab === "properties" ? (
@@ -329,12 +404,12 @@ export function RepresentativeDashboardPage() {
             ) : (
               <button
                 onClick={() => {
-                  resetAdvertiserForm()
-                  setShowAdvertiserForm(true)
+                  resetAgentForm()
+                  setShowAgentForm(true)
                 }}
                 className="rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-slate-950"
               >
-                Create Advertiser
+                Create Agent
               </button>
             )}
           </div>
@@ -362,6 +437,8 @@ export function RepresentativeDashboardPage() {
                       <th className="px-3 py-2">Location</th>
                       <th className="px-3 py-2">Coordinates</th>
                       <th className="px-3 py-2">Status</th>
+                      <th className="px-3 py-2">Channel</th>
+                      <th className="px-3 py-2">Sale mode</th>
                       <th className="px-3 py-2">Price / Block</th>
                       <th className="px-3 py-2">Blocks</th>
                       <th className="px-3 py-2">Actions</th>
@@ -388,6 +465,12 @@ export function RepresentativeDashboardPage() {
                           {item.latitude && item.longitude ? `${item.latitude}, ${item.longitude}` : "-"}
                         </td>
                         <td className="px-3 py-3 capitalize">{item.status}</td>
+                        <td className="px-3 py-3 text-xs capitalize text-slate-300">
+                          {item.property_channel.replace(/_/g, " ")}
+                        </td>
+                        <td className="px-3 py-3 text-xs capitalize text-slate-300">
+                          {item.land_sale_mode.replace(/_/g, " ")}
+                        </td>
                         <td className="px-3 py-3">${item.price_per_block}</td>
                         <td className="px-3 py-3">
                           {item.available_blocks}/{item.total_blocks}
@@ -557,12 +640,307 @@ export function RepresentativeDashboardPage() {
                       <option value="booked">Booked</option>
                       <option value="sold">Sold</option>
                     </select>
+                    <select
+                      className="template-input"
+                      value={propertyForm.property_channel ?? "direct_buy"}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          property_channel: event.target.value as Property["property_channel"],
+                        }))
+                      }
+                      aria-label="Listing channel (direct buy vs installment)"
+                    >
+                      <option value="direct_buy">Direct buy (homepage lane)</option>
+                      <option value="installment">Installment (homepage lane)</option>
+                    </select>
+                    <select
+                      className="template-input"
+                      value={propertyForm.land_sale_mode ?? "per_block"}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          land_sale_mode: event.target.value as Property["land_sale_mode"],
+                        }))
+                      }
+                    >
+                      <option value="per_block">Per block</option>
+                      <option value="whole_land">Whole land</option>
+                      <option value="fractional_share">Fractional shares</option>
+                    </select>
+                    <input
+                      className="template-input"
+                      placeholder="Whole land price (optional)"
+                      value={propertyForm.whole_land_price ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          whole_land_price: event.target.value.trim() ? event.target.value : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Share price"
+                      value={propertyForm.share_price ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          share_price: event.target.value.trim() ? event.target.value : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Total shares"
+                      type="number"
+                      value={propertyForm.total_shares ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          total_shares: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Available shares"
+                      type="number"
+                      value={propertyForm.available_shares ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          available_shares: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Min shares per order"
+                      type="number"
+                      value={propertyForm.min_shares_per_order ?? 1}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          min_shares_per_order: Number(event.target.value) || 1,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Build year"
+                      type="number"
+                      value={propertyForm.build_year ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          build_year: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Bedrooms"
+                      type="number"
+                      value={propertyForm.bedrooms ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          bedrooms: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Bathrooms"
+                      type="number"
+                      value={propertyForm.bathrooms ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          bathrooms: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Size sqft"
+                      type="number"
+                      value={propertyForm.size_sqft ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          size_sqft: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Contact website URL"
+                      value={propertyForm.contact_website ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({ ...current, contact_website: event.target.value }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Rating average (e.g. 4.5)"
+                      value={propertyForm.rating_average ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          rating_average: event.target.value.trim() ? event.target.value : null,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Review count"
+                      type="number"
+                      value={propertyForm.review_count ?? 0}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          review_count: Number(event.target.value) || 0,
+                        }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Sample review author"
+                      value={propertyForm.review_sample_author ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({ ...current, review_sample_author: event.target.value }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Sample review date (YYYY-MM-DD)"
+                      value={propertyForm.review_sample_date ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({
+                          ...current,
+                          review_sample_date: event.target.value.trim() ? event.target.value : null,
+                        }))
+                      }
+                    />
+                    <label className="flex items-center gap-2 text-sm text-slate-300 sm:col-span-1">
+                      <input
+                        type="checkbox"
+                        checked={propertyForm.for_rent ?? false}
+                        onChange={(event) =>
+                          setPropertyForm((current) => ({ ...current, for_rent: event.target.checked }))
+                        }
+                      />
+                      For rent
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-slate-300 sm:col-span-1">
+                      <input
+                        type="checkbox"
+                        checked={propertyForm.for_sale !== false}
+                        onChange={(event) =>
+                          setPropertyForm((current) => ({ ...current, for_sale: event.target.checked }))
+                        }
+                      />
+                      For sale
+                    </label>
                     <textarea
                       className="template-input sm:col-span-2 lg:col-span-3"
                       placeholder="Description"
                       value={propertyForm.description}
                       onChange={(event) =>
                         setPropertyForm((current) => ({ ...current, description: event.target.value }))
+                      }
+                    />
+                    <textarea
+                      className="template-input sm:col-span-2 lg:col-span-3"
+                      placeholder="Secondary description"
+                      value={propertyForm.description_secondary ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({ ...current, description_secondary: event.target.value }))
+                      }
+                    />
+                    <textarea
+                      key={`gal-${editingPropertyId ?? "n"}`}
+                      className="template-input font-mono text-xs sm:col-span-2 lg:col-span-3"
+                      placeholder='Gallery image URLs JSON array e.g. ["https://..."]'
+                      defaultValue={JSON.stringify(propertyForm.gallery_images ?? [])}
+                      onBlur={(event) => {
+                        try {
+                          const parsed = JSON.parse(event.target.value) as unknown
+                          if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string")) {
+                            setPropertyForm((current) => ({ ...current, gallery_images: parsed }))
+                          } else {
+                            showToast("Gallery JSON must be an array of strings.", "error")
+                          }
+                        } catch {
+                          showToast("Invalid gallery JSON.", "error")
+                        }
+                      }}
+                    />
+                    <textarea
+                      key={`am-${editingPropertyId ?? "n"}`}
+                      className="template-input font-mono text-xs sm:col-span-2 lg:col-span-3"
+                      placeholder='Amenities JSON e.g. ["Pool","Gym"]'
+                      defaultValue={JSON.stringify(propertyForm.amenities ?? [])}
+                      onBlur={(event) => {
+                        try {
+                          const parsed = JSON.parse(event.target.value) as unknown
+                          if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string")) {
+                            setPropertyForm((current) => ({ ...current, amenities: parsed }))
+                          } else {
+                            showToast("Amenities JSON must be an array of strings.", "error")
+                          }
+                        } catch {
+                          showToast("Invalid amenities JSON.", "error")
+                        }
+                      }}
+                    />
+                    <textarea
+                      key={`tg-${editingPropertyId ?? "n"}`}
+                      className="template-input font-mono text-xs sm:col-span-2 lg:col-span-3"
+                      placeholder='Tags JSON e.g. ["Luxury"]'
+                      defaultValue={JSON.stringify(propertyForm.tags ?? [])}
+                      onBlur={(event) => {
+                        try {
+                          const parsed = JSON.parse(event.target.value) as unknown
+                          if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string")) {
+                            setPropertyForm((current) => ({ ...current, tags: parsed }))
+                          } else {
+                            showToast("Tags JSON must be an array of strings.", "error")
+                          }
+                        } catch {
+                          showToast("Invalid tags JSON.", "error")
+                        }
+                      }}
+                    />
+                    <textarea
+                      key={`fp-${editingPropertyId ?? "n"}`}
+                      className="template-input font-mono text-xs sm:col-span-2 lg:col-span-3"
+                      placeholder='Floor plans JSON [{"title":"1st","image_url":"https://...","description":"..."}]'
+                      defaultValue={JSON.stringify(propertyForm.floor_plans ?? [])}
+                      onBlur={(event) => {
+                        try {
+                          const parsed = JSON.parse(event.target.value) as unknown
+                          if (Array.isArray(parsed)) {
+                            setPropertyForm((current) => ({
+                              ...current,
+                              floor_plans: parsed as Property["floor_plans"],
+                            }))
+                          } else {
+                            showToast("Floor plans must be a JSON array.", "error")
+                          }
+                        } catch {
+                          showToast("Invalid floor plans JSON.", "error")
+                        }
+                      }}
+                    />
+                    <textarea
+                      className="template-input sm:col-span-2 lg:col-span-3"
+                      placeholder="Sample review text"
+                      value={propertyForm.review_sample_text ?? ""}
+                      onChange={(event) =>
+                        setPropertyForm((current) => ({ ...current, review_sample_text: event.target.value }))
                       }
                     />
                   </div>
@@ -586,10 +964,10 @@ export function RepresentativeDashboardPage() {
                 <input
                   className="template-input w-full sm:w-96"
                   placeholder="Search by username, email, phone..."
-                  value={advertiserQuery}
+                  value={agentQuery}
                   onChange={(event) => {
-                    setAdvertiserQuery(event.target.value)
-                    setAdvertiserPage(1)
+                    setAgentQuery(event.target.value)
+                    setAgentPage(1)
                   }}
                 />
               </div>
@@ -601,12 +979,13 @@ export function RepresentativeDashboardPage() {
                       <th className="px-3 py-2">Name</th>
                       <th className="px-3 py-2">Email</th>
                       <th className="px-3 py-2">Phone</th>
+                      <th className="px-3 py-2">Ref %</th>
                       <th className="px-3 py-2">Status</th>
                       <th className="px-3 py-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedAdvertisers.map((item) => (
+                    {paginatedAgents.map((item) => (
                       <tr key={item.id} className="border-b border-white/10">
                         <td className="px-3 py-3">{item.username}</td>
                         <td className="px-3 py-3">
@@ -614,17 +993,18 @@ export function RepresentativeDashboardPage() {
                         </td>
                         <td className="px-3 py-3">{item.email}</td>
                         <td className="px-3 py-3">{item.phone || "-"}</td>
+                        <td className="px-3 py-3">{item.referral_commission_percent ?? "-"}</td>
                         <td className="px-3 py-3">{item.is_active ? "Active" : "Inactive"}</td>
                         <td className="px-3 py-3">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => editAdvertiser(item)}
+                              onClick={() => editAgent(item)}
                               className="rounded border border-white/20 px-2 py-1 text-xs"
                             >
                               Edit
                             </button>
                             <button
-                              onClick={() => removeAdvertiser(item.id)}
+                              onClick={() => removeAgent(item.id)}
                               className="rounded border border-rose-400/40 px-2 py-1 text-xs text-rose-300"
                             >
                               Delete
@@ -638,22 +1018,22 @@ export function RepresentativeDashboardPage() {
               </div>
               <div className="mt-4 flex items-center justify-between text-sm text-slate-300">
                 <p>
-                  Showing {paginatedAdvertisers.length} of {filteredAdvertisers.length} advertisers
+                  Showing {paginatedAgents.length} of {filteredAgents.length} agents
                 </p>
                 <div className="flex items-center gap-2">
                   <button
-                    disabled={advertiserPage <= 1}
-                    onClick={() => setAdvertiserPage((current) => Math.max(1, current - 1))}
+                    disabled={agentPage <= 1}
+                    onClick={() => setAgentPage((current) => Math.max(1, current - 1))}
                     className="rounded border border-white/20 px-3 py-1 disabled:opacity-40"
                   >
                     Previous
                   </button>
                   <span>
-                    Page {advertiserPage} / {advertiserTotalPages}
+                    Page {agentPage} / {agentTotalPages}
                   </span>
                   <button
-                    disabled={advertiserPage >= advertiserTotalPages}
-                    onClick={() => setAdvertiserPage((current) => Math.min(advertiserTotalPages, current + 1))}
+                    disabled={agentPage >= agentTotalPages}
+                    onClick={() => setAgentPage((current) => Math.min(agentTotalPages, current + 1))}
                     className="rounded border border-white/20 px-3 py-1 disabled:opacity-40"
                   >
                     Next
@@ -661,70 +1041,81 @@ export function RepresentativeDashboardPage() {
                 </div>
               </div>
 
-              {showAdvertiserForm ? (
+              {showAgentForm ? (
                 <div className="mt-6 rounded-2xl border border-white/15 bg-slate-950/50 p-5">
                   <h3 className="text-lg font-semibold">
-                    {editingAdvertiserId ? "Update Advertiser" : "Create Advertiser"}
+                    {editingAgentId ? "Update Agent" : "Create Agent"}
                   </h3>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <input
                       className="template-input"
                       placeholder="Username"
-                      value={advertiserForm.username}
+                      value={agentForm.username}
                       onChange={(event) =>
-                        setAdvertiserForm((current) => ({ ...current, username: event.target.value }))
+                        setAgentForm((current) => ({ ...current, username: event.target.value }))
                       }
                     />
                     <input
                       className="template-input"
                       placeholder="Email"
-                      value={advertiserForm.email}
+                      value={agentForm.email}
                       onChange={(event) =>
-                        setAdvertiserForm((current) => ({ ...current, email: event.target.value }))
+                        setAgentForm((current) => ({ ...current, email: event.target.value }))
                       }
                     />
                     <input
                       className="template-input"
-                      placeholder={editingAdvertiserId ? "Password (optional)" : "Password"}
+                      placeholder={editingAgentId ? "Password (optional)" : "Password"}
                       type="password"
-                      value={advertiserForm.password}
+                      value={agentForm.password}
                       onChange={(event) =>
-                        setAdvertiserForm((current) => ({ ...current, password: event.target.value }))
+                        setAgentForm((current) => ({ ...current, password: event.target.value }))
                       }
                     />
                     <input
                       className="template-input"
                       placeholder="First Name"
-                      value={advertiserForm.first_name}
+                      value={agentForm.first_name}
                       onChange={(event) =>
-                        setAdvertiserForm((current) => ({ ...current, first_name: event.target.value }))
+                        setAgentForm((current) => ({ ...current, first_name: event.target.value }))
                       }
                     />
                     <input
                       className="template-input"
                       placeholder="Last Name"
-                      value={advertiserForm.last_name}
+                      value={agentForm.last_name}
                       onChange={(event) =>
-                        setAdvertiserForm((current) => ({ ...current, last_name: event.target.value }))
+                        setAgentForm((current) => ({ ...current, last_name: event.target.value }))
                       }
                     />
                     <input
                       className="template-input"
                       placeholder="Phone"
-                      value={advertiserForm.phone}
+                      value={agentForm.phone}
                       onChange={(event) =>
-                        setAdvertiserForm((current) => ({ ...current, phone: event.target.value }))
+                        setAgentForm((current) => ({ ...current, phone: event.target.value }))
+                      }
+                    />
+                    <input
+                      className="template-input"
+                      placeholder="Referral commission %"
+                      value={agentForm.referral_commission_percent ?? "5.00"}
+                      onChange={(event) =>
+                        setAgentForm((current) => ({
+                          ...current,
+                          referral_commission_percent: event.target.value,
+                        }))
                       }
                     />
                   </div>
                   <div className="mt-4 flex gap-3">
                     <button
-                      onClick={saveAdvertiser}
+                      onClick={saveAgent}
                       className="rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-slate-950"
                     >
-                      {editingAdvertiserId ? "Update Advertiser" : "Create Advertiser"}
+                      {editingAgentId ? "Update Agent" : "Create Agent"}
                     </button>
-                    <button onClick={resetAdvertiserForm} className="rounded-xl border border-white/20 px-4 py-2">
+                    <button onClick={resetAgentForm} className="rounded-xl border border-white/20 px-4 py-2">
                       Cancel
                     </button>
                   </div>
