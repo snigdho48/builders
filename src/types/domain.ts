@@ -59,6 +59,7 @@ export type Property = {
   build_year: number | null
   bedrooms: number | null
   bathrooms: number | null
+  flat_label: string
   size_sqft: number | null
   for_rent: boolean
   for_sale: boolean
@@ -197,6 +198,7 @@ export type PropertyUpsertPayload = {
   build_year?: number | null
   bedrooms?: number | null
   bathrooms?: number | null
+  flat_label?: string
   size_sqft?: number | null
   for_rent?: boolean
   for_sale?: boolean
@@ -208,6 +210,18 @@ export type PropertyUpsertPayload = {
   review_sample_text?: string
   status?: PropertyStatus
   representative?: number | null
+}
+
+export type RetailInvestor = {
+  id: number
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+  is_active: boolean
+  phone: string
+  referral_code: string
+  date_joined: string
 }
 
 export type RepresentativeUser = {

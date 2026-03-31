@@ -74,7 +74,15 @@ export function DashboardPage() {
   return (
     <main className="bg-[#f4f6fb] px-4 py-10 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-[1240px]">
-        <h1 className="text-4xl font-semibold text-[#0b1f44]">Hi {userName.toLowerCase()}!</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <h1 className="text-4xl font-semibold text-[#0b1f44]">Hi {userName.toLowerCase()}!</h1>
+          <Link
+            to="/profile"
+            className="text-sm font-semibold text-[#f58e43] hover:underline"
+          >
+            Profile &amp; account settings
+          </Link>
+        </div>
 
         <section className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <article className="rounded-md border border-slate-200 bg-white px-5 py-4">

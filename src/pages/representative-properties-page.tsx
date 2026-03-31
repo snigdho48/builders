@@ -242,17 +242,17 @@ export function RepresentativePropertiesPage() {
       </div>
 
       <div className="mb-4">
-                <input
-                  className="template-input w-full sm:w-96"
-                  placeholder="Search by title, slug, location, type, status..."
-                  value={propertyQuery}
-                  onChange={(event) => {
-                    setPropertyQuery(event.target.value)
-                    setPropertyPage(1)
-                  }}
-                />
-              </div>
-              <div className="overflow-x-auto">
+        <input
+          className="template-input w-full sm:w-96"
+          placeholder="Search by title, slug, location, type, status..."
+          value={propertyQuery}
+          onChange={(event) => {
+            setPropertyQuery(event.target.value)
+            setPropertyPage(1)
+          }}
+        />
+      </div>
+      <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-300">

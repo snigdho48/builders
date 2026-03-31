@@ -16,6 +16,7 @@ const baseFields = {
   build_year: null as number | null,
   bedrooms: null as number | null,
   bathrooms: null as number | null,
+  flat_label: "",
   size_sqft: null as number | null,
   for_rent: false,
   for_sale: true,

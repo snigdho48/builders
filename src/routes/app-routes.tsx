@@ -3,8 +3,12 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import { Footer } from "@/components/layout/footer"
 import { Navbar } from "@/components/layout/navbar"
 import { PageTransitionLayout } from "@/components/layout/page-transition-layout"
+import { AdminDashboardHomePage } from "@/pages/admin-dashboard-home"
+import { AdminDashboardLayout } from "@/pages/admin-dashboard-layout"
+import { AdminInvestorsPage } from "@/pages/admin-investors-page"
+import { AdminPropertiesPage } from "@/pages/admin-properties-page"
+import { AdminRepresentativesPage } from "@/pages/admin-representatives-page"
 import { AuthPage } from "@/pages/auth-page"
-import { AdminDashboardPage } from "@/pages/admin-dashboard-page"
 import { AgentDashboardPage } from "@/pages/agent-dashboard-page"
 import { ContactPage } from "@/pages/contact-page"
 import { DashboardRouterPage } from "@/pages/dashboard-router-page"
@@ -15,7 +19,10 @@ import { PropertyDetailsPage } from "@/pages/property-details-page"
 import { ProfilePage } from "@/pages/profile-page"
 import { CartPage } from "@/pages/cart-page"
 import { RegisterPage } from "@/pages/register-page"
-import { RepresentativeDashboardPage } from "@/pages/representative-dashboard-page"
+import { RepresentativeAgentsPage } from "@/pages/representative-agents-page"
+import { RepresentativeDashboardHomePage } from "@/pages/representative-dashboard-home"
+import { RepresentativeDashboardLayout } from "@/pages/representative-dashboard-layout"
+import { RepresentativePropertiesPage } from "@/pages/representative-properties-page"
 import { ProtectedRoute } from "@/routes/protected-route"
 
 export function AppRoutes() {
@@ -60,18 +67,27 @@ export function AppRoutes() {
             path="/dashboard/admin"
             element={
               <ProtectedRoute allowRoles={["admin", "superadmin"]}>
-                <AdminDashboardPage />
+                <AdminDashboardLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<AdminDashboardHomePage />} />
+            <Route path="investors" element={<AdminInvestorsPage />} />
+            <Route path="properties" element={<AdminPropertiesPage />} />
+            <Route path="representatives" element={<AdminRepresentativesPage />} />
+          </Route>
           <Route
             path="/dashboard/representative"
             element={
               <ProtectedRoute allowRoles={["representative"]}>
-                <RepresentativeDashboardPage />
+                <RepresentativeDashboardLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<RepresentativeDashboardHomePage />} />
+            <Route path="properties" element={<RepresentativePropertiesPage />} />
+            <Route path="agents" element={<RepresentativeAgentsPage />} />
+          </Route>
           <Route
             path="/dashboard/agent"
             element={

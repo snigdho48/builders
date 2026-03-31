@@ -626,7 +626,9 @@ export function PropertyDetailsPage() {
                 </div>
                 <div className="flex justify-between border-b border-slate-100 py-2 pr-5">
                   <dt className="text-slate-500">Flat</dt>
-                  <dd className="font-medium text-slate-900">—</dd>
+                  <dd className="font-medium text-slate-900">
+                    {property.flat_label?.trim() ? property.flat_label : "—"}
+                  </dd>
                 </div>
                 <div className="flex justify-between border-b border-slate-100 py-2 pl-0 sm:pl-5">
                   <dt className="text-slate-500">Size</dt>

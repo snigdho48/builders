@@ -21,6 +21,9 @@ export function ProfilePage() {
   const [phone, setPhone] = useState("")
   const [photo, setPhoto] = useState<File | null>(null)
   const [message, setMessage] = useState("")
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   useEffect(() => {
     if (!token) {
@@ -57,6 +60,23 @@ export function ProfilePage() {
     }
     setMessage("Updating profile...")
     try {
+      if (newPassword || confirmPassword || currentPassword) {
+        if (!currentPassword) {
+          setMessage("Enter your current password to change it.")
+          showToast("Enter your current password to change it.", "error")
+          return
+        }
+        if (newPassword.length < 8) {
+          setMessage("New password must be at least 8 characters.")
+          showToast("New password must be at least 8 characters.", "error")
+          return
+        }
+        if (newPassword !== confirmPassword) {
+          setMessage("New password and confirmation do not match.")
+          showToast("New password and confirmation do not match.", "error")
+          return
+        }
+      }
       const formData = new FormData()
       formData.append("first_name", firstName)
       formData.append("last_name", lastName)
@@ -65,8 +85,15 @@ export function ProfilePage() {
       if (photo) {
         formData.append("profile_photo", photo)
       }
+      if (newPassword) {
+        formData.append("current_password", currentPassword)
+        formData.append("new_password", newPassword)
+      }
       const updated = await updateProfile(formData, token)
       setProfile(updated)
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
       setMessage("Profile updated successfully.")
       showToast("Profile updated successfully.", "success")
     } catch (error) {
@@ -82,6 +109,9 @@ export function ProfilePage() {
         <aside className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-xl font-semibold">Profile</h2>
           <p className="mt-1 text-sm text-slate-500">Role: {profile?.role ?? "investor"}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Username: <span className="font-medium text-slate-800">{profile?.username ?? "—"}</span>
+          </p>
           <div className="mt-5 h-44 w-44 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
             {photoUrl ? (
               <img src={photoUrl} alt="Profile" className="h-full w-full object-cover" />
@@ -121,6 +151,36 @@ export function ProfilePage() {
         <article className="rounded-2xl border border-slate-200 bg-white p-6">
           <h1 className="text-2xl font-semibold">Profile Settings</h1>
           <form className="mt-6 grid gap-3" onSubmit={handleSubmit}>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <p className="text-sm font-semibold text-[#0b1f44]">Security</p>
+              <p className="mt-1 text-xs text-slate-500">Leave blank to keep your current password.</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <input
+                  className="profile-input"
+                  type="password"
+                  placeholder="Current password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                />
+                <input
+                  className="profile-input"
+                  type="password"
+                  placeholder="New password (min 8)"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                />
+                <input
+                  className="profile-input"
+                  type="password"
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                />
+              </div>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <input
                 className="profile-input"

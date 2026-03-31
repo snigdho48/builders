@@ -17,6 +17,7 @@ import type {
   RepresentativeUpsertPayload,
   RepresentativeDashboardData,
   RepresentativeUser,
+  RetailInvestor,
 } from "@/types/domain"
 
 function normalizeDevApiBase(url: string): string {
@@ -241,6 +242,7 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
     build_year: raw.build_year != null ? Number(raw.build_year) : null,
     bedrooms: raw.bedrooms != null ? Number(raw.bedrooms) : null,
     bathrooms: raw.bathrooms != null ? Number(raw.bathrooms) : null,
+    flat_label: String(raw.flat_label ?? ""),
     size_sqft: raw.size_sqft != null ? Number(raw.size_sqft) : null,
     for_rent: Boolean(raw.for_rent),
     for_sale: raw.for_sale !== false,
@@ -258,10 +260,12 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
   }
 }
 
-export async function getProperties(options?: { pageSize?: number }): Promise<Property[]> {
-  const pageSize = Math.min(100, Math.max(10, options?.pageSize ?? 100))
+export async function getProperties(options?: { pageSize?: number; token?: string }): Promise<Property[]> {
+  const pageSize = Math.min(200, Math.max(10, options?.pageSize ?? 100))
   try {
-    const response = await request<Record<string, unknown>[]>(`/properties/?page_size=${pageSize}`)
+    const response = await request<Record<string, unknown>[]>(`/properties/?page_size=${pageSize}`, {
+      token: options?.token,
+    })
     return response.data.map((row) => normalizeProperty(row))
   } catch {
     return fallbackProperties
@@ -407,6 +411,11 @@ export async function getManagedProperties(token: string): Promise<Property[]> {
 
 export async function getRepresentatives(token: string): Promise<RepresentativeUser[]> {
   const response = await request<RepresentativeUser[]>("/representatives/?page_size=100", { token })
+  return response.data
+}
+
+export async function getRetailInvestors(token: string): Promise<RetailInvestor[]> {
+  const response = await request<RetailInvestor[]>("/investors/?page_size=200", { token })
   return response.data
 }
 
