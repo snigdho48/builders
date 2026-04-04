@@ -8,14 +8,17 @@ const smoothOut: [number, number, number, number] = [0.16, 1, 0.3, 1]
 const smoothIn: [number, number, number, number] = [0.4, 0, 0.2, 1]
 
 /**
- * Route transitions (Framer Motion). Navbar/footer stay fixed in the shell;
- * this wrapper is normal document flow — no absolute inner scroll trap — so
- * long pages (e.g. Contact) scroll with the window and the footer stays below content.
+ * Route transitions (Framer Motion). Non-dashboard: natural document height so the window scrolls.
+ * Under /dashboard: parent uses h-dvh + overflow-hidden; this layer clips so only DashboardShell’s
+ * <main> scrolls (top bar + sidebar stay fixed in the shell).
  */
 export function PageTransitionLayout() {
   const location = useLocation()
   const outlet = useOutlet()
-  const transitionKey = location.pathname + location.search
+  // Pathname only — query/hash changes (e.g. live search on /listings?q=…) must not remount
+  // the outlet or every keystroke would unmount the page and drop input focus.
+  const transitionKey = location.pathname
+  const isDashboard = transitionKey.startsWith("/dashboard")
   const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
@@ -58,11 +61,21 @@ export function PageTransitionLayout() {
   }, [prefersReducedMotion])
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden">
+    <div
+      className={
+        isDashboard
+          ? "flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-hidden"
+          : "flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden"
+      }
+    >
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={transitionKey}
-          className="flex w-full flex-1 flex-col will-change-[transform,opacity]"
+          className={
+            isDashboard
+              ? "flex min-h-0 w-full flex-1 flex-col overflow-hidden will-change-[transform,opacity]"
+              : "flex w-full flex-1 flex-col will-change-[transform,opacity]"
+          }
           variants={pageVariants}
           initial="initial"
           animate="animate"

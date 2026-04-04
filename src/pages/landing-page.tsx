@@ -5,7 +5,7 @@ import { RevealOnView, RevealStagger } from "@/components/motion/reveal-on-view"
 import { PropertyCard } from "@/components/property-card"
 import { getProperties } from "@/services/api"
 import type { Property } from "@/types/domain"
-import { pickDirectBuyTop, pickInstallmentTop } from "@/utils/property-lanes"
+import { pickInstallmentTop, pickPlotBuyTop } from "@/utils/property-lanes"
 
 const partnerNames = ["Trustpilot", "Google", "PropertyHub", "UrbanVest", "Prime Assets", "EstateFlow"]
 
@@ -16,9 +16,9 @@ const faqItems = [
       "You buy selected blocks for fixed duration, then track installments and ROI in your dashboard.",
   },
   {
-    question: "Can I directly buy blocks permanently?",
+    question: "Can I buy plots or blocks permanently?",
     answer:
-      "Yes. Direct buy keeps long-term ownership and appears immediately in investment history.",
+      "Yes. Plot buy keeps long-term ownership and appears immediately in investment history.",
   },
   {
     question: "How does referral commission work?",
@@ -51,14 +51,14 @@ export function LandingPage() {
     [properties]
   )
 
-  const directBuyTop = useMemo(
-    () => pickDirectBuyTop(available, LANE_CARD_LIMIT),
+  const plotBuyTop = useMemo(
+    () => pickPlotBuyTop(available, LANE_CARD_LIMIT),
     [available]
   )
 
   const installmentTop = useMemo(
-    () => pickInstallmentTop(available, directBuyTop, LANE_CARD_LIMIT),
-    [available, directBuyTop]
+    () => pickInstallmentTop(available, plotBuyTop, LANE_CARD_LIMIT),
+    [available, plotBuyTop]
   )
 
   return (
@@ -71,7 +71,7 @@ export function LandingPage() {
                 Journey To Your Perfect Luxury Home
               </h1>
               <p className="max-w-[840px] text-[1.05rem] leading-8 text-slate-100/95">
-                Explore premium opportunities with direct ownership and fractional investment plans.
+                Explore premium opportunities with plot buy and installment investment plans.
                 Track ROI, installments, and referrals in one modern dashboard.
               </p>
             </div>
@@ -80,7 +80,7 @@ export function LandingPage() {
                 type="button"
                 className="btn-alive rounded-t-2xl bg-[#f26932] px-8 py-3.5 font-semibold text-white shadow-[0_8px_28px_rgb(242_105_50/35%)] hover:brightness-105"
               >
-                Direct Buy
+                Plot Buy
               </button>
               <button
                 type="button"
@@ -152,8 +152,8 @@ export function LandingPage() {
       <section className="mx-auto max-w-7xl px-4 py-18 sm:px-6">
         <RevealOnView className="mb-8 flex w-full flex-wrap items-end justify-between gap-4" variant="fade-up">
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-[#f58e43]">Direct buy</p>
-            <h2 className="text-[2rem] font-semibold">Top properties for direct purchase</h2>
+            <p className="text-xs uppercase tracking-[0.25em] text-[#f58e43]">Plot buy</p>
+            <h2 className="text-[2rem] font-semibold">Top properties for plot buy</h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
               Whole land and per-block listings — best for upfront, full ownership style buys (up to{" "}
               {LANE_CARD_LIMIT}).
@@ -164,14 +164,14 @@ export function LandingPage() {
           </Link>
         </RevealOnView>
         <div className="flex flex-wrap justify-center gap-6">
-          {directBuyTop.map((property) => (
-            <div key={`direct-${property.id}`} className="w-full shrink-0 sm:w-[min(100%,340px)]">
+          {plotBuyTop.map((property) => (
+            <div key={`plot-${property.id}`} className="w-full shrink-0 sm:w-[min(100%,340px)]">
               <PropertyCard property={property} />
             </div>
           ))}
         </div>
-        {directBuyTop.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-slate-500">No direct-buy listings available yet.</p>
+        {plotBuyTop.length === 0 ? (
+          <p className="mt-6 text-center text-sm text-slate-500">No plot-buy listings available yet.</p>
         ) : null}
       </section>
 

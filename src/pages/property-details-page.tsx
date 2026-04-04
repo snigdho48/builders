@@ -19,9 +19,17 @@ import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons"
 
 import { useCart } from "@/contexts/use-cart"
 import { useToast } from "@/components/ui/use-toast"
-import { createInvestment, getProperties, getPropertyById } from "@/services/api"
+import { createInvestmentCheckoutRequest, getProperties, getPropertyById } from "@/services/api"
 import type { Property } from "@/types/domain"
 import { isPropertyBookmarked, togglePropertyBookmark } from "@/utils/property-bookmarks"
+import {
+  propertyPrimaryPriceLine,
+  propertySaleChannelBadgeClass,
+  propertySaleChannelLabel,
+} from "@/utils/property-display"
+import { formatBdtInteger } from "@/utils/currency"
+import { sanitizePropertyHtml } from "@/utils/html-sanitize"
+import { computeSharesForTierAmount, tierKey } from "@/utils/share-tiers"
 
 function formatRatingBadge(average: string | null | undefined, count: number): string | null {
   const n = count ?? 0
@@ -36,10 +44,10 @@ function formatRatingBadge(average: string | null | undefined, count: number): s
 
 function offeringBadgeLabel(property: Property): string {
   if (property.land_sale_mode === "fractional_share") {
-    const price = property.share_price ? Number(property.share_price) : NaN
-    const priceStr = Number.isFinite(price)
-      ? `$${price.toLocaleString(undefined, { maximumFractionDigits: 0 })}/share`
-      : ""
+    const priceStr =
+      property.share_price && Number.isFinite(Number(property.share_price))
+        ? `${formatBdtInteger(property.share_price)}/share`
+        : ""
     if (property.property_type === "land" && property.size_sqft != null) {
       const land = `${property.size_sqft.toLocaleString()} sqft`
       return priceStr ? `${land} · ${priceStr}` : `${land} · Fractional share`
@@ -47,8 +55,10 @@ function offeringBadgeLabel(property: Property): string {
     return priceStr || "Fractional share"
   }
   if (property.land_sale_mode === "whole_land") {
-    const price = property.whole_land_price ? Number(property.whole_land_price) : NaN
-    const priceStr = Number.isFinite(price) ? `$${price.toLocaleString()}` : ""
+    const priceStr =
+      property.whole_land_price && Number.isFinite(Number(property.whole_land_price))
+        ? formatBdtInteger(property.whole_land_price)
+        : ""
     if (property.property_type === "land" && property.size_sqft != null) {
       const land = `${property.size_sqft.toLocaleString()} sqft`
       return priceStr ? `${land} · ${priceStr}` : `${land} · Whole parcel`
@@ -56,9 +66,7 @@ function offeringBadgeLabel(property: Property): string {
     return priceStr || "Whole parcel"
   }
   const blockPrice = Number(property.price_per_block)
-  const priceStr = Number.isFinite(blockPrice)
-    ? `$${blockPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}/block`
-    : ""
+  const priceStr = Number.isFinite(blockPrice) ? `${formatBdtInteger(property.price_per_block)}/block` : ""
   if (property.property_type === "land") {
     if (property.size_sqft != null) {
       return priceStr ? `${property.size_sqft.toLocaleString()} sqft · ${priceStr}` : `${property.size_sqft.toLocaleString()} sqft`
@@ -76,18 +84,18 @@ function minimumInvestLabel(property: Property): string {
     const unit = Number(property.share_price)
     if (Number.isFinite(unit)) {
       const total = unit * minShares
-      return `From $${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} (${minShares} share${minShares === 1 ? "" : "s"})`
+      return `From ${formatBdtInteger(total)} (${minShares} share${minShares === 1 ? "" : "s"})`
     }
   }
   if (property.land_sale_mode === "whole_land") {
     const w = Number(property.whole_land_price)
     if (Number.isFinite(w)) {
-      return `From $${w.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      return `From ${formatBdtInteger(property.whole_land_price)}`
     }
   }
   const pb = Number(property.price_per_block)
   if (Number.isFinite(pb)) {
-    return `From $${pb.toLocaleString(undefined, { maximumFractionDigits: 0 })} per block`
+    return `From ${formatBdtInteger(property.price_per_block)} per block`
   }
   return "—"
 }
@@ -119,11 +127,13 @@ export function PropertyDetailsPage() {
   const [activeFloorIdx, setActiveFloorIdx] = useState(0)
   const [blocksOwned, setBlocksOwned] = useState(1)
   const [sharesOwned, setSharesOwned] = useState(1)
-  const [investmentType, setInvestmentType] = useState<"direct" | "installment">("direct")
+  const [investmentType, setInvestmentType] = useState<"plot_buy" | "installment">("plot_buy")
   const [durationYears, setDurationYears] = useState(3)
+  const [tierIndex, setTierIndex] = useState(0)
   const [referralCode, setReferralCode] = useState("")
   const [message, setMessage] = useState("")
   const [userRole, setUserRole] = useState<string | null>(() => localStorage.getItem("userRole"))
+  const [sessionActive, setSessionActive] = useState(() => Boolean(localStorage.getItem("accessToken")))
   const [shareOpen, setShareOpen] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
   const shareWrapRef = useRef<HTMLDivElement>(null)
@@ -165,9 +175,7 @@ export function PropertyDetailsPage() {
   useEffect(() => {
     getPropertyById(id).then((p) => {
       setProperty(p)
-      if (p?.land_sale_mode === "fractional_share") {
-        setSharesOwned(Math.max(1, p.min_shares_per_order || 1))
-      }
+      setTierIndex(0)
     })
     getProperties().then((items) => setRelated(items.filter((item) => String(item.id) !== id)))
   }, [id])
@@ -177,7 +185,10 @@ export function PropertyDetailsPage() {
   }, [id])
 
   useEffect(() => {
-    const syncRole = () => setUserRole(localStorage.getItem("userRole"))
+    const syncRole = () => {
+      setUserRole(localStorage.getItem("userRole"))
+      setSessionActive(Boolean(localStorage.getItem("accessToken")))
+    }
     window.addEventListener("auth-state-changed", syncRole)
     return () => window.removeEventListener("auth-state-changed", syncRole)
   }, [])
@@ -241,6 +252,31 @@ export function PropertyDetailsPage() {
     setActiveImage((i) => Math.min(i, Math.max(0, n - 1)))
   }, [galleryImages.length])
 
+  const shareTiers = property?.share_investment_options ?? []
+  const useTierUi =
+    !!property &&
+    property.land_sale_mode === "fractional_share" &&
+    investmentType === "installment" &&
+    shareTiers.length > 0
+
+  useEffect(() => {
+    if (!property || property.land_sale_mode !== "fractional_share") {
+      return
+    }
+    const tlist = property.share_investment_options ?? []
+    if (investmentType === "installment" && tlist.length > 0) {
+      const i = Math.min(Math.max(0, tierIndex), tlist.length - 1)
+      const t = tlist[i]
+      const s = computeSharesForTierAmount(property.share_price, t.amount)
+      if (s != null) {
+        setSharesOwned(s)
+      }
+      setDurationYears(t.duration_years)
+    } else {
+      setSharesOwned(Math.max(1, property.min_shares_per_order || 1))
+    }
+  }, [property, investmentType, tierIndex])
+
   const mapDirectionsUrl = useMemo(() => {
     if (!property) {
       return "https://www.google.com/maps"
@@ -292,10 +328,15 @@ export function PropertyDetailsPage() {
         showToast("This property cannot be added to cart.", "error")
         return
       }
+      const tier =
+        useTierUi && shareTiers.length > 0
+          ? shareTiers[Math.min(tierIndex, shareTiers.length - 1)]
+          : undefined
       addItem(property, {
         shares: sharesOwned,
         investment_type: investmentType,
         duration_years: investmentType === "installment" ? durationYears : 0,
+        share_tier: tier ?? null,
       })
     } else if (property.land_sale_mode === "whole_land") {
       if (property.status === "sold" || property.available_blocks < 1) {
@@ -332,28 +373,28 @@ export function PropertyDetailsPage() {
       return
     }
 
-    setMessage("Creating investment...")
+    setMessage("Submitting investment request...")
 
     try {
       const referral_code_used = referralCode || undefined
       const common = {
         property: property.id,
-        type: investmentType,
+        investment_type: investmentType,
         duration_years: investmentType === "installment" ? durationYears : 0,
         referral_code_used,
       }
       if (property.land_sale_mode === "fractional_share") {
-        await createInvestment(
+        await createInvestmentCheckoutRequest(
           { ...common, blocks_owned: 0, shares_owned: sharesOwned },
           token
         )
       } else if (property.land_sale_mode === "whole_land") {
-        await createInvestment({ ...common, blocks_owned: 1 }, token)
+        await createInvestmentCheckoutRequest({ ...common, blocks_owned: 1, shares_owned: 0 }, token)
       } else {
-        await createInvestment({ ...common, blocks_owned: blocksOwned }, token)
+        await createInvestmentCheckoutRequest({ ...common, blocks_owned: blocksOwned, shares_owned: 0 }, token)
       }
-      setMessage("Investment created successfully. Check dashboard for updates.")
-      showToast("Investment created successfully.", "success")
+      setMessage("Request sent to the assigned agent and representative. Approve in dashboard, then complete.")
+      showToast("Investment request submitted.", "success")
       const freshProperty = await getPropertyById(String(property.id))
       if (freshProperty) {
         setProperty(freshProperty)
@@ -580,12 +621,6 @@ export function PropertyDetailsPage() {
                   {ratingLabel}
                 </span>
               ) : null}
-              {property.for_rent ? (
-                <span className="rounded-full bg-[#ecf5ff] px-3 py-1 text-sm text-[#0b1f44]">For Rent</span>
-              ) : null}
-              {property.for_sale ? (
-                <span className="rounded-full bg-[#ecf5ff] px-3 py-1 text-sm text-[#0b1f44]">For Sale</span>
-              ) : null}
               <span
                 className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
                 title="Offering detail (land size and/or price depends on listing type)"
@@ -599,9 +634,19 @@ export function PropertyDetailsPage() {
 
             <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
               <h3 className="mb-3 text-2xl font-semibold text-[#0b1f44]">Description</h3>
-              <p className="leading-8 text-slate-600">{property.description}</p>
-              {property.description_secondary ? (
-                <p className="mt-4 leading-8 text-slate-600">{property.description_secondary}</p>
+              {property.description?.trim() ? (
+                <div
+                  className="property-rich-text max-w-none leading-8 text-slate-600 [&_a]:break-words [&_a]:text-[#f58e43] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-[#0b1f44] [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#0b1f44] [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
+                  dangerouslySetInnerHTML={{ __html: sanitizePropertyHtml(property.description) }}
+                />
+              ) : (
+                <p className="text-slate-500">No description yet.</p>
+              )}
+              {property.description_secondary?.trim() ? (
+                <div
+                  className="property-rich-text mt-6 max-w-none border-t border-slate-100 pt-6 leading-8 text-slate-600 [&_a]:break-words [&_a]:text-[#f58e43] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-[#0b1f44] [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#0b1f44] [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
+                  dangerouslySetInnerHTML={{ __html: sanitizePropertyHtml(property.description_secondary) }}
+                />
               ) : null}
             </motion.section>
 
@@ -778,9 +823,13 @@ export function PropertyDetailsPage() {
               <h3 className="text-2xl font-semibold text-[#0b1f44]">Review</h3>
               <p className="mt-2 text-sm text-slate-600">
                 Ratings reflect feedback from investors.{" "}
-                <Link to="/auth" className="font-semibold text-[#f58e43] hover:underline">
-                  Log in to write your review
-                </Link>
+                {sessionActive ? (
+                  <span className="text-slate-600">Post-your-review flow is not wired yet; use Contact for feedback.</span>
+                ) : (
+                  <Link to="/auth" className="font-semibold text-[#f58e43] hover:underline">
+                    Log in to write your review
+                  </Link>
+                )}
               </p>
               <div className="mt-6 border-t border-slate-100 pt-5">
                 {ratingLabel ? (
@@ -818,13 +867,20 @@ export function PropertyDetailsPage() {
                       className="h-44 w-full object-cover"
                     />
                     <div className="space-y-2 p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-semibold text-slate-500">
                           {item.rating_average ?? "—"} ({item.review_count})
                         </span>
-                        <button type="button" className="text-sm text-slate-500">
-                          <FontAwesomeIcon icon={faHeartRegular} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${propertySaleChannelBadgeClass(item)}`}
+                          >
+                            {propertySaleChannelLabel(item)}
+                          </span>
+                          <button type="button" className="text-sm text-slate-500">
+                            <FontAwesomeIcon icon={faHeartRegular} />
+                          </button>
+                        </div>
                       </div>
                       <h4 className="text-lg font-semibold text-[#0b1f44]">{item.title}</h4>
                       <p className="text-sm text-slate-500">{item.location_name}</p>
@@ -834,17 +890,11 @@ export function PropertyDetailsPage() {
                         <span>Bed {item.bedrooms ?? "—"}</span>
                         <span>Bath {item.bathrooms ?? "—"}</span>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-semibold text-[#f58e43]">
-                          {item.land_sale_mode === "fractional_share"
-                            ? `$${item.share_price ?? "0"}/share`
-                            : item.land_sale_mode === "whole_land"
-                              ? `Whole from $${item.whole_land_price ?? item.price_per_block}`
-                              : `$${item.price_per_block}/block`}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 text-sm">
+                        <span className="font-semibold text-[#f58e43]">{propertyPrimaryPriceLine(item)}</span>
                         <Link
                           to={`/properties/${item.id}`}
-                          className="rounded-full border border-[#f58e43] px-3 py-1 font-medium text-[#f58e43]"
+                          className="shrink-0 rounded-full border border-[#f58e43] px-3 py-1 font-medium text-[#f58e43]"
                         >
                           Details
                         </Link>
@@ -923,21 +973,58 @@ export function PropertyDetailsPage() {
                 <select
                   className="detail-input"
                   value={investmentType}
-                  onChange={(event) => setInvestmentType(event.target.value as "direct" | "installment")}
+                  onChange={(event) => setInvestmentType(event.target.value as "plot_buy" | "installment")}
                 >
-                  <option value="direct">Direct Buy</option>
+                  <option value="plot_buy">Plot buy</option>
                   <option value="installment">Installment Basis</option>
                 </select>
                 {property.land_sale_mode === "fractional_share" ? (
-                  <input
-                    className="detail-input"
-                    type="number"
-                    min={property.min_shares_per_order}
-                    max={property.available_shares ?? undefined}
-                    value={sharesOwned}
-                    onChange={(event) => setSharesOwned(Number(event.target.value))}
-                    placeholder="Shares to buy"
-                  />
+                  useTierUi ? (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-slate-600">
+                        Share tier (amount & term set by the representative)
+                      </p>
+                      <div className="grid gap-2">
+                        {shareTiers.map((t, idx) => {
+                          const nShares = computeSharesForTierAmount(property.share_price, t.amount)
+                          const label =
+                            nShares != null
+                              ? `${formatBdtInteger(t.amount)} · ${t.duration_years} yr (${nShares} shares)`
+                              : `${formatBdtInteger(t.amount)} · ${t.duration_years} yr`
+                          return (
+                            <label
+                              key={tierKey(t)}
+                              className={[
+                                "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                                tierIndex === idx
+                                  ? "border-[#f58e43] bg-[#fff7f1]"
+                                  : "border-slate-200 hover:border-slate-300",
+                              ].join(" ")}
+                            >
+                              <input
+                                type="radio"
+                                name="share-tier"
+                                className="accent-[#f58e43]"
+                                checked={tierIndex === idx}
+                                onChange={() => setTierIndex(idx)}
+                              />
+                              <span className="font-medium text-slate-800">{label}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <input
+                      className="detail-input"
+                      type="number"
+                      min={property.min_shares_per_order}
+                      max={property.available_shares ?? undefined}
+                      value={sharesOwned}
+                      onChange={(event) => setSharesOwned(Number(event.target.value))}
+                      placeholder="Shares to buy"
+                    />
+                  )
                 ) : property.land_sale_mode === "whole_land" ? (
                   <p className="text-sm text-slate-600">Purchases the entire remaining listing in one transaction.</p>
                 ) : (
@@ -951,7 +1038,7 @@ export function PropertyDetailsPage() {
                     placeholder="Blocks to buy"
                   />
                 )}
-                {investmentType === "installment" ? (
+                {investmentType === "installment" && !useTierUi ? (
                   <select
                     className="detail-input"
                     value={durationYears}

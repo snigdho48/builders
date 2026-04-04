@@ -3,15 +3,17 @@ import type { ReactNode } from "react"
 
 import { CartContext } from "@/contexts/use-cart"
 import { fetchPropertyFresh } from "@/services/api"
-import type { CartLine, Property } from "@/types/domain"
+import type { CartLine, Property, ShareInvestmentOption } from "@/types/domain"
+import { computeSharesForTierAmount, findTierOption, tierKey } from "@/utils/share-tiers"
 
 const STORAGE_KEY = "homirx-property-cart"
 
 type AddOptions = {
   blocks?: number
   shares?: number
-  investment_type?: "direct" | "installment"
+  investment_type?: "plot_buy" | "installment"
   duration_years?: number
+  share_tier?: ShareInvestmentOption | null
 }
 
 function loadStored(): CartLine[] {
@@ -43,10 +45,28 @@ function persist(items: CartLine[]) {
 function toLine(property: Property, options?: AddOptions): CartLine {
   const mode = property.land_sale_mode
   const minShares = Math.max(1, property.min_shares_per_order || 1)
+  const tierOpts = property.share_investment_options ?? []
 
   if (mode === "fractional_share") {
-    const shares = Math.max(minShares, options?.shares ?? minShares)
     const cap = property.available_shares ?? 0
+    const tier = options?.share_tier
+      ? findTierOption(tierOpts, options.share_tier)
+      : undefined
+    let shares = Math.max(minShares, options?.shares ?? minShares)
+    let duration_years = options?.duration_years ?? 0
+    let investment_type = options?.investment_type ?? "plot_buy"
+    let share_tier: ShareInvestmentOption | null | undefined = null
+
+    if (tier) {
+      const fromTier = computeSharesForTierAmount(property.share_price, tier.amount)
+      if (fromTier != null) {
+        shares = Math.max(minShares, fromTier)
+      }
+      duration_years = tier.duration_years
+      investment_type = options?.investment_type ?? "installment"
+      share_tier = tier
+    }
+
     const capped = cap > 0 ? Math.min(shares, cap) : shares
     return {
       propertyId: property.id,
@@ -63,8 +83,10 @@ function toLine(property: Property, options?: AddOptions): CartLine {
       min_shares_per_order: minShares,
       blocks_owned: 0,
       shares_owned: cap > 0 ? capped : 0,
-      investment_type: options?.investment_type ?? "direct",
-      duration_years: options?.duration_years ?? 0,
+      investment_type,
+      duration_years,
+      share_tier: share_tier ?? null,
+      share_investment_options: tierOpts,
     }
   }
 
@@ -84,8 +106,10 @@ function toLine(property: Property, options?: AddOptions): CartLine {
       min_shares_per_order: minShares,
       blocks_owned: 1,
       shares_owned: 0,
-      investment_type: options?.investment_type ?? "direct",
+      investment_type: options?.investment_type ?? "plot_buy",
       duration_years: options?.duration_years ?? 0,
+      share_tier: null,
+      share_investment_options: [],
     }
   }
 
@@ -106,8 +130,10 @@ function toLine(property: Property, options?: AddOptions): CartLine {
     min_shares_per_order: minShares,
     blocks_owned: property.available_blocks > 0 ? capped : 0,
     shares_owned: 0,
-    investment_type: options?.investment_type ?? "direct",
+    investment_type: options?.investment_type ?? "plot_buy",
     duration_years: options?.duration_years ?? 0,
+    share_tier: null,
+    share_investment_options: [],
   }
 }
 
@@ -143,9 +169,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const existing = current[idx]
         let nextLine: CartLine = { ...existing, ...incoming }
         if (property.land_sale_mode === "fractional_share") {
-          const cap = property.available_shares ?? 0
-          const merged = Math.min(cap, existing.shares_owned + incoming.shares_owned)
-          nextLine = { ...nextLine, shares_owned: merged }
+          const tierMode = !!(incoming.share_tier || existing.share_tier)
+          if (tierMode) {
+            nextLine = { ...existing, ...incoming }
+          } else {
+            const cap = property.available_shares ?? 0
+            const merged = Math.min(cap, existing.shares_owned + incoming.shares_owned)
+            nextLine = { ...nextLine, shares_owned: merged }
+          }
         } else if (property.land_sale_mode === "per_block") {
           const mergedBlocks = Math.min(
             property.available_blocks,
@@ -162,18 +193,68 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const updateLine = useCallback(
-    (propertyId: number, patch: Partial<Pick<CartLine, "blocks_owned" | "shares_owned">>) => {
+    (
+      propertyId: number,
+      patch: Partial<
+        Pick<
+          CartLine,
+          | "blocks_owned"
+          | "shares_owned"
+          | "share_tier"
+          | "investment_type"
+          | "duration_years"
+        >
+      >
+    ) => {
       setItems((current) => {
-        const next = current.map((line) => {
+        const next: CartLine[] = current.map((line): CartLine => {
           if (line.propertyId !== propertyId) {
             return line
           }
           if (line.land_sale_mode === "fractional_share") {
+            const opts = line.share_investment_options ?? []
+            if (patch.share_tier !== undefined) {
+              const tier = patch.share_tier
+                ? findTierOption(opts, patch.share_tier)
+                : null
+              if (!tier) {
+                const minS = Math.max(1, line.min_shares_per_order)
+                const cap = line.available_shares ?? 0
+                let shares = patch.shares_owned ?? line.shares_owned
+                shares = Math.max(minS, cap > 0 ? Math.min(cap, shares) : shares)
+                return {
+                  ...line,
+                  share_tier: null,
+                  investment_type: (patch.investment_type ?? line.investment_type) as CartLine["investment_type"],
+                  duration_years: patch.duration_years ?? line.duration_years,
+                  shares_owned: shares,
+                }
+              }
+              const fromTier = computeSharesForTierAmount(line.share_price, tier.amount)
+              const minS = Math.max(1, line.min_shares_per_order)
+              const cap = line.available_shares ?? 0
+              let shares =
+                fromTier != null ? Math.max(minS, fromTier) : patch.shares_owned ?? line.shares_owned
+              shares = Math.max(minS, cap > 0 ? Math.min(cap, shares) : shares)
+                return {
+                  ...line,
+                  share_tier: tier,
+                  investment_type: "installment",
+                  duration_years: tier.duration_years,
+                  shares_owned: shares,
+                }
+            }
             let shares = patch.shares_owned ?? line.shares_owned
             const minS = Math.max(1, line.min_shares_per_order)
             const cap = line.available_shares ?? 0
             shares = Math.max(minS, cap > 0 ? Math.min(cap, shares) : shares)
-            return { ...line, shares_owned: shares }
+            return {
+              ...line,
+              shares_owned: shares,
+              investment_type: (patch.investment_type ?? line.investment_type) as CartLine["investment_type"],
+              duration_years:
+                patch.duration_years !== undefined ? patch.duration_years : line.duration_years,
+            }
           }
           let blocks = patch.blocks_owned ?? line.blocks_owned
           blocks = Math.max(1, Math.min(line.available_blocks, blocks))
@@ -216,7 +297,58 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (line.land_sale_mode === "fractional_share") {
         const minS = Math.max(1, prop.min_shares_per_order || 1)
         const cap = prop.available_shares ?? 0
-        const shares = Math.max(minS, Math.min(cap, line.shares_owned))
+        const opts = prop.share_investment_options ?? []
+        if (line.share_tier) {
+          const still = opts.some((o) => tierKey(o) === tierKey(line.share_tier!))
+          if (!still) {
+            continue
+          }
+          const matched = findTierOption(opts, line.share_tier)
+          if (!matched) {
+            continue
+          }
+          const fromTier = computeSharesForTierAmount(prop.share_price, matched.amount)
+          let shares =
+            fromTier != null ? Math.max(minS, fromTier) : Math.max(minS, Math.min(cap, line.shares_owned))
+          shares = Math.max(minS, cap > 0 ? Math.min(cap, shares) : shares)
+          next.push({
+            ...line,
+            title: prop.title,
+            slug: prop.slug,
+            top_view_image: prop.top_view_image,
+            location_name: prop.location_name,
+            price_per_block: prop.price_per_block,
+            whole_land_price: prop.whole_land_price,
+            share_price: prop.share_price,
+            available_blocks: prop.available_blocks,
+            available_shares: prop.available_shares,
+            min_shares_per_order: minS,
+            shares_owned: shares,
+            share_tier: matched,
+            share_investment_options: opts,
+            duration_years: matched.duration_years,
+          })
+          continue
+        }
+        let resolvedTier: ShareInvestmentOption | null = null
+        if (line.investment_type === "installment" && opts.length > 0) {
+          resolvedTier =
+            opts.find((o) => {
+              const n = computeSharesForTierAmount(prop.share_price, o.amount)
+              return (
+                n != null &&
+                n === line.shares_owned &&
+                o.duration_years === line.duration_years
+              )
+            }) ?? null
+        }
+        let shares = Math.max(minS, Math.min(cap, line.shares_owned))
+        if (resolvedTier) {
+          const fromTier = computeSharesForTierAmount(prop.share_price, resolvedTier.amount)
+          if (fromTier != null) {
+            shares = Math.max(minS, cap > 0 ? Math.min(cap, fromTier) : fromTier)
+          }
+        }
         next.push({
           ...line,
           title: prop.title,
@@ -230,6 +362,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           available_shares: prop.available_shares,
           min_shares_per_order: minS,
           shares_owned: shares,
+          share_tier: resolvedTier,
+          share_investment_options: opts,
+          duration_years: resolvedTier ? resolvedTier.duration_years : line.duration_years,
         })
       } else if (line.land_sale_mode === "whole_land") {
         if (prop.available_blocks < 1) {
@@ -289,6 +424,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return unit * Math.max(0, line.available_blocks)
     }
     if (line.land_sale_mode === "fractional_share") {
+      if (line.share_tier) {
+        return Number.parseFloat(line.share_tier.amount) || 0
+      }
       const sp = Number.parseFloat(line.share_price || "0") || 0
       return sp * line.shares_owned
     }

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -206,7 +207,47 @@
   }
 
   .template-input {
-    @apply w-full rounded-xl border border-white/22 bg-[#223956]/70 px-4 py-3.5 text-sm text-white placeholder:text-slate-300 focus:border-[#f58e43] focus:outline-none;
+    @apply w-full rounded-xl border border-white/15 bg-[#1a2d4a]/85 px-4 py-3 text-sm text-white shadow-[inset_0_1px_0_rgb(255_255_255/4%)] placeholder:text-slate-400 transition-[border-color,box-shadow] duration-200 focus:border-[#f58e43]/90 focus:outline-none focus:ring-2 focus:ring-[#f58e43]/25;
+  }
+
+  .dashboard-modal-scroll {
+    scrollbar-gutter: stable;
+  }
+
+  .dashboard-modal-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .dashboard-modal-scroll::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/14;
+  }
+
+  .dashboard-modal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dashboard-modal-btn-primary {
+    @apply inline-flex min-h-8 items-center justify-center rounded-lg bg-linear-to-b from-emerald-400 to-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-slate-950 shadow-[0_1px_0_rgb(255_255_255/30%)_inset,0_6px_20px_rgb(16_185_129/18%)] transition hover:brightness-105 active:translate-y-px motion-reduce:transition-none;
+  }
+
+  .dashboard-modal-btn-secondary {
+    @apply inline-flex min-h-8 items-center justify-center rounded-lg border border-white/14 bg-white/4 px-3.5 py-1.5 text-xs font-medium text-slate-200 transition hover:border-white/22 hover:bg-white/8 active:translate-y-px motion-reduce:transition-none;
+  }
+
+  .dashboard-filters-row {
+    @apply flex flex-nowrap items-end gap-3 overflow-x-auto pb-1;
+  }
+
+  .dashboard-filter-group {
+    @apply flex shrink-0 flex-col gap-1;
+  }
+
+  .dashboard-filter-input {
+    @apply h-9 rounded-md border border-white/10 bg-[#152a45]/95 px-2 text-xs text-white placeholder:text-slate-500 focus:border-[#f58e43]/50 focus:outline-none;
+  }
+
+  .dashboard-filter-select-shell {
+    @apply h-9 rounded-md border border-white/10 bg-[#152a45]/95 px-2;
   }
 
   .detail-input {

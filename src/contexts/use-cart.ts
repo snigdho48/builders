@@ -1,12 +1,13 @@
 import { createContext, useContext } from "react"
 
-import type { CartLine, Property } from "@/types/domain"
+import type { CartLine, Property, ShareInvestmentOption } from "@/types/domain"
 
 type AddOptions = {
   blocks?: number
   shares?: number
-  investment_type?: "direct" | "installment"
+  investment_type?: "plot_buy" | "installment"
   duration_years?: number
+  share_tier?: ShareInvestmentOption | null
 }
 
 export type CartContextValue = {
@@ -18,7 +19,16 @@ export type CartContextValue = {
   addItem: (property: Property, options?: AddOptions) => void
   updateLine: (
     propertyId: number,
-    patch: Partial<Pick<CartLine, "blocks_owned" | "shares_owned">>
+    patch: Partial<
+      Pick<
+        CartLine,
+        | "blocks_owned"
+        | "shares_owned"
+        | "share_tier"
+        | "investment_type"
+        | "duration_years"
+      >
+    >
   ) => void
   removeItem: (propertyId: number) => void
   clear: () => void

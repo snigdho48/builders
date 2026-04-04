@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFacebookF, faInstagram, faLinkedinIn, faXTwitter } from "@fortawesome/free-brands-svg-icons"
+import { useLocation } from "react-router-dom"
 
 export function Footer() {
   const gallery = [
@@ -85,4 +86,14 @@ export function Footer() {
       </div>
     </footer>
   )
+}
+
+/** Staff dashboards (admin / representative / agent) omit the marketing footer; investor dashboard keeps it. */
+export function ConditionalFooter() {
+  const { pathname } = useLocation()
+  const role = localStorage.getItem("userRole")
+  if (pathname.startsWith("/dashboard") && role !== "investor") {
+    return null
+  }
+  return <Footer />
 }

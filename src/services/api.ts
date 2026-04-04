@@ -5,19 +5,34 @@ import type {
   AgentUpsertPayload,
   AgentUser,
   ApiEnvelope,
+  CreateInvestmentCheckoutPayload,
   CreateInvestmentPayload,
   DashboardData,
   FloorPlanItem,
   Investment,
+  InvestmentCheckoutListFilters,
+  InvestmentCheckoutRequest,
+  InvestmentListFilters,
+  InvestmentType,
+  KycFieldChoice,
+  KycFieldDefinition,
+  KycTemplate,
   LandSaleMode,
+  PaymentRecord,
+  PaymentRequestRecord,
   MeResponse,
   Property,
   PropertyChannel,
   PropertyUpsertPayload,
+  ShareInvestmentOption,
   RepresentativeUpsertPayload,
   RepresentativeDashboardData,
   RepresentativeUser,
   RetailInvestor,
+  RedemptionRequest,
+  InvestorUpsertPayload,
+  UserKycSubmission,
+  UserNotification,
 } from "@/types/domain"
 
 function normalizeDevApiBase(url: string): string {
@@ -28,7 +43,7 @@ function normalizeDevApiBase(url: string): string {
 }
 
 const API_BASE = normalizeDevApiBase(
-  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api"
+  "http://127.0.0.1:8000/api"
 )
 
 type RequestOptions = {
@@ -41,15 +56,27 @@ type RequestOptions = {
 }
 
 function extractErrorMessage(payload: unknown, status: number): string {
-  if (
-    payload &&
-    typeof payload === "object" &&
-    "error" in payload &&
-    payload.error &&
-    typeof payload.error === "object" &&
-    "message" in payload.error
-  ) {
-    return String((payload.error as { message: string }).message)
+  if (payload && typeof payload === "object" && "error" in payload && payload.error && typeof payload.error === "object") {
+    const err = payload.error as { message?: string; details?: unknown }
+    const d = err.details
+    if (d !== undefined && d !== null) {
+      if (typeof d === "string") return d
+      if (Array.isArray(d) && d.length > 0) return String(d[0])
+      if (typeof d === "object") {
+        const rec = d as Record<string, unknown>
+        const nf = rec.non_field_errors
+        if (Array.isArray(nf) && nf.length > 0) return String(nf[0])
+        if (typeof nf === "string") return nf
+        const detail = rec.detail
+        if (typeof detail === "string") return detail
+        if (Array.isArray(detail) && detail.length > 0) return String(detail[0])
+        for (const v of Object.values(rec)) {
+          if (Array.isArray(v) && v.length > 0) return String(v[0])
+          if (typeof v === "string") return v
+        }
+      }
+    }
+    if (err.message) return String(err.message)
   }
   return `API request failed (${status})`
 }
@@ -140,6 +167,8 @@ async function refreshAccessToken(): Promise<string | null> {
       localStorage.removeItem("accessToken")
       localStorage.removeItem("refreshToken")
       localStorage.removeItem("userRole")
+      localStorage.removeItem("userId")
+      localStorage.removeItem("userUsername")
       notifyAuthStateChanged()
       redirectToAuthOnSessionExpired()
       return null
@@ -162,6 +191,8 @@ async function refreshAccessToken(): Promise<string | null> {
       localStorage.removeItem("accessToken")
       localStorage.removeItem("refreshToken")
       localStorage.removeItem("userRole")
+      localStorage.removeItem("userId")
+      localStorage.removeItem("userUsername")
       notifyAuthStateChanged()
       redirectToAuthOnSessionExpired()
       return null
@@ -175,6 +206,26 @@ async function refreshAccessToken(): Promise<string | null> {
 
 function asStringList(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []
+}
+
+function asShareInvestmentOptions(v: unknown): ShareInvestmentOption[] {
+  if (!Array.isArray(v)) {
+    return []
+  }
+  const out: ShareInvestmentOption[] = []
+  for (const row of v) {
+    if (!row || typeof row !== "object") {
+      continue
+    }
+    const o = row as Record<string, unknown>
+    const amount = o.amount != null ? String(o.amount) : ""
+    const duration_years = o.duration_years != null ? Number(o.duration_years) : 0
+    if (!amount || duration_years <= 0) {
+      continue
+    }
+    out.push({ amount, duration_years })
+  }
+  return out
 }
 
 function asFloorPlans(v: unknown): FloorPlanItem[] {
@@ -206,12 +257,14 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
   const mode = (raw.land_sale_mode as LandSaleMode) || "per_block"
   const rawChannel = raw.property_channel
   let property_channel: PropertyChannel
-  if (rawChannel === "installment" || rawChannel === "direct_buy") {
+  if (rawChannel === "installment" || rawChannel === "plot_buy") {
     property_channel = rawChannel
+  } else if (rawChannel === "direct_buy") {
+    property_channel = "plot_buy"
   } else if (rawChannel == null || rawChannel === "") {
-    property_channel = mode === "fractional_share" ? "installment" : "direct_buy"
+    property_channel = mode === "fractional_share" ? "installment" : "plot_buy"
   } else {
-    property_channel = "direct_buy"
+    property_channel = "plot_buy"
   }
   return {
     id: Number(raw.id),
@@ -253,10 +306,17 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
     review_sample_date: raw.review_sample_date != null ? String(raw.review_sample_date) : null,
     review_sample_text: String(raw.review_sample_text ?? ""),
     status: (raw.status as Property["status"]) ?? "available",
+    listing_active: raw.listing_active !== false,
+    expected_profit_percent: raw.expected_profit_percent != null ? String(raw.expected_profit_percent) : null,
+    investment_window_start: raw.investment_window_start != null ? String(raw.investment_window_start) : null,
+    investment_window_end: raw.investment_window_end != null ? String(raw.investment_window_end) : null,
+    share_investment_options: asShareInvestmentOptions(raw.share_investment_options),
     representative: raw.representative != null ? Number(raw.representative) : null,
     representative_name: raw.representative_name != null ? String(raw.representative_name) : null,
     representative_email: raw.representative_email != null ? String(raw.representative_email) : null,
     representative_phone: raw.representative_phone != null ? String(raw.representative_phone) : null,
+    managed_by: raw.managed_by != null ? Number(raw.managed_by) : null,
+    managed_by_name: raw.managed_by_name != null ? String(raw.managed_by_name) : null,
   }
 }
 
@@ -272,6 +332,52 @@ export async function getProperties(options?: { pageSize?: number; token?: strin
   }
 }
 
+export async function getPropertiesPaged(options?: {
+  page?: number
+  pageSize?: number
+  propertyType?: string
+  propertyChannel?: string
+  landSaleMode?: string
+  /** Listing lifecycle, e.g. `available` for public catalog */
+  status?: string
+  search?: string
+  token?: string
+}): Promise<{ items: Property[]; pagination: ApiEnvelope<unknown>["pagination"] | null }> {
+  const page = Math.max(1, options?.page ?? 1)
+  const pageSize = Math.min(100, Math.max(1, options?.pageSize ?? 12))
+  const params = new URLSearchParams()
+  params.set("page", String(page))
+  params.set("page_size", String(pageSize))
+  const pt = options?.propertyType?.trim()
+  if (pt && pt !== "all") {
+    params.set("property_type", pt)
+  }
+  const ch = options?.propertyChannel?.trim()
+  if (ch && ch !== "all") {
+    params.set("property_channel", ch)
+  }
+  const lsm = options?.landSaleMode?.trim()
+  if (lsm && lsm !== "all") {
+    params.set("land_sale_mode", lsm)
+  }
+  const st = options?.status?.trim()
+  if (st) {
+    params.set("status", st)
+  }
+  const q = options?.search?.trim()
+  if (q) {
+    params.set("search", q)
+  }
+  try {
+    const response = await request<Record<string, unknown>[]>(`/properties/?${params.toString()}`, {
+      token: options?.token,
+    })
+    return { items: response.data.map((row) => normalizeProperty(row)), pagination: response.pagination ?? null }
+  } catch {
+    return { items: fallbackProperties, pagination: null }
+  }
+}
+
 export async function getPropertyById(id: string): Promise<Property | null> {
   try {
     const response = await request<Record<string, unknown>>(`/properties/${id}/`)
@@ -282,9 +388,11 @@ export async function getPropertyById(id: string): Promise<Property | null> {
   }
 }
 
-export async function fetchPropertyFresh(id: string): Promise<Property | null> {
+export async function fetchPropertyFresh(id: string, token?: string | null): Promise<Property | null> {
   try {
-    const response = await request<Record<string, unknown>>(`/properties/${id}/`)
+    const response = await request<Record<string, unknown>>(`/properties/${id}/`, {
+      token: token ?? localStorage.getItem("accessToken") ?? undefined,
+    })
     return normalizeProperty(response.data as Record<string, unknown>)
   } catch {
     return null
@@ -312,9 +420,249 @@ export async function getDashboardByRole(
   return response.data
 }
 
+export async function listInvestments(
+  token: string,
+  pageSizeOrOptions: number | InvestmentListFilters = 200
+): Promise<Investment[]> {
+  const opts: InvestmentListFilters =
+    typeof pageSizeOrOptions === "number"
+      ? { pageSize: pageSizeOrOptions }
+      : pageSizeOrOptions
+  const pageSize = opts.pageSize ?? 200
+  const params = new URLSearchParams()
+  params.set("page_size", String(pageSize))
+  const q = opts.search?.trim()
+  if (q) {
+    params.set("search", q)
+  }
+  if (opts.investmentType && opts.investmentType !== "all") {
+    params.set("investment_type", opts.investmentType)
+  }
+  if (opts.lifecycle && opts.lifecycle !== "all") {
+    params.set("lifecycle", opts.lifecycle)
+  }
+  const qs = params.toString()
+  const response = await request<Investment[]>(`/investments/?${qs}`, { token })
+  return response.data.map((inv) => normalizeInvestmentRecord(inv))
+}
+
+export async function listPayments(token: string, pageSize = 200): Promise<PaymentRecord[]> {
+  const response = await request<PaymentRecord[]>(`/payments/?page_size=${pageSize}`, { token })
+  return response.data
+}
+
+export async function listPaymentRequests(token: string, pageSize = 200): Promise<PaymentRequestRecord[]> {
+  const response = await request<PaymentRequestRecord[]>(`/payment-requests/?page_size=${pageSize}`, { token })
+  return response.data
+}
+
+export async function createPaymentRequest(
+  body: { investment?: number | null; amount: string; method: string; note?: string },
+  token: string
+): Promise<PaymentRequestRecord> {
+  const response = await request<PaymentRequestRecord>("/payment-requests/", {
+    method: "POST",
+    body,
+    token,
+  })
+  return response.data
+}
+
+export async function approvePaymentRequest(
+  id: number,
+  token: string,
+  review_note?: string
+): Promise<PaymentRequestRecord> {
+  const response = await request<PaymentRequestRecord>(`/payment-requests/${id}/approve/`, {
+    method: "POST",
+    body: { review_note: review_note ?? "" },
+    token,
+  })
+  return response.data
+}
+
+export async function rejectPaymentRequest(
+  id: number,
+  token: string,
+  review_note?: string
+): Promise<PaymentRequestRecord> {
+  const response = await request<PaymentRequestRecord>(`/payment-requests/${id}/reject/`, {
+    method: "POST",
+    body: { review_note: review_note ?? "" },
+    token,
+  })
+  return response.data
+}
+
+function normalizeMe(raw: MeResponse): MeResponse {
+  return {
+    ...raw,
+    kyc_checkout_ready: raw.kyc_checkout_ready ?? true,
+    kyc_missing_templates: raw.kyc_missing_templates ?? [],
+  }
+}
+
 export async function getMe(token: string): Promise<MeResponse> {
   const response = await request<MeResponse>("/auth/me/", { token })
-  return response.data
+  return normalizeMe(response.data)
+}
+
+function normalizeKycField(raw: Record<string, unknown>): KycFieldDefinition {
+  const choices = Array.isArray(raw.choices) ? raw.choices : []
+  return {
+    id: Number(raw.id),
+    field_key: String(raw.field_key ?? ""),
+    label: String(raw.label ?? ""),
+    input_type: String(raw.input_type ?? "text"),
+    validation_type: String(raw.validation_type ?? "none"),
+    validation_config: (raw.validation_config as Record<string, unknown>) ?? {},
+    required: Boolean(raw.required),
+    enabled: raw.enabled !== false,
+    sort_order: Number(raw.sort_order ?? 0),
+    choices: choices
+      .filter((c): c is Record<string, unknown> => c !== null && typeof c === "object")
+      .map((c) => ({ value: String(c.value ?? ""), label: String(c.label ?? c.value ?? "") })),
+  }
+}
+
+function normalizeKycTemplate(raw: Record<string, unknown>): KycTemplate {
+  const fieldsRaw = Array.isArray(raw.fields) ? raw.fields : []
+  return {
+    id: Number(raw.id),
+    name: String(raw.name ?? ""),
+    slug: String(raw.slug ?? ""),
+    description: String(raw.description ?? ""),
+    is_active: Boolean(raw.is_active),
+    required_for_checkout: Boolean(raw.required_for_checkout),
+    fields: fieldsRaw.map((f) => normalizeKycField(f as Record<string, unknown>)),
+    created_at: raw.created_at != null ? String(raw.created_at) : undefined,
+    updated_at: raw.updated_at != null ? String(raw.updated_at) : undefined,
+  }
+}
+
+function normalizeKycSubmission(raw: Record<string, unknown>): UserKycSubmission {
+  return {
+    id: Number(raw.id),
+    user: Number(raw.user),
+    user_username: raw.user_username != null ? String(raw.user_username) : undefined,
+    user_email: raw.user_email != null ? String(raw.user_email) : undefined,
+    template: Number(raw.template),
+    template_name: raw.template_name != null ? String(raw.template_name) : undefined,
+    status: raw.status as UserKycSubmission["status"],
+    responses: (raw.responses as Record<string, unknown>) ?? {},
+    reviewed_by: raw.reviewed_by != null ? Number(raw.reviewed_by) : null,
+    reviewer_name: raw.reviewer_name != null ? String(raw.reviewer_name) : undefined,
+    review_note: String(raw.review_note ?? ""),
+    created_at: raw.created_at != null ? String(raw.created_at) : undefined,
+    updated_at: raw.updated_at != null ? String(raw.updated_at) : undefined,
+  }
+}
+
+export async function listKycTemplates(token: string, pageSize = 100): Promise<KycTemplate[]> {
+  const response = await request<Record<string, unknown>[]>(`/kyc-templates/?page_size=${pageSize}`, { token })
+  return response.data.map((row) => normalizeKycTemplate(row as Record<string, unknown>))
+}
+
+export async function getKycTemplate(id: number, token: string): Promise<KycTemplate> {
+  const response = await request<Record<string, unknown>>(`/kyc-templates/${id}/`, { token })
+  return normalizeKycTemplate(response.data as Record<string, unknown>)
+}
+
+/** Payload for creating or fully updating a KYC template (nested fields replace definitions on update). */
+export type KycFieldDefinitionWrite = {
+  field_key: string
+  label: string
+  input_type: string
+  validation_type: string
+  validation_config: Record<string, unknown>
+  required: boolean
+  enabled: boolean
+  sort_order: number
+  choices: KycFieldChoice[]
+}
+
+export type KycTemplateWriteBody = {
+  name?: string
+  slug?: string
+  description?: string
+  is_active?: boolean
+  required_for_checkout?: boolean
+  fields?: KycFieldDefinitionWrite[]
+}
+
+export async function createKycTemplate(body: KycTemplateWriteBody & { name: string; slug: string }, token: string): Promise<KycTemplate> {
+  const response = await request<Record<string, unknown>>("/kyc-templates/", {
+    method: "POST",
+    body,
+    token,
+  })
+  return normalizeKycTemplate(response.data as Record<string, unknown>)
+}
+
+export async function patchKycTemplate(id: number, body: KycTemplateWriteBody, token: string): Promise<KycTemplate> {
+  const response = await request<Record<string, unknown>>(`/kyc-templates/${id}/`, {
+    method: "PATCH",
+    body,
+    token,
+  })
+  return normalizeKycTemplate(response.data as Record<string, unknown>)
+}
+
+export async function deleteKycTemplate(id: number, token: string): Promise<void> {
+  await request<null>(`/kyc-templates/${id}/`, {
+    method: "DELETE",
+    token,
+  })
+}
+
+export async function listKycSubmissions(token: string, pageSize = 200): Promise<UserKycSubmission[]> {
+  const response = await request<Record<string, unknown>[]>(`/kyc-submissions/?page_size=${pageSize}`, { token })
+  return response.data.map((row) => normalizeKycSubmission(row as Record<string, unknown>))
+}
+
+export async function createKycSubmission(
+  body: { template: number; responses: Record<string, unknown> },
+  token: string
+): Promise<UserKycSubmission> {
+  const response = await request<Record<string, unknown>>("/kyc-submissions/", {
+    method: "POST",
+    body,
+    token,
+  })
+  return normalizeKycSubmission(response.data as Record<string, unknown>)
+}
+
+export async function updateKycSubmissionResponses(
+  id: number,
+  responses: Record<string, unknown>,
+  token: string
+): Promise<UserKycSubmission> {
+  const response = await request<Record<string, unknown>>(`/kyc-submissions/${id}/`, {
+    method: "PATCH",
+    body: { responses },
+    token,
+  })
+  return normalizeKycSubmission(response.data as Record<string, unknown>)
+}
+
+export async function reviewKycSubmission(
+  id: number,
+  body: { status: "approved" | "rejected"; review_note?: string },
+  token: string
+): Promise<UserKycSubmission> {
+  const response = await request<Record<string, unknown>>(`/kyc-submissions/${id}/review/`, {
+    method: "POST",
+    body,
+    token,
+  })
+  return normalizeKycSubmission(response.data as Record<string, unknown>)
+}
+
+export async function deleteKycSubmission(id: number, token: string): Promise<void> {
+  await request<null>(`/kyc-submissions/${id}/`, {
+    method: "DELETE",
+    token,
+  })
 }
 
 export async function createInvestment(
@@ -326,7 +674,153 @@ export async function createInvestment(
     body: payload,
     token,
   })
-  return response.data
+  return normalizeInvestmentRecord(response.data)
+}
+
+function normalizeInvestmentType(raw: unknown): InvestmentType {
+  // Legacy backend value "fractional" is installment-style.
+  if (raw === "installment" || raw === "fractional") {
+    return "installment"
+  }
+  if (raw === "plot_buy") {
+    return "plot_buy"
+  }
+  if (raw === "direct") {
+    return "plot_buy"
+  }
+  return "plot_buy"
+}
+
+function normalizeInvestmentRecord(inv: Investment): Investment {
+  return {
+    ...inv,
+    type: normalizeInvestmentType(inv.type),
+  }
+}
+
+function normalizeCheckoutRequest(raw: Record<string, unknown>): InvestmentCheckoutRequest {
+  return {
+    id: Number(raw.id),
+    investor: Number(raw.investor),
+    investor_username: raw.investor_username != null ? String(raw.investor_username) : undefined,
+    investor_email: raw.investor_email != null ? String(raw.investor_email) : undefined,
+    property: Number(raw.property),
+    property_title: raw.property_title != null ? String(raw.property_title) : undefined,
+    status: (raw.status as InvestmentCheckoutRequest["status"]) ?? "pending",
+    agent_approved: Boolean(raw.agent_approved),
+    representative_approved: Boolean(raw.representative_approved),
+    rejected_reason: String(raw.rejected_reason ?? ""),
+    investment_type: normalizeInvestmentType(raw.investment_type),
+    duration_years: Number(raw.duration_years ?? 0),
+    blocks_owned: Number(raw.blocks_owned ?? 0),
+    shares_owned: Number(raw.shares_owned ?? 0),
+    referral_code_used: raw.referral_code_used != null ? String(raw.referral_code_used) : undefined,
+    created_at: raw.created_at != null ? String(raw.created_at) : undefined,
+    updated_at: raw.updated_at != null ? String(raw.updated_at) : undefined,
+    property_listing_active:
+      raw.property_listing_active !== undefined && raw.property_listing_active !== null
+        ? Boolean(raw.property_listing_active)
+        : undefined,
+    property_channel:
+      raw.property_channel === "installment" || raw.property_channel === "plot_buy"
+        ? raw.property_channel
+        : raw.property_channel === "direct_buy"
+          ? "plot_buy"
+          : undefined,
+    property_investment_window_start:
+      raw.property_investment_window_start != null
+        ? String(raw.property_investment_window_start)
+        : null,
+    property_investment_window_end:
+      raw.property_investment_window_end != null ? String(raw.property_investment_window_end) : null,
+  }
+}
+
+export async function listInvestmentCheckoutRequests(
+  token: string,
+  options?: InvestmentCheckoutListFilters
+): Promise<InvestmentCheckoutRequest[]> {
+  const pageSize = options?.pageSize ?? 100
+  const params = new URLSearchParams()
+  params.set("page_size", String(pageSize))
+  const q = options?.search?.trim()
+  if (q) {
+    params.set("search", q)
+  }
+  if (options?.status && options.status !== "all") {
+    params.set("status", options.status)
+  }
+  if (options?.investmentType && options.investmentType !== "all") {
+    params.set("investment_type", options.investmentType)
+  }
+  if (options?.window && options.window !== "all") {
+    params.set("window", options.window)
+  }
+  if (options?.listingActive && options.listingActive !== "all") {
+    params.set("listing_active", options.listingActive)
+  }
+  if (options?.propertyChannel && options.propertyChannel !== "all") {
+    params.set("property_channel", options.propertyChannel)
+  }
+  const response = await request<Record<string, unknown>[]>(
+    `/investment-checkout-requests/?${params.toString()}`,
+    { token }
+  )
+  return response.data.map((row) => normalizeCheckoutRequest(row))
+}
+
+export async function createInvestmentCheckoutRequest(
+  payload: CreateInvestmentCheckoutPayload,
+  token: string
+): Promise<InvestmentCheckoutRequest> {
+  const response = await request<Record<string, unknown>>("/investment-checkout-requests/", {
+    method: "POST",
+    body: payload,
+    token,
+  })
+  return normalizeCheckoutRequest(response.data as Record<string, unknown>)
+}
+
+export async function approveInvestmentCheckoutRequest(id: number, token: string): Promise<InvestmentCheckoutRequest> {
+  const response = await request<Record<string, unknown>>(
+    `/investment-checkout-requests/${id}/approve/`,
+    { method: "POST", body: {}, token }
+  )
+  return normalizeCheckoutRequest(response.data as Record<string, unknown>)
+}
+
+export async function rejectInvestmentCheckoutRequest(
+  id: number,
+  token: string,
+  rejectedReason?: string
+): Promise<InvestmentCheckoutRequest> {
+  const response = await request<Record<string, unknown>>(`/investment-checkout-requests/${id}/reject/`, {
+    method: "POST",
+    body: rejectedReason ? { rejected_reason: rejectedReason } : {},
+    token,
+  })
+  return normalizeCheckoutRequest(response.data as Record<string, unknown>)
+}
+
+export async function cancelInvestmentCheckoutRequest(id: number, token: string): Promise<InvestmentCheckoutRequest> {
+  const response = await request<Record<string, unknown>>(`/investment-checkout-requests/${id}/cancel/`, {
+    method: "POST",
+    body: {},
+    token,
+  })
+  return normalizeCheckoutRequest(response.data as Record<string, unknown>)
+}
+
+export async function completeInvestmentCheckoutRequest(
+  id: number,
+  token: string
+): Promise<InvestmentCheckoutRequest> {
+  const response = await request<Record<string, unknown>>(`/investment-checkout-requests/${id}/complete/`, {
+    method: "POST",
+    body: {},
+    token,
+  })
+  return normalizeCheckoutRequest(response.data as Record<string, unknown>)
 }
 
 export async function updateProfile(payload: FormData, token: string): Promise<MeResponse> {
@@ -403,10 +897,51 @@ export async function deleteProperty(id: number | string, token: string): Promis
 }
 
 export async function getManagedProperties(token: string): Promise<Property[]> {
-  const response = await request<Record<string, unknown>[]>("/properties/?managed_by_me=1&page_size=100", {
-    token,
-  })
+  const response = await request<Record<string, unknown>[]>(
+    "/properties/?managed_by_me=1&include_inactive=1&page_size=100",
+    {
+      token,
+    }
+  )
   return response.data.map((row) => normalizeProperty(row))
+}
+
+export async function getManagedPropertiesPaged(
+  token: string,
+  options?: {
+    page?: number
+    pageSize?: number
+    propertyType?: string
+    propertyChannel?: string
+    status?: string
+    search?: string
+  }
+): Promise<{ items: Property[]; pagination: ApiEnvelope<unknown>["pagination"] | null }> {
+  const page = Math.max(1, options?.page ?? 1)
+  const pageSize = Math.min(100, Math.max(1, options?.pageSize ?? 10))
+  const params = new URLSearchParams()
+  params.set("managed_by_me", "1")
+  params.set("include_inactive", "1")
+  params.set("page", String(page))
+  params.set("page_size", String(pageSize))
+  const pt = options?.propertyType?.trim()
+  if (pt && pt !== "all") {
+    params.set("property_type", pt)
+  }
+  const ch = options?.propertyChannel?.trim()
+  if (ch && ch !== "all") {
+    params.set("property_channel", ch)
+  }
+  const st = options?.status?.trim()
+  if (st && st !== "all") {
+    params.set("status", st)
+  }
+  const q = options?.search?.trim()
+  if (q) {
+    params.set("search", q)
+  }
+  const response = await request<Record<string, unknown>[]>(`/properties/?${params.toString()}`, { token })
+  return { items: response.data.map((row) => normalizeProperty(row)), pagination: response.pagination ?? null }
 }
 
 export async function getRepresentatives(token: string): Promise<RepresentativeUser[]> {
@@ -416,6 +951,15 @@ export async function getRepresentatives(token: string): Promise<RepresentativeU
 
 export async function getRetailInvestors(token: string): Promise<RetailInvestor[]> {
   const response = await request<RetailInvestor[]>("/investors/?page_size=200", { token })
+  return response.data
+}
+
+export async function createRetailInvestor(payload: InvestorUpsertPayload, token: string): Promise<RetailInvestor> {
+  const response = await request<RetailInvestor>("/investors/", {
+    method: "POST",
+    body: payload,
+    token,
+  })
   return response.data
 }
 
@@ -483,4 +1027,75 @@ export async function deleteAgent(id: number | string, token: string): Promise<v
     method: "DELETE",
     token,
   })
+}
+
+export async function fetchNotificationUnreadCount(token: string): Promise<number> {
+  const response = await request<{ count: number }>("/notifications/unread-count/", { token })
+  return Number(response.data?.count ?? 0)
+}
+
+export async function listNotifications(
+  token: string,
+  options?: { unreadOnly?: boolean; pageSize?: number }
+): Promise<UserNotification[]> {
+  const pageSize = options?.pageSize ?? 40
+  const params = new URLSearchParams({ page_size: String(pageSize) })
+  if (options?.unreadOnly) {
+    params.set("unread_only", "1")
+  }
+  const response = await request<UserNotification[]>(`/notifications/?${params.toString()}`, { token })
+  return response.data
+}
+
+export async function markNotificationRead(id: number, token: string): Promise<void> {
+  await request<unknown>(`/notifications/${id}/mark-read/`, { method: "POST", token })
+}
+
+export async function markAllNotificationsRead(token: string): Promise<void> {
+  await request<unknown>("/notifications/mark-all-read/", { method: "POST", token })
+}
+
+export async function createRedemptionRequest(investmentId: number, token: string): Promise<RedemptionRequest> {
+  const response = await request<RedemptionRequest>("/redemption-requests/", {
+    method: "POST",
+    body: { investment: investmentId },
+    token,
+  })
+  return response.data
+}
+
+export async function listRedemptionRequests(token: string, pageSize = 100): Promise<RedemptionRequest[]> {
+  const response = await request<RedemptionRequest[]>(`/redemption-requests/?page_size=${pageSize}`, {
+    token,
+  })
+  return response.data
+}
+
+export async function approveRedemptionRequest(id: number, token: string): Promise<RedemptionRequest> {
+  const response = await request<RedemptionRequest>(`/redemption-requests/${id}/approve/`, {
+    method: "POST",
+    token,
+  })
+  return response.data
+}
+
+export async function rejectRedemptionRequest(
+  id: number,
+  token: string,
+  reason?: string
+): Promise<RedemptionRequest> {
+  const response = await request<RedemptionRequest>(`/redemption-requests/${id}/reject/`, {
+    method: "POST",
+    body: { reason: reason ?? "" },
+    token,
+  })
+  return response.data
+}
+
+export async function markRedemptionPaid(id: number, token: string): Promise<RedemptionRequest> {
+  const response = await request<RedemptionRequest>(`/redemption-requests/${id}/mark-paid/`, {
+    method: "POST",
+    token,
+  })
+  return response.data
 }

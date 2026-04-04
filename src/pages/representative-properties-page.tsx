@@ -1,34 +1,54 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { DashboardModal } from "@/components/dashboard/dashboard-modal"
+import { RepresentativePropertyFormFields } from "@/components/dashboard/representative-property-form-fields"
+import { CompactFormSelect } from "@/components/ui/compact-form-select"
+import { DashboardTablePagination } from "@/components/ui/dashboard-table-pagination"
+import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons"
+
+import { TableActionIconButton } from "@/components/ui/table-action-button"
+import {
+  actionsButtonRowClass,
+  stickyActionsTdClass,
+  stickyActionsThClass,
+} from "@/components/ui/sticky-table-actions"
+import { TableLoader } from "@/components/ui/table-loader"
 import { useToast } from "@/components/ui/use-toast"
-import { createProperty, deleteProperty, getManagedProperties, updateProperty } from "@/services/api"
-import type { Property, PropertyUpsertPayload } from "@/types/domain"
-import { listFromMultiline } from "@/utils/multiline-list"
+import { createProperty, deleteProperty, getAgents, getManagedProperties, updateProperty } from "@/services/api"
+import { propertyToUpsertPayload } from "@/utils/property-to-upsert-payload"
+import { formatPropertyMoney } from "@/utils/property-display"
+import type { AgentUser, Property, PropertyUpsertPayload } from "@/types/domain"
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50] as const
 
 export function RepresentativePropertiesPage() {
-  const PAGE_SIZE = 10
+  const [pageSize, setPageSize] = useState(10)
   const [properties, setProperties] = useState<Property[]>([])
+  const [agents, setAgents] = useState<AgentUser[]>([])
   const [propertyPage, setPropertyPage] = useState(1)
   const [propertyQuery, setPropertyQuery] = useState("")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [filterType, setFilterType] = useState<string>("all")
+  const [filterChannel, setFilterChannel] = useState<string>("all")
   const [showPropertyForm, setShowPropertyForm] = useState(false)
   const [editingPropertyId, setEditingPropertyId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
   const [propertyForm, setPropertyForm] = useState<PropertyUpsertPayload>({
     title: "",
     slug: "",
     description: "",
     description_secondary: "",
     property_type: "apartment",
-    property_channel: "direct_buy",
-    land_sale_mode: "per_block",
-    total_blocks: 100,
-    available_blocks: 100,
-    price_per_block: "100.00",
+    property_channel: "plot_buy",
+    land_sale_mode: "whole_land",
+    total_blocks: 0,
+    available_blocks: 0,
+    price_per_block: "",
     whole_land_price: null,
     share_price: null,
     total_shares: null,
     available_shares: null,
-    min_shares_per_order: 1,
+    min_shares_per_order: undefined,
     location_name: "",
     latitude: null,
     longitude: null,
@@ -47,17 +67,30 @@ export function RepresentativePropertiesPage() {
     for_sale: true,
     contact_website: "",
     rating_average: null,
-    review_count: 0,
+    review_count: undefined,
     review_sample_author: "",
     review_sample_date: null,
     review_sample_text: "",
     status: "available",
+    listing_active: true,
+    expected_profit_percent: null,
+    investment_window_start: null,
+    investment_window_end: null,
+    share_investment_options: [],
+    managed_by: null,
   })
   const { showToast } = useToast()
 
   async function loadProperties(token: string) {
+    setLoading(true)
     const propertiesPayload = await getManagedProperties(token)
     setProperties(propertiesPayload)
+    setLoading(false)
+  }
+
+  async function loadAgents(token: string) {
+    const list = await getAgents(token)
+    setAgents(list)
   }
 
   useEffect(() => {
@@ -66,7 +99,9 @@ export function RepresentativePropertiesPage() {
       return
     }
     const timeoutId = window.setTimeout(() => {
-      loadProperties(token).catch((error) => {
+      setLoading(true)
+      Promise.all([loadProperties(token), loadAgents(token)]).catch((error) => {
+        setLoading(false)
         const message = error instanceof Error ? error.message : "Failed to load properties."
         showToast(message, "error")
       })
@@ -84,16 +119,16 @@ export function RepresentativePropertiesPage() {
       description: "",
       description_secondary: "",
       property_type: "apartment",
-      property_channel: "direct_buy",
-      land_sale_mode: "per_block",
-      total_blocks: 100,
-      available_blocks: 100,
-      price_per_block: "100.00",
+      property_channel: "plot_buy",
+      land_sale_mode: "whole_land",
+      total_blocks: 0,
+      available_blocks: 0,
+      price_per_block: "",
       whole_land_price: null,
       share_price: null,
       total_shares: null,
       available_shares: null,
-      min_shares_per_order: 1,
+      min_shares_per_order: undefined,
       location_name: "",
       latitude: null,
       longitude: null,
@@ -112,11 +147,17 @@ export function RepresentativePropertiesPage() {
       for_sale: true,
       contact_website: "",
       rating_average: null,
-      review_count: 0,
+      review_count: undefined,
       review_sample_author: "",
       review_sample_date: null,
       review_sample_text: "",
       status: "available",
+      listing_active: true,
+      expected_profit_percent: null,
+      investment_window_start: null,
+      investment_window_end: null,
+      share_investment_options: [],
+      managed_by: null,
     })
   }
 
@@ -142,13 +183,20 @@ export function RepresentativePropertiesPage() {
     }
   }
 
-  async function removeProperty(id: number) {
+  async function removeProperty(item: Property) {
+    if (
+      !window.confirm(
+        `Delete "${item.title}"? This permanently removes the listing. This cannot be undone.`
+      )
+    ) {
+      return
+    }
     const token = localStorage.getItem("accessToken")
     if (!token) {
       return
     }
     try {
-      await deleteProperty(id, token)
+      await deleteProperty(item.id, token)
       showToast("Property deleted.", "success")
       await loadProperties(token)
       setPropertyPage(1)
@@ -161,66 +209,37 @@ export function RepresentativePropertiesPage() {
   function editProperty(item: Property) {
     setEditingPropertyId(item.id)
     setShowPropertyForm(true)
-    setPropertyForm({
-      title: item.title,
-      slug: item.slug,
-      description: item.description,
-      description_secondary: item.description_secondary,
-      property_type: item.property_type,
-      property_channel: item.property_channel,
-      land_sale_mode: item.land_sale_mode,
-      total_blocks: item.total_blocks,
-      available_blocks: item.available_blocks,
-      price_per_block: item.price_per_block,
-      whole_land_price: item.whole_land_price,
-      share_price: item.share_price,
-      total_shares: item.total_shares,
-      available_shares: item.available_shares,
-      min_shares_per_order: item.min_shares_per_order,
-      location_name: item.location_name,
-      latitude: item.latitude,
-      longitude: item.longitude,
-      video_url: item.video_url,
-      top_view_image: item.top_view_image,
-      gallery_images: item.gallery_images ?? [],
-      amenities: item.amenities ?? [],
-      tags: item.tags ?? [],
-      floor_plans: item.floor_plans ?? [],
-      build_year: item.build_year,
-      bedrooms: item.bedrooms,
-      bathrooms: item.bathrooms,
-      flat_label: item.flat_label ?? "",
-      size_sqft: item.size_sqft,
-      for_rent: item.for_rent,
-      for_sale: item.for_sale,
-      contact_website: item.contact_website,
-      rating_average: item.rating_average,
-      review_count: item.review_count,
-      review_sample_author: item.review_sample_author,
-      review_sample_date: item.review_sample_date,
-      review_sample_text: item.review_sample_text,
-      status: item.status,
-    })
+    setPropertyForm(propertyToUpsertPayload(item))
   }
 
   const filteredProperties = useMemo(() => {
+    let list = properties
+    if (filterStatus !== "all") {
+      list = list.filter((item) => item.status === filterStatus)
+    }
+    if (filterType !== "all") {
+      list = list.filter((item) => item.property_type === filterType)
+    }
+    if (filterChannel !== "all") {
+      list = list.filter((item) => item.property_channel === filterChannel)
+    }
     const query = propertyQuery.trim().toLowerCase()
     if (!query) {
-      return properties
+      return list
     }
-    return properties.filter((item) =>
-      [item.title, item.location_name, item.slug, item.status, item.property_type]
+    return list.filter((item) =>
+      [item.title, item.location_name, item.slug, item.status, item.property_type, item.property_channel]
         .join(" ")
         .toLowerCase()
         .includes(query)
     )
-  }, [properties, propertyQuery])
+  }, [properties, propertyQuery, filterStatus, filterType, filterChannel])
 
-  const propertyTotalPages = Math.max(1, Math.ceil(filteredProperties.length / PAGE_SIZE))
+  const propertyTotalPages = Math.max(1, Math.ceil(filteredProperties.length / pageSize))
   const paginatedProperties = useMemo(() => {
-    const start = (propertyPage - 1) * PAGE_SIZE
-    return filteredProperties.slice(start, start + PAGE_SIZE)
-  }, [filteredProperties, propertyPage, PAGE_SIZE])
+    const start = (propertyPage - 1) * pageSize
+    return filteredProperties.slice(start, start + pageSize)
+  }, [filteredProperties, propertyPage, pageSize])
 
   return (
     <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
@@ -241,19 +260,113 @@ export function RepresentativePropertiesPage() {
         </button>
       </div>
 
-      <div className="mb-4">
-        <input
-          className="template-input w-full sm:w-96"
-          placeholder="Search by title, slug, location, type, status..."
-          value={propertyQuery}
-          onChange={(event) => {
-            setPropertyQuery(event.target.value)
-            setPropertyPage(1)
-          }}
-        />
+      <div className="mb-4 flex flex-col gap-3">
+        <div className="dashboard-filters-row items-center">
+          <input
+            className="dashboard-filter-input min-w-[220px] flex-1"
+            placeholder="Search title, slug, location, type, status…"
+            value={propertyQuery}
+            onChange={(event) => {
+              setPropertyQuery(event.target.value)
+              setPropertyPage(1)
+            }}
+          />
+          <div className="flex min-w-[140px] items-center gap-2">
+            <span className="shrink-0 text-sm text-slate-500">Rows</span>
+            <div className="dashboard-filter-select-shell">
+              <CompactFormSelect
+                ariaLabel="Rows per page"
+                value={String(pageSize)}
+                onValueChange={(v) => {
+                  setPageSize(Number(v))
+                  setPropertyPage(1)
+                }}
+                options={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: `${n} / page` }))}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="dashboard-filters-row">
+          <div className="flex min-w-[130px] flex-col gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status</span>
+            <div className="dashboard-filter-select-shell">
+              <CompactFormSelect
+                ariaLabel="Filter by status"
+                value={filterStatus}
+                onValueChange={(v) => {
+                  setFilterStatus(v)
+                  setPropertyPage(1)
+                }}
+                options={[
+                  { value: "all", label: "All statuses" },
+                  { value: "available", label: "Available" },
+                  { value: "booked", label: "Booked" },
+                  { value: "sold", label: "Sold" },
+                ]}
+              />
+            </div>
+          </div>
+          <div className="flex min-w-[130px] flex-col gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Type</span>
+            <div className="dashboard-filter-select-shell">
+              <CompactFormSelect
+                ariaLabel="Filter by property type"
+                value={filterType}
+                onValueChange={(v) => {
+                  setFilterType(v)
+                  setPropertyPage(1)
+                }}
+                options={[
+                  { value: "all", label: "All types" },
+                  { value: "apartment", label: "Apartment" },
+                  { value: "villa", label: "Villa" },
+                  { value: "commercial", label: "Commercial" },
+                  { value: "land", label: "Land" },
+                ]}
+              />
+            </div>
+          </div>
+          <div className="flex min-w-[140px] flex-col gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Channel</span>
+            <div className="dashboard-filter-select-shell">
+              <CompactFormSelect
+                ariaLabel="Filter by channel"
+                value={filterChannel}
+                onValueChange={(v) => {
+                  setFilterChannel(v)
+                  setPropertyPage(1)
+                }}
+                options={[
+                  { value: "all", label: "All channels" },
+                  { value: "plot_buy", label: "Plot buy" },
+                  { value: "installment", label: "Installment" },
+                ]}
+              />
+            </div>
+          </div>
+        </div>
       </div>
       <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
+        {loading ? (
+          <TableLoader
+            rows={10}
+            cols={11}
+            colClasses={[
+              "w-[10%]",
+              "w-[22%]",
+              "w-[8%]",
+              "w-[12%]",
+              "w-[10%]",
+              "w-[8%]",
+              "w-[8%]",
+              "w-[8%]",
+              "w-[8%]",
+              "w-[6%]",
+              "w-14 shrink-0",
+            ]}
+          />
+        ) : (
+          <table className="min-w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-300">
                       <th className="px-3 py-2">Image</th>
@@ -266,12 +379,15 @@ export function RepresentativePropertiesPage() {
                       <th className="px-3 py-2">Sale mode</th>
                       <th className="px-3 py-2">Price / Block</th>
                       <th className="px-3 py-2">Blocks</th>
-                      <th className="px-3 py-2">Actions</th>
+                      <th className={stickyActionsThClass}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedProperties.map((item) => (
-                      <tr key={item.id} className="border-b border-white/10">
+                      <tr
+                        key={item.id}
+                        className="group border-b border-white/10 transition-colors hover:bg-white/[0.06]"
+                      >
                         <td className="px-3 py-3">
                           {item.top_view_image ? (
                             <img
@@ -296,55 +412,40 @@ export function RepresentativePropertiesPage() {
                         <td className="px-3 py-3 text-xs capitalize text-slate-300">
                           {item.land_sale_mode.replace(/_/g, " ")}
                         </td>
-                        <td className="px-3 py-3">${item.price_per_block}</td>
+                        <td className="px-3 py-3">{formatPropertyMoney(item.price_per_block)}</td>
                         <td className="px-3 py-3">
                           {item.available_blocks}/{item.total_blocks}
                         </td>
-                        <td className="px-3 py-3">
-                          <div className="flex gap-2">
-                            <button
+                        <td className={stickyActionsTdClass}>
+                          <div className={actionsButtonRowClass}>
+                            <TableActionIconButton
+                              icon={faPenToSquare}
+                              label="Edit property"
+                              tone="neutral"
                               onClick={() => editProperty(item)}
-                              className="rounded border border-white/20 px-2 py-1 text-xs"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => removeProperty(item.id)}
-                              className="rounded border border-rose-400/40 px-2 py-1 text-xs text-rose-300"
-                            >
-                              Delete
-                            </button>
+                            />
+                            <TableActionIconButton
+                              icon={faTrash}
+                              label="Delete property"
+                              tone="danger"
+                              onClick={() => void removeProperty(item)}
+                            />
                           </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+        )}
               </div>
-              <div className="mt-4 flex items-center justify-between text-sm text-slate-300">
-                <p>
-                  Showing {paginatedProperties.length} of {filteredProperties.length} properties
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    disabled={propertyPage <= 1}
-                    onClick={() => setPropertyPage((current) => Math.max(1, current - 1))}
-                    className="rounded border border-white/20 px-3 py-1 disabled:opacity-40"
-                  >
-                    Previous
-                  </button>
-                  <span>
-                    Page {propertyPage} / {propertyTotalPages}
-                  </span>
-                  <button
-                    disabled={propertyPage >= propertyTotalPages}
-                    onClick={() => setPropertyPage((current) => Math.min(propertyTotalPages, current + 1))}
-                    className="rounded border border-white/20 px-3 py-1 disabled:opacity-40"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              <DashboardTablePagination
+                className="mt-4 text-sm"
+                page={propertyPage}
+                totalPages={propertyTotalPages}
+                pageSize={pageSize}
+                totalItems={filteredProperties.length}
+                onPageChange={setPropertyPage}
+              />
 
       <DashboardModal
         open={showPropertyForm}
@@ -352,436 +453,23 @@ export function RepresentativePropertiesPage() {
         title={editingPropertyId ? "Update property" : "Create property"}
         onClose={resetPropertyForm}
         footer={
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => void saveProperty()}
-              className="rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-slate-950"
-            >
-              {editingPropertyId ? "Save changes" : "Create property"}
-            </button>
-            <button type="button" onClick={resetPropertyForm} className="rounded-xl border border-white/20 px-4 py-2">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <button type="button" onClick={resetPropertyForm} className="dashboard-modal-btn-secondary">
               Cancel
+            </button>
+            <button type="button" onClick={() => void saveProperty()} className="dashboard-modal-btn-primary">
+              {editingPropertyId ? "Save changes" : "Create property"}
             </button>
           </div>
         }
       >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <input
-                      className="template-input"
-                      placeholder="Title"
-                      value={propertyForm.title}
-                      onChange={(event) => setPropertyForm((current) => ({ ...current, title: event.target.value }))}
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Slug"
-                      value={propertyForm.slug}
-                      onChange={(event) => setPropertyForm((current) => ({ ...current, slug: event.target.value }))}
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Location"
-                      value={propertyForm.location_name}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, location_name: event.target.value }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Price per block"
-                      value={propertyForm.price_per_block}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, price_per_block: event.target.value }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Total blocks"
-                      type="number"
-                      value={propertyForm.total_blocks}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, total_blocks: Number(event.target.value) }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Available blocks"
-                      type="number"
-                      value={propertyForm.available_blocks}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, available_blocks: Number(event.target.value) }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Latitude (e.g. 23.810300)"
-                      value={propertyForm.latitude ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          latitude: event.target.value.trim() ? event.target.value : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Longitude (e.g. 90.412500)"
-                      value={propertyForm.longitude ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          longitude: event.target.value.trim() ? event.target.value : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Top view image URL"
-                      value={propertyForm.top_view_image ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, top_view_image: event.target.value }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Video URL"
-                      value={propertyForm.video_url ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, video_url: event.target.value }))
-                      }
-                    />
-                    <select
-                      className="template-input"
-                      value={propertyForm.property_type}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          property_type: event.target.value as Property["property_type"],
-                        }))
-                      }
-                    >
-                      <option value="apartment">Apartment</option>
-                      <option value="villa">Villa</option>
-                      <option value="commercial">Commercial</option>
-                      <option value="land">Land</option>
-                    </select>
-                    <select
-                      className="template-input"
-                      value={propertyForm.status ?? "available"}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          status: event.target.value as Property["status"],
-                        }))
-                      }
-                    >
-                      <option value="available">Available</option>
-                      <option value="booked">Booked</option>
-                      <option value="sold">Sold</option>
-                    </select>
-                    <select
-                      className="template-input"
-                      value={propertyForm.property_channel ?? "direct_buy"}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          property_channel: event.target.value as Property["property_channel"],
-                        }))
-                      }
-                      aria-label="Listing channel (direct buy vs installment)"
-                    >
-                      <option value="direct_buy">Direct buy (homepage lane)</option>
-                      <option value="installment">Installment (homepage lane)</option>
-                    </select>
-                    <select
-                      className="template-input"
-                      value={propertyForm.land_sale_mode ?? "per_block"}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          land_sale_mode: event.target.value as Property["land_sale_mode"],
-                        }))
-                      }
-                    >
-                      <option value="per_block">Per block</option>
-                      <option value="whole_land">Whole land</option>
-                      <option value="fractional_share">Fractional shares</option>
-                    </select>
-                    <input
-                      className="template-input"
-                      placeholder="Whole land price (optional)"
-                      value={propertyForm.whole_land_price ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          whole_land_price: event.target.value.trim() ? event.target.value : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Share price"
-                      value={propertyForm.share_price ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          share_price: event.target.value.trim() ? event.target.value : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Total shares"
-                      type="number"
-                      value={propertyForm.total_shares ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          total_shares: event.target.value ? Number(event.target.value) : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Available shares"
-                      type="number"
-                      value={propertyForm.available_shares ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          available_shares: event.target.value ? Number(event.target.value) : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Min shares per order"
-                      type="number"
-                      value={propertyForm.min_shares_per_order ?? 1}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          min_shares_per_order: Number(event.target.value) || 1,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Build year"
-                      type="number"
-                      value={propertyForm.build_year ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          build_year: event.target.value ? Number(event.target.value) : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Rooms (bedrooms)"
-                      type="number"
-                      value={propertyForm.bedrooms ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          bedrooms: event.target.value ? Number(event.target.value) : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Bathrooms"
-                      type="number"
-                      value={propertyForm.bathrooms ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          bathrooms: event.target.value ? Number(event.target.value) : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Flat / unit (e.g. 12B, Penthouse)"
-                      value={propertyForm.flat_label ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, flat_label: event.target.value }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Size sqft"
-                      type="number"
-                      value={propertyForm.size_sqft ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          size_sqft: event.target.value ? Number(event.target.value) : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Contact website URL"
-                      value={propertyForm.contact_website ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, contact_website: event.target.value }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Rating average (e.g. 4.5)"
-                      value={propertyForm.rating_average ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          rating_average: event.target.value.trim() ? event.target.value : null,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Review count"
-                      type="number"
-                      value={propertyForm.review_count ?? 0}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          review_count: Number(event.target.value) || 0,
-                        }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Sample review author"
-                      value={propertyForm.review_sample_author ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, review_sample_author: event.target.value }))
-                      }
-                    />
-                    <input
-                      className="template-input"
-                      placeholder="Sample review date (YYYY-MM-DD)"
-                      value={propertyForm.review_sample_date ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          review_sample_date: event.target.value.trim() ? event.target.value : null,
-                        }))
-                      }
-                    />
-                    <label className="flex items-center gap-2 text-sm text-slate-300 sm:col-span-1">
-                      <input
-                        type="checkbox"
-                        checked={propertyForm.for_rent ?? false}
-                        onChange={(event) =>
-                          setPropertyForm((current) => ({ ...current, for_rent: event.target.checked }))
-                        }
-                      />
-                      For rent
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-300 sm:col-span-1">
-                      <input
-                        type="checkbox"
-                        checked={propertyForm.for_sale !== false}
-                        onChange={(event) =>
-                          setPropertyForm((current) => ({ ...current, for_sale: event.target.checked }))
-                        }
-                      />
-                      For sale
-                    </label>
-                    <textarea
-                      className="template-input sm:col-span-2 lg:col-span-3"
-                      placeholder="Description"
-                      value={propertyForm.description}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, description: event.target.value }))
-                      }
-                    />
-                    <textarea
-                      className="template-input sm:col-span-2 lg:col-span-3"
-                      placeholder="Secondary description"
-                      value={propertyForm.description_secondary ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, description_secondary: event.target.value }))
-                      }
-                    />
-                    <p className="text-xs text-slate-400 sm:col-span-2 lg:col-span-3">
-                      Gallery: extra photos for the listing carousel (main hero image is “Top view image URL”
-                      above). One URL per line.
-                    </p>
-                    <textarea
-                      className="template-input min-h-[5.5rem] font-mono text-xs sm:col-span-2 lg:col-span-3"
-                      placeholder="https://example.com/photo-2.jpg&#10;https://example.com/photo-3.jpg"
-                      value={propertyForm.gallery_images.join("\n")}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          gallery_images: listFromMultiline(event.target.value),
-                        }))
-                      }
-                    />
-                    <p className="text-xs text-slate-400 sm:col-span-2 lg:col-span-3">
-                      Features &amp; amenities (one per line). Shown under “Features &amp; Amenities” on the
-                      public page.
-                    </p>
-                    <textarea
-                      className="template-input min-h-[5.5rem] sm:col-span-2 lg:col-span-3"
-                      placeholder={"Pool\nGated parking\nSea view"}
-                      value={propertyForm.amenities.join("\n")}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          amenities: listFromMultiline(event.target.value),
-                        }))
-                      }
-                    />
-                    <p className="text-xs text-slate-400 sm:col-span-2 lg:col-span-3">
-                      Tags (one per line). Shown in the listing “Tag” section.
-                    </p>
-                    <textarea
-                      className="template-input min-h-[4rem] sm:col-span-2 lg:col-span-3"
-                      placeholder={"Waterfront\nLuxury"}
-                      value={propertyForm.tags.join("\n")}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          tags: listFromMultiline(event.target.value),
-                        }))
-                      }
-                    />
-                    <textarea
-                      key={`fp-${editingPropertyId ?? "n"}`}
-                      className="template-input font-mono text-xs sm:col-span-2 lg:col-span-3"
-                      placeholder='Floor plans JSON [{"title":"1st","image_url":"https://...","description":"..."}]'
-                      defaultValue={JSON.stringify(propertyForm.floor_plans ?? [])}
-                      onBlur={(event) => {
-                        try {
-                          const parsed = JSON.parse(event.target.value) as unknown
-                          if (Array.isArray(parsed)) {
-                            setPropertyForm((current) => ({
-                              ...current,
-                              floor_plans: parsed as Property["floor_plans"],
-                            }))
-                          } else {
-                            showToast("Floor plans must be a JSON array.", "error")
-                          }
-                        } catch {
-                          showToast("Invalid floor plans JSON.", "error")
-                        }
-                      }}
-                    />
-                    <textarea
-                      className="template-input sm:col-span-2 lg:col-span-3"
-                      placeholder="Sample review text"
-                      value={propertyForm.review_sample_text ?? ""}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({ ...current, review_sample_text: event.target.value }))
-                      }
-                    />
-        </div>
+        <RepresentativePropertyFormFields
+          propertyForm={propertyForm}
+          setPropertyForm={setPropertyForm}
+          editingPropertyId={editingPropertyId}
+          showToast={showToast}
+          agents={agents}
+        />
       </DashboardModal>
     </section>
   )

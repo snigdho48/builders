@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFacebookF, faInstagram, faPinterestP, faXTwitter } from "@fortawesome/free-brands-svg-icons"
-import { faBars, faCartShopping, faHouse, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
-import { Link, NavLink, useLocation } from "react-router-dom"
+import { faBars, faCartShopping, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import { useCart } from "@/contexts/use-cart"
 import type { UserRole } from "@/types/domain"
@@ -32,8 +32,11 @@ function addPropertiesPath(role: UserRole | null): string {
 
 export function Navbar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { totalBlockCount } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchText, setSearchText] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(() =>
     Boolean(localStorage.getItem("accessToken"))
   )
@@ -57,7 +60,11 @@ export function Navbar() {
   }, [])
 
   useEffect(() => {
-    setMobileOpen(false)
+    const t = window.setTimeout(() => {
+      setMobileOpen(false)
+      setSearchOpen(false)
+    }, 0)
+    return () => window.clearTimeout(t)
   }, [location.pathname, location.search])
 
   const canShowAddProperties = useMemo(() => {
@@ -69,11 +76,17 @@ export function Navbar() {
 
   const addPropertiesHref = addPropertiesPath(userRole)
 
+  const submitNavSearch = () => {
+    const q = searchText.trim()
+    navigate(q ? `/listings?q=${encodeURIComponent(q)}` : "/listings")
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken")
     localStorage.removeItem("refreshToken")
     localStorage.removeItem("userRole")
     localStorage.removeItem("userId")
+    localStorage.removeItem("userUsername")
     window.dispatchEvent(new Event("auth-state-changed"))
     window.location.href = "/auth"
   }
@@ -122,11 +135,21 @@ export function Navbar() {
             to="/"
             className="flex items-center gap-3 text-white transition-[filter] duration-300 hover:brightness-110 motion-reduce:transition-none"
           >
-            <span className="inline-flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-[#f58e43] text-lg text-[#f58e43] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none">
-              <FontAwesomeIcon icon={faHouse} className="h-4 w-4" />
+            <span className="inline-flex h-[52px] w-[52px] overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none">
+              <img
+                src="/navlogo.jpg"
+                alt="Eurostar"
+                className="h-full w-full object-cover"
+                loading="eager"
+              />
             </span>
             <span className="leading-tight">
-              <span className="block text-[2.6rem] font-bold tracking-[0.01em]">HOMIRX</span>
+              <span
+                className="block text-[2.35rem] font-normal uppercase tracking-[0.06em]"
+                style={{ fontFamily: "\"Libre Franklin\", system-ui, sans-serif" }}
+              >
+                EUROSTAR
+              </span>
               <span className="block text-[0.82rem] font-semibold uppercase tracking-[0.03em] text-slate-200/95">
                 Living Solutions
               </span>
@@ -150,7 +173,7 @@ export function Navbar() {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-2.5 text-[13px] font-medium text-slate-300">
+          <div className="relative flex items-center gap-2.5 text-[13px] font-medium text-slate-300">
             <button
               type="button"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -175,8 +198,20 @@ export function Navbar() {
             </Link>
             <button
               type="button"
-              aria-label="search"
+              aria-label={searchOpen ? "Search listings" : "Open search"}
+              aria-expanded={searchOpen}
               className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
+              onClick={() => {
+                if (searchOpen) {
+                  submitNavSearch()
+                } else {
+                  if (location.pathname === "/listings") {
+                    const q = new URLSearchParams(location.search).get("q") ?? ""
+                    setSearchText(q)
+                  }
+                  setSearchOpen(true)
+                }
+              }}
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} />
             </button>
@@ -199,6 +234,47 @@ export function Navbar() {
             ) : null}
           </div>
         </div>
+
+        {searchOpen ? (
+          <div
+            className="border-t border-white/10 bg-[#071a36]/95 backdrop-blur-md"
+            role="search"
+            aria-label="Site search"
+          >
+            <div className="flex w-full items-stretch gap-2 px-3 py-3 sm:gap-3 sm:px-4">
+              <label htmlFor="nav-site-search" className="sr-only">
+                Search listings by title or location
+              </label>
+              <input
+                id="nav-site-search"
+                className="template-input h-12 min-h-12 min-w-0 flex-1 rounded-xl border-white/15 py-0 pl-4 pr-4 text-sm text-white placeholder:text-slate-400"
+                placeholder="Search by title or location"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitNavSearch()
+                  if (e.key === "Escape") setSearchOpen(false)
+                }}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={submitNavSearch}
+                className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-[#f58e43] px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-[#ff9b4f] sm:px-7"
+              >
+                Search
+              </button>
+              <button
+                type="button"
+                aria-label="Close search"
+                onClick={() => setSearchOpen(false)}
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 text-white transition-[border-color,background-color] duration-200 hover:border-white/60 hover:bg-white/10"
+              >
+                <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {mobileOpen ? (
           <nav

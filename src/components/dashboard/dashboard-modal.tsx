@@ -1,4 +1,9 @@
 import { useEffect, type ReactNode } from "react"
+import { createPortal } from "react-dom"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
+
+import { cn } from "@/lib/utils"
 
 type DashboardModalProps = {
   open: boolean
@@ -32,39 +37,53 @@ export function DashboardModal({ open, title, onClose, children, footer, wide }:
     return null
   }
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-100 flex items-end justify-center sm:items-center sm:p-4 sm:py-10">
       <button
         type="button"
-        className="absolute inset-0 bg-black/70"
+        className="absolute inset-0 border-0 bg-[#030912]/82 backdrop-blur-md motion-reduce:backdrop-blur-none"
         aria-label="Close dialog"
         onClick={onClose}
       />
       <div
-        className={`relative flex max-h-[92vh] w-full flex-col rounded-t-2xl border border-white/15 bg-slate-900 shadow-2xl sm:rounded-2xl ${
-          wide ? "max-w-6xl" : "max-w-3xl"
-        }`}
+        className={cn(
+          "relative z-10 flex w-full max-w-none flex-col overflow-hidden rounded-t-[1.35rem] border border-white/8 bg-[#0a1628] shadow-[0_-16px_48px_rgba(0,0,0,0.45),0_24px_64px_rgba(0,0,0,0.35)] ring-1 ring-white/4",
+          "max-h-[92dvh] sm:max-h-[min(92vh,900px)] sm:rounded-2xl",
+          wide ? "sm:max-w-6xl" : "sm:max-w-3xl",
+        )}
         role="dialog"
         aria-modal="true"
         aria-labelledby="dashboard-modal-title"
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5">
-          <h2 id="dashboard-modal-title" className="text-lg font-semibold text-white">
+        <div className="flex justify-center pt-3 pb-0 sm:hidden" aria-hidden>
+          <div className="h-1 w-11 rounded-full bg-white/18" />
+        </div>
+        <div className="flex shrink-0 items-center gap-2.5 border-b border-white/6 px-4 py-2.5 sm:px-5 sm:py-3">
+          <h2
+            id="dashboard-modal-title"
+            className="min-w-0 flex-1 font-sans text-sm font-semibold tracking-tight text-white sm:text-[0.95rem]"
+          >
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-1.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition-colors hover:border-white/18 hover:bg-white/6 hover:text-white"
+            aria-label="Close"
           >
-            Close
+            <FontAwesomeIcon icon={faXmark} className="text-sm" aria-hidden />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">{children}</div>
+        <div className="dashboard-modal-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#060d18]/40 px-4 py-4 sm:px-5 sm:py-4">
+          {children}
+        </div>
         {footer ? (
-          <div className="shrink-0 border-t border-white/10 bg-slate-950/80 px-4 py-3 sm:px-5">{footer}</div>
+          <div className="shrink-0 border-t border-white/6 bg-[#060d18]/90 px-4 py-3 backdrop-blur-sm sm:px-5">
+            {footer}
+          </div>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

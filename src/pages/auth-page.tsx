@@ -51,6 +51,7 @@ export function AuthPage() {
       const me = await getMe(data.access)
       localStorage.setItem("userRole", me.role)
       localStorage.setItem("userId", String(me.id))
+      localStorage.setItem("userUsername", me.username)
       window.dispatchEvent(new Event("auth-state-changed"))
       setMessage("Login successful. Redirecting...")
       showToast("Login successful", "success")

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { RepresentativeStaffAnalyticsCharts } from "@/components/dashboard/staff-dashboard-analytics"
+import { InvestmentCheckoutRequestsSection } from "@/components/dashboard/investment-checkout-requests-section"
 import { useToast } from "@/components/ui/use-toast"
 import { getDashboardByRole } from "@/services/api"
 import type { RepresentativeDashboardData } from "@/types/domain"
@@ -31,36 +33,9 @@ export function RepresentativeDashboardHomePage() {
       <p className="mt-2 text-sm text-slate-400">
         Open <strong>Properties</strong> or <strong>Agents</strong> to create and update records in a modal.
       </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <article className="metric-card">
-          <p>Referred Users</p>
-          <strong>{data.total_referred_users}</strong>
-        </article>
-        <article className="metric-card">
-          <p>Referred Investments</p>
-          <strong>{data.referred_investments}</strong>
-        </article>
-        <article className="metric-card">
-          <p>Referred Amount</p>
-          <strong>${data.referred_investment_amount}</strong>
-        </article>
-        <article className="metric-card">
-          <p>Commission Earned</p>
-          <strong>${data.earned_commission}</strong>
-        </article>
-        <article className="metric-card">
-          <p>Managed Properties</p>
-          <strong>{data.managed_properties}</strong>
-        </article>
-        <article className="metric-card">
-          <p>Direct Buy Requests</p>
-          <strong>{data.direct_buy_requests}</strong>
-        </article>
-        <article className="metric-card">
-          <p>Installment Requests</p>
-          <strong>{data.installment_requests}</strong>
-        </article>
-      </div>
+      <RepresentativeStaffAnalyticsCharts data={data} />
+
+      <InvestmentCheckoutRequestsSection variant="representative" />
     </section>
   )
 }

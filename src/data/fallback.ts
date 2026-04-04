@@ -1,8 +1,8 @@
-import type { DashboardData, Property } from "@/types/domain"
+import type { DashboardData, Property, ShareInvestmentOption } from "@/types/domain"
 
 const baseFields = {
   description_secondary: "",
-  property_channel: "direct_buy" as const,
+  property_channel: "plot_buy" as const,
   land_sale_mode: "per_block" as const,
   whole_land_price: null as string | null,
   share_price: null as string | null,
@@ -26,6 +26,13 @@ const baseFields = {
   review_sample_author: "",
   review_sample_date: null as string | null,
   review_sample_text: "",
+  listing_active: true,
+  expected_profit_percent: null as string | null,
+  investment_window_start: null as string | null,
+  investment_window_end: null as string | null,
+  share_investment_options: [] as ShareInvestmentOption[],
+  managed_by: null as number | null,
+  managed_by_name: null as string | null,
 }
 
 export const fallbackProperties: Property[] = [
@@ -126,7 +133,7 @@ export const fallbackDashboard: DashboardData = {
       id: 2,
       property: 2,
       property_title: "Nova Quincy Apartment",
-      type: "direct",
+      type: "plot_buy",
       duration_years: 0,
       roi_percent: "0.00",
       total_amount: "4000.00",

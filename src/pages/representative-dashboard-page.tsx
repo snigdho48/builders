@@ -1,10 +1,21 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { DashboardModal } from "@/components/dashboard/dashboard-modal"
+import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons"
+
+import { TableActionIconButton } from "@/components/ui/table-action-button"
+import {
+  actionsButtonRowClass,
+  stickyActionsTdClass,
+  stickyActionsThClass,
+} from "@/components/ui/sticky-table-actions"
+import { TableLoader } from "@/components/ui/table-loader"
 import { useToast } from "@/components/ui/use-toast"
 import { createProperty, deleteProperty, getManagedProperties, updateProperty } from "@/services/api"
 import type { Property, PropertyUpsertPayload } from "@/types/domain"
 import { listFromMultiline } from "@/utils/multiline-list"
+import { landSaleModeAfterChannelChange } from "@/utils/property-channel-land-mode"
+import { formatPropertyMoney } from "@/utils/property-display"
 
 export function RepresentativePropertiesPage() {
   const PAGE_SIZE = 10
@@ -13,14 +24,15 @@ export function RepresentativePropertiesPage() {
   const [propertyQuery, setPropertyQuery] = useState("")
   const [showPropertyForm, setShowPropertyForm] = useState(false)
   const [editingPropertyId, setEditingPropertyId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
   const [propertyForm, setPropertyForm] = useState<PropertyUpsertPayload>({
     title: "",
     slug: "",
     description: "",
     description_secondary: "",
     property_type: "apartment",
-    property_channel: "direct_buy",
-    land_sale_mode: "per_block",
+    property_channel: "plot_buy",
+    land_sale_mode: "whole_land",
     total_blocks: 100,
     available_blocks: 100,
     price_per_block: "100.00",
@@ -56,8 +68,10 @@ export function RepresentativePropertiesPage() {
   const { showToast } = useToast()
 
   async function loadProperties(token: string) {
+    setLoading(true)
     const propertiesPayload = await getManagedProperties(token)
     setProperties(propertiesPayload)
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -67,6 +81,7 @@ export function RepresentativePropertiesPage() {
     }
     const timeoutId = window.setTimeout(() => {
       loadProperties(token).catch((error) => {
+        setLoading(false)
         const message = error instanceof Error ? error.message : "Failed to load properties."
         showToast(message, "error")
       })
@@ -84,8 +99,8 @@ export function RepresentativePropertiesPage() {
       description: "",
       description_secondary: "",
       property_type: "apartment",
-      property_channel: "direct_buy",
-      land_sale_mode: "per_block",
+      property_channel: "plot_buy",
+      land_sale_mode: "whole_land",
       total_blocks: 100,
       available_blocks: 100,
       price_per_block: "100.00",
@@ -253,7 +268,26 @@ export function RepresentativePropertiesPage() {
                 />
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
+                {loading ? (
+                  <TableLoader
+                    rows={10}
+                    cols={11}
+                    colClasses={[
+                      "w-[10%]",
+                      "w-[22%]",
+                      "w-[8%]",
+                      "w-[12%]",
+                      "w-[10%]",
+                      "w-[8%]",
+                      "w-[8%]",
+                      "w-[8%]",
+                      "w-[8%]",
+                      "w-[6%]",
+                      "w-14 shrink-0",
+                    ]}
+                  />
+                ) : (
+                  <table className="min-w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-white/10 text-slate-300">
                       <th className="px-3 py-2">Image</th>
@@ -266,12 +300,12 @@ export function RepresentativePropertiesPage() {
                       <th className="px-3 py-2">Sale mode</th>
                       <th className="px-3 py-2">Price / Block</th>
                       <th className="px-3 py-2">Blocks</th>
-                      <th className="px-3 py-2">Actions</th>
+                      <th className={stickyActionsThClass}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedProperties.map((item) => (
-                      <tr key={item.id} className="border-b border-white/10">
+                      <tr key={item.id} className="group border-b border-white/10">
                         <td className="px-3 py-3">
                           {item.top_view_image ? (
                             <img
@@ -296,30 +330,31 @@ export function RepresentativePropertiesPage() {
                         <td className="px-3 py-3 text-xs capitalize text-slate-300">
                           {item.land_sale_mode.replace(/_/g, " ")}
                         </td>
-                        <td className="px-3 py-3">${item.price_per_block}</td>
+                        <td className="px-3 py-3">{formatPropertyMoney(item.price_per_block)}</td>
                         <td className="px-3 py-3">
                           {item.available_blocks}/{item.total_blocks}
                         </td>
-                        <td className="px-3 py-3">
-                          <div className="flex gap-2">
-                            <button
+                        <td className={stickyActionsTdClass}>
+                          <div className={actionsButtonRowClass}>
+                            <TableActionIconButton
+                              icon={faPenToSquare}
+                              label="Edit property"
+                              tone="neutral"
                               onClick={() => editProperty(item)}
-                              className="rounded border border-white/20 px-2 py-1 text-xs"
-                            >
-                              Edit
-                            </button>
-                            <button
+                            />
+                            <TableActionIconButton
+                              icon={faTrash}
+                              label="Delete property"
+                              tone="danger"
                               onClick={() => removeProperty(item.id)}
-                              className="rounded border border-rose-400/40 px-2 py-1 text-xs text-rose-300"
-                            >
-                              Delete
-                            </button>
+                            />
                           </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                )}
               </div>
               <div className="mt-4 flex items-center justify-between text-sm text-slate-300">
                 <p>
@@ -482,32 +517,46 @@ export function RepresentativePropertiesPage() {
                     </select>
                     <select
                       className="template-input"
-                      value={propertyForm.property_channel ?? "direct_buy"}
-                      onChange={(event) =>
+                      value={propertyForm.property_channel ?? "plot_buy"}
+                      onChange={(event) => {
+                        const channel = event.target.value as Property["property_channel"]
                         setPropertyForm((current) => ({
                           ...current,
-                          property_channel: event.target.value as Property["property_channel"],
+                          property_channel: channel,
+                          land_sale_mode: landSaleModeAfterChannelChange(channel, {
+                            channel: current.property_channel ?? "plot_buy",
+                            land_sale_mode: current.land_sale_mode,
+                          }),
                         }))
-                      }
-                      aria-label="Listing channel (direct buy vs installment)"
+                      }}
+                      aria-label="Listing channel (plot buy vs installment)"
                     >
-                      <option value="direct_buy">Direct buy (homepage lane)</option>
-                      <option value="installment">Installment (homepage lane)</option>
+                      <option value="plot_buy">Plot buy — whole plot</option>
+                      <option value="installment">Installment — block or shares</option>
                     </select>
-                    <select
-                      className="template-input"
-                      value={propertyForm.land_sale_mode ?? "per_block"}
-                      onChange={(event) =>
-                        setPropertyForm((current) => ({
-                          ...current,
-                          land_sale_mode: event.target.value as Property["land_sale_mode"],
-                        }))
-                      }
-                    >
-                      <option value="per_block">Per block</option>
-                      <option value="whole_land">Whole land</option>
-                      <option value="fractional_share">Fractional shares</option>
-                    </select>
+                    {propertyForm.property_channel === "installment" ? (
+                      <select
+                        className="template-input"
+                        value={propertyForm.land_sale_mode === "fractional_share" ? "fractional_share" : "per_block"}
+                        onChange={(event) =>
+                          setPropertyForm((current) => ({
+                            ...current,
+                            land_sale_mode: event.target.value as Property["land_sale_mode"],
+                          }))
+                        }
+                        aria-label="Installment unit type"
+                      >
+                        <option value="per_block">By block</option>
+                        <option value="fractional_share">Fractional shares</option>
+                      </select>
+                    ) : (
+                      <input
+                        className="template-input"
+                        readOnly
+                        value="Whole plot (plot buy)"
+                        aria-label="Sale mode"
+                      />
+                    )}
                     <input
                       className="template-input"
                       placeholder="Whole land price (optional)"
@@ -713,9 +762,9 @@ export function RepresentativePropertiesPage() {
                       above). One URL per line.
                     </p>
                     <textarea
-                      className="template-input min-h-[5.5rem] font-mono text-xs sm:col-span-2 lg:col-span-3"
+                      className="template-input min-h-22 font-mono text-xs sm:col-span-2 lg:col-span-3"
                       placeholder="https://example.com/photo-2.jpg&#10;https://example.com/photo-3.jpg"
-                      value={propertyForm.gallery_images.join("\n")}
+                      value={(propertyForm.gallery_images ?? []).join("\n")}
                       onChange={(event) =>
                         setPropertyForm((current) => ({
                           ...current,
@@ -728,9 +777,9 @@ export function RepresentativePropertiesPage() {
                       public page.
                     </p>
                     <textarea
-                      className="template-input min-h-[5.5rem] sm:col-span-2 lg:col-span-3"
+                      className="template-input min-h-22 sm:col-span-2 lg:col-span-3"
                       placeholder={"Pool\nGated parking\nSea view"}
-                      value={propertyForm.amenities.join("\n")}
+                      value={(propertyForm.amenities ?? []).join("\n")}
                       onChange={(event) =>
                         setPropertyForm((current) => ({
                           ...current,
@@ -742,9 +791,9 @@ export function RepresentativePropertiesPage() {
                       Tags (one per line). Shown in the listing “Tag” section.
                     </p>
                     <textarea
-                      className="template-input min-h-[4rem] sm:col-span-2 lg:col-span-3"
+                      className="template-input min-h-16 sm:col-span-2 lg:col-span-3"
                       placeholder={"Waterfront\nLuxury"}
-                      value={propertyForm.tags.join("\n")}
+                      value={(propertyForm.tags ?? []).join("\n")}
                       onChange={(event) =>
                         setPropertyForm((current) => ({
                           ...current,
