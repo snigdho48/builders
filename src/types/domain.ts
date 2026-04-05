@@ -1,14 +1,10 @@
 export type PropertyStatus = "available" | "sold" | "booked"
-export type PropertyType = "apartment" | "villa" | "commercial" | "land"
-export type InvestmentType = "plot_buy" | "installment"
-export type UserRole = "admin" | "superadmin" | "investor" | "representative" | "agent"
-export type LandSaleMode = "per_block" | "whole_land" | "fractional_share"
-export type PropertyChannel = "plot_buy" | "installment"
+export type SaleType = "land_buy" | "installment"
+export type UserRole = "admin" | "investor" | "agent"
 
-export type ShareInvestmentOption = {
-  amount: string
-  duration_years: number
-}
+export type PropertyKind = "apartment" | "villa" | "commercial" | "land"
+export type PropertyChannel = "plot_buy" | "installment"
+export type LandSaleMode = "per_block" | "whole_land" | "fractional_share"
 
 export type FloorPlanItem = {
   title: string
@@ -16,42 +12,28 @@ export type FloorPlanItem = {
   description?: string
 }
 
-export type CartLine = {
-  propertyId: number
-  title: string
-  slug: string
-  land_sale_mode: LandSaleMode
-  top_view_image: string
-  location_name: string
-  price_per_block: string
-  whole_land_price: string | null
-  share_price: string | null
-  available_blocks: number
-  available_shares: number | null
-  min_shares_per_order: number
-  blocks_owned: number
-  shares_owned: number
-  investment_type: "plot_buy" | "installment"
+export type ShareInvestmentOption = {
+  amount: string
   duration_years: number
-  /** Set for installment fractional lines that use rep-defined tiers */
-  share_tier?: ShareInvestmentOption | null
-  /** Snapshot for cart tier picker / sync */
-  share_investment_options?: ShareInvestmentOption[]
 }
 
+/** API shape matches legacy builders detail page + land booking platform. */
 export type Property = {
   id: number
   title: string
   slug: string
   description: string
   description_secondary: string
-  property_type: PropertyType
+  property_type: PropertyKind
+  sale_type: SaleType
   property_channel: PropertyChannel
   land_sale_mode: LandSaleMode
+  land_price: string
+  whole_land_price: string | null
+  installment_years: number | null
   total_blocks: number
   available_blocks: number
   price_per_block: string
-  whole_land_price: string | null
   share_price: string | null
   total_shares: number | null
   available_shares: number | null
@@ -62,14 +44,15 @@ export type Property = {
   video_url: string
   top_view_image: string
   gallery_images: string[]
-  amenities: string[]
   tags: string[]
+  amenities: string[]
   floor_plans: FloorPlanItem[]
   build_year: number | null
   bedrooms: number | null
   bathrooms: number | null
   flat_label: string
   size_sqft: number | null
+  land_area_sqft: number | null
   for_rent: boolean
   for_sale: boolean
   contact_website: string
@@ -80,9 +63,6 @@ export type Property = {
   review_sample_text: string
   status: PropertyStatus
   listing_active: boolean
-  expected_profit_percent: string | null
-  investment_window_start: string | null
-  investment_window_end: string | null
   share_investment_options: ShareInvestmentOption[]
   representative: number | null
   representative_name: string | null
@@ -90,280 +70,63 @@ export type Property = {
   representative_phone: string | null
   managed_by: number | null
   managed_by_name: string | null
-}
-
-export type InstallmentRecord = {
-  id: number
-  investment: number
-  amount: string
-  due_date: string
-  status: string
-  paid_at: string | null
-}
-
-export type PaymentRecord = {
-  id: number
-  user: number
-  investment: number | null
-  amount: string
-  method: string
-  status: string
-  transaction_id: string
-  created_at: string
-}
-
-export type PaymentRequestRecord = {
-  id: number
-  user: number
-  user_username?: string
-  user_email?: string
-  investment: number | null
-  investment_property_title?: string
-  amount: string
-  method: string
-  note: string
-  status: "pending" | "approved" | "rejected"
-  reviewed_by: number | null
-  reviewer_name?: string | null
-  review_note: string
-  linked_payment: number | null
+  assigned_agent: number | null
+  assigned_agent_name: string | null
   created_at?: string
   updated_at?: string
 }
 
-export type Investment = {
-  id: number
-  user?: number
-  property: number
-  property_title: string
-  /** Staff views: investor account */
-  investor_username?: string
-  investor_email?: string
-  /** ISO datetime; used for “expired window” lifecycle */
-  property_investment_window_end?: string | null
-  type: InvestmentType
-  duration_years: number
-  roi_percent: string
-  total_amount: string
-  blocks_owned: number
-  shares_owned: number
-  start_date: string
-  end_date: string | null
-  referral_code_used?: string
-  created_at?: string
-  installments?: InstallmentRecord[]
-  payments?: PaymentRecord[]
-  /** Maturity payout: term ended, all installments paid on time, no payout yet */
-  redemption_eligible?: boolean
-  redemption_eligibility_message?: string
-}
+export type LandBookingPlanType = "one_percent_installment" | "fifty_percent_installment"
+export type LandBookingStatus = "pending" | "accepted" | "rejected"
 
-export type UserNotification = {
+export type LandBooking = {
   id: number
-  kind: string
-  title: string
-  body: string
-  read_at: string | null
-  meta: Record<string, unknown>
+  property: number
+  property_title?: string
+  property_sale_type?: SaleType
+  investor: number
+  investor_username?: string
+  plan_type: LandBookingPlanType
+  full_name: string
+  email: string
+  phone: string
+  contact_notes: string
+  referral_code_used: string
+  status: LandBookingStatus
+  reviewed_by: number | null
+  reviewed_by_username?: string | null
+  reviewed_at: string | null
+  rejection_reason: string
   created_at: string
   updated_at: string
 }
 
-export type RedemptionRequest = {
-  id: number
-  investment: number
-  investment_property_title?: string
-  investor?: number
-  investor_username?: string
-  status: "pending" | "approved" | "rejected" | "paid"
-  principal_amount: string
-  profit_amount: string
-  total_payout: string
-  profit_percent_used: string
-  notes?: string
-  rejection_reason?: string
-  reviewed_by?: number | null
-  created_at?: string
-  updated_at?: string
-}
-
-/** Query params for `GET /investments/` (list + order_history). */
-export type InvestmentListFilters = {
-  search?: string
-  investmentType?: InvestmentType | "all"
-  /** Positions: running (open), due (installment due/overdue), expired (listing window ended), complete (closed). */
-  lifecycle?: "all" | "running" | "due" | "expired" | "complete"
-  pageSize?: number
-}
-
-export type DashboardData = {
-  total_investment: string
-  active_investments: number
-  total_roi: string
-  paid_installments: number
-  remaining_installments: number
-  referral_earnings: string
-  recent_investments: Investment[]
-}
-
-export type CreateInvestmentPayload = {
-  property: number
-  type: InvestmentType
-  duration_years: number
-  blocks_owned?: number
-  shares_owned?: number
-  referral_code_used?: string
-}
-
-export type CheckoutRequestStatus = "pending" | "approved" | "rejected" | "completed" | "cancelled"
-
-export type InvestmentCheckoutRequest = {
-  id: number
-  investor: number
-  investor_username?: string
-  investor_email?: string
-  property: number
-  property_title?: string
-  property_listing_active?: boolean
-  property_channel?: PropertyChannel
-  property_investment_window_start?: string | null
-  property_investment_window_end?: string | null
-  status: CheckoutRequestStatus
-  agent_approved: boolean
-  representative_approved: boolean
-  rejected_reason: string
-  investment_type: InvestmentType
-  duration_years: number
-  blocks_owned: number
-  shares_owned: number
-  referral_code_used?: string
-  created_at?: string
-  updated_at?: string
-}
-
-/** Query params for `GET /investment-checkout-requests/` */
-export type InvestmentCheckoutListFilters = {
-  search?: string
-  status?: CheckoutRequestStatus | "all"
-  investmentType?: InvestmentType | "all"
-  /** Property investment window vs now: running | expired | upcoming | no_window */
-  window?: "all" | "running" | "expired" | "upcoming" | "no_window"
-  listingActive?: "all" | "true" | "false"
-  propertyChannel?: PropertyChannel | "all"
-  pageSize?: number
-}
-
-export type CreateInvestmentCheckoutPayload = {
-  property: number
-  investment_type: InvestmentType
-  duration_years: number
-  blocks_owned?: number
-  shares_owned?: number
-  referral_code_used?: string
-}
-
-export type KycFieldChoice = { value: string; label: string }
-
-export type KycFieldDefinition = {
-  id: number
-  field_key: string
-  label: string
-  input_type: string
-  validation_type: string
-  validation_config: Record<string, unknown>
-  required: boolean
-  /** When false, hidden from investors and skipped in validation. */
-  enabled: boolean
-  sort_order: number
-  choices: KycFieldChoice[]
-}
-
-export type KycTemplate = {
-  id: number
-  name: string
-  slug: string
-  description: string
-  is_active: boolean
-  required_for_checkout: boolean
-  fields: KycFieldDefinition[]
-  created_at?: string
-  updated_at?: string
-}
-
-export type UserKycSubmission = {
-  id: number
-  user: number
-  user_username?: string
-  user_email?: string
-  template: number
-  template_name?: string
-  status: "draft" | "pending_review" | "approved" | "rejected"
-  responses: Record<string, unknown>
-  reviewed_by: number | null
-  reviewer_name?: string | null
-  review_note: string
-  created_at?: string
-  updated_at?: string
-}
+export type InvestorKycStatus = "pending" | "approved" | "rejected"
 
 export type MeResponse = {
   id: number
   username: string
   email: string
-  first_name: string
-  last_name: string
   phone: string
-  role: UserRole
+  role: UserRole | string
   referral_code: string
   referral_link: string
   referral_commission_percent: string
+  first_name: string
+  last_name: string
   profile_photo: string
-  /** False until all active required KYC templates have an approved submission */
-  kyc_checkout_ready: boolean
-  /** Templates still needed for checkout (from server) */
-  kyc_missing_templates: { id: number; name: string; slug: string }[]
-}
-
-export type RepresentativeDashboardData = {
-  total_referred_users: number
-  referred_investments: number
-  referred_investment_amount: string
-  earned_commission: string
-  managed_properties: number
-  plot_buy_requests: number
-  installment_requests: number
-}
-
-export type AgentDashboardData = {
-  managed_by_name: string
-  managed_properties: number
-  plot_buy_requests: number
-  installment_requests: number
-}
-
-export type AdminDashboardData = {
-  total_users: number
-  total_properties: number
-  total_investments: number
-  total_payments: number
-  pending_payments: number
-  total_referral_commission: string
-  /** Platform-wide referral / rep-listing stats */
-  rep_metrics: RepresentativeDashboardData
-  /** Platform-wide agent-assignment stats */
-  agent_metrics: AgentDashboardData
-}
-
-export type ApiErrorShape = {
-  code: number
-  message: string
-  details?: unknown
+  kyc_status: InvestorKycStatus
+  kyc_verified_at: string
+  /** ISO datetime when the investor last submitted an in-app KYC request. */
+  kyc_requested_at: string
+  /** Optional message the investor sent with their KYC request. */
+  kyc_investor_notes: string
 }
 
 export type ApiEnvelope<T> = {
   success: boolean
-  error: ApiErrorShape | null
   data: T
+  error?: { message?: string; details?: unknown }
   message?: string
   pagination?: {
     page: number
@@ -375,52 +138,65 @@ export type ApiEnvelope<T> = {
   }
 }
 
-export type PropertyUpsertPayload = {
+export type AdminDashboardData = {
+  total_users: number
+  total_properties: number
+  total_bookings: number
+  pending_bookings: number
+}
+
+export type AgentDashboardData = {
+  managed_properties: number
+  pending_bookings: number
+}
+
+export type InvestorDashboardData = {
+  my_pending_bookings: number
+  my_accepted_bookings: number
+  my_rejected_bookings: number
+  kyc_status: InvestorKycStatus
+  kyc_requested_at: string
+}
+
+export type PropertyUpsertPayload = Partial<{
   title: string
   slug: string
   description: string
-  description_secondary?: string
-  property_type: PropertyType
-  property_channel?: PropertyChannel
-  land_sale_mode?: LandSaleMode
-  total_blocks: number
-  available_blocks: number
-  price_per_block: string
-  whole_land_price?: string | null
-  share_price?: string | null
-  total_shares?: number | null
-  available_shares?: number | null
-  min_shares_per_order?: number
+  description_secondary: string
+  property_type: PropertyKind
+  sale_type: SaleType
+  land_price: string
+  installment_years: number | null
   location_name: string
-  latitude?: string | null
-  longitude?: string | null
-  video_url?: string
-  top_view_image?: string
-  gallery_images?: string[]
-  amenities?: string[]
-  tags?: string[]
-  floor_plans?: FloorPlanItem[]
-  build_year?: number | null
-  bedrooms?: number | null
-  bathrooms?: number | null
-  flat_label?: string
-  size_sqft?: number | null
-  for_rent?: boolean
-  for_sale?: boolean
-  contact_website?: string
-  rating_average?: string | null
-  review_count?: number
-  review_sample_author?: string
-  review_sample_date?: string | null
-  review_sample_text?: string
-  status?: PropertyStatus
-  listing_active?: boolean
-  expected_profit_percent?: string | null
-  investment_window_start?: string | null
-  investment_window_end?: string | null
-  share_investment_options?: ShareInvestmentOption[]
-  representative?: number | null
-  managed_by?: number | null
+  latitude: string | null
+  longitude: string | null
+  video_url: string
+  top_view_image: string
+  gallery_images: string[]
+  tags: string[]
+  amenities: string[]
+  floor_plans: FloorPlanItem[]
+  build_year: number | null
+  bedrooms: number | null
+  bathrooms: number | null
+  flat_label: string
+  land_area_sqft: number | null
+  for_rent: boolean
+  for_sale: boolean
+  contact_website: string
+  status: PropertyStatus
+  listing_active: boolean
+  assigned_agent: number | null
+}>
+
+export type LandBookingCreatePayload = {
+  property: number
+  plan_type: LandBookingPlanType
+  full_name: string
+  email: string
+  phone: string
+  contact_notes?: string
+  referral_code_used?: string
 }
 
 export type RetailInvestor = {
@@ -433,42 +209,12 @@ export type RetailInvestor = {
   phone: string
   referral_code: string
   date_joined: string
-}
-
-export type InvestorUpsertPayload = {
-  username: string
-  email: string
-  first_name?: string
-  last_name?: string
-  phone?: string
-  password?: string
-  is_active?: boolean
-}
-
-export type RepresentativeUser = {
-  id: number
-  username: string
-  email: string
-  first_name: string
-  last_name: string
-  is_active: boolean
-  phone: string
-  role: "representative"
-  referral_commission_percent: string
-  /** Listings where this user is the assigned representative */
-  property_count?: number
-  date_joined: string
-}
-
-export type RepresentativeUpsertPayload = {
-  username: string
-  email: string
-  first_name?: string
-  last_name?: string
-  phone?: string
-  password?: string
-  is_active?: boolean
-  referral_commission_percent?: string
+  kyc_status: InvestorKycStatus
+  kyc_notes: string
+  kyc_verified_at: string | null
+  kyc_verified_by_username: string
+  kyc_requested_at: string | null
+  kyc_investor_notes: string
 }
 
 export type AgentUser = {
@@ -479,22 +225,88 @@ export type AgentUser = {
   last_name: string
   is_active: boolean
   phone: string
-  role: "agent"
+  role: string
   referral_commission_percent: string
-  managed_by: number | null
-  /** Properties assigned to this agent (managed_by) */
-  property_count?: number
+  property_count: number
   date_joined: string
+}
+
+export type InvestorUpsertPayload = {
+  username: string
+  email: string
+  password: string
+  first_name?: string
+  last_name?: string
+  phone?: string
+  is_active?: boolean
 }
 
 export type AgentUpsertPayload = {
   username: string
   email: string
+  password: string
   first_name?: string
   last_name?: string
   phone?: string
-  password?: string
   is_active?: boolean
   referral_commission_percent?: string
-  managed_by?: number | null
+}
+
+export type P2PListingStatus = "active" | "sold" | "withdrawn"
+
+export type P2PBidStatus = "pending" | "accepted" | "declined"
+
+export type P2PListing = {
+  id: number
+  seller_id: number
+  title: string
+  slug: string
+  description: string
+  location_name: string
+  asking_price_hint: string | null
+  land_area_sqft: number | null
+  hero_image: string
+  gallery_images: string[]
+  status: P2PListingStatus
+  bid_count?: number
+  created_at: string
+  updated_at: string
+}
+
+export type P2PListingWritePayload = {
+  title: string
+  description: string
+  location_name: string
+  asking_price_hint?: string | null
+  land_area_sqft?: number | null
+  hero_image?: string
+  gallery_images?: string[]
+  status?: P2PListingStatus
+}
+
+export type P2PBidIncoming = {
+  id: number
+  listing_id: number
+  listing_title: string
+  buyer_id: number
+  buyer_username: string
+  buyer_email: string
+  buyer_phone: string
+  buyer_full_name: string
+  bid_price: string
+  message: string
+  status: P2PBidStatus
+  created_at: string
+  updated_at: string
+}
+
+export type P2PBidSent = {
+  id: number
+  listing_id: number
+  listing_title: string
+  bid_price: string
+  message: string
+  status: P2PBidStatus
+  created_at: string
+  updated_at: string
 }

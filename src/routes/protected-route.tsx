@@ -7,9 +7,18 @@ type ProtectedRouteProps = {
   allowRoles?: UserRole[]
 }
 
+/** Map legacy stored roles (e.g. after DB migration) to the three app roles. */
+export function normalizeStoredRole(raw: string | null): UserRole | null {
+  if (!raw) return null
+  if (raw === "superadmin") return "admin"
+  if (raw === "representative" || raw === "advertiser") return "agent"
+  if (raw === "admin" || raw === "agent" || raw === "investor") return raw
+  return null
+}
+
 export function ProtectedRoute({ children, allowRoles }: ProtectedRouteProps) {
   const token = localStorage.getItem("accessToken")
-  const role = localStorage.getItem("userRole") as UserRole | null
+  const role = normalizeStoredRole(localStorage.getItem("userRole"))
 
   if (!token) {
     return <Navigate to="/auth" replace />

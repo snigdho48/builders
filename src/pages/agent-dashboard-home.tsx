@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
-import { AgentStaffAnalyticsCharts } from "@/components/dashboard/staff-dashboard-analytics"
-import { InvestmentCheckoutRequestsSection } from "@/components/dashboard/investment-checkout-requests-section"
 import { useToast } from "@/components/ui/use-toast"
-import { getDashboardByRole } from "@/services/api"
+import { getDashboard } from "@/services/api"
 import type { AgentDashboardData } from "@/types/domain"
 
 export function AgentDashboardHomePage() {
@@ -13,30 +12,35 @@ export function AgentDashboardHomePage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken")
     if (!token) return
-    getDashboardByRole(token)
-      .then((payload) => setData(payload as AgentDashboardData))
-      .catch((error) => {
-        const message = error instanceof Error ? error.message : "Failed to load dashboard."
-        showToast(message, "error")
-      })
+    getDashboard(token)
+      .then((d) => setData(d as AgentDashboardData))
+      .catch((e) => showToast(e instanceof Error ? e.message : "Failed to load", "error"))
   }, [showToast])
 
   if (!data) {
-    return <p className="text-slate-400">Loading overview...</p>
+    return <p className="text-slate-400">Loading…</p>
   }
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold text-white">Overview</h2>
-      <p className="mt-2 text-sm text-slate-400">
-        Open <strong>Properties</strong> to view assigned listings and open a full details modal.
-      </p>
-      <p className="mt-2 text-sm text-slate-300">
-        Managed by: <span className="font-semibold text-white">{data.managed_by_name || "Not assigned"}</span>
-      </p>
-      <AgentStaffAnalyticsCharts data={data} />
-
-      <InvestmentCheckoutRequestsSection variant="agent" />
+    <section className="space-y-8">
+      <div>
+        <h2 className="text-xl font-semibold text-white">Agent workspace</h2>
+        <p className="mt-2 text-sm text-slate-400">
+          You manage assigned land listings. Review{" "}
+          <Link to="/dashboard/agent/bookings" className="text-[#f58e43] hover:underline">booking requests</Link> for
+          those lands.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <article className="metric-card">
+          <p>Assigned lands</p>
+          <strong>{data.managed_properties}</strong>
+        </article>
+        <article className="metric-card">
+          <p>Pending bookings</p>
+          <strong>{data.pending_bookings}</strong>
+        </article>
+      </div>
     </section>
   )
 }

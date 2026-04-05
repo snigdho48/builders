@@ -4,24 +4,16 @@ import type { Property } from "@/types/domain"
  * Plot-buy lane: prefer whole-plot (whole_land) listings in the plot_buy channel.
  */
 export function pickPlotBuyTop(available: Property[], limit: number): Property[] {
-  let pool = available.filter(
-    (p) => p.property_channel === "plot_buy" && p.land_sale_mode === "whole_land"
-  )
+  let pool = available.filter((p) => p.property_channel === "plot_buy" && p.land_sale_mode === "whole_land")
   if (pool.length === 0) {
     pool = available.filter((p) => p.property_channel === "plot_buy")
   }
   return [...pool].sort(sortByRatingThenBlocks).slice(0, limit)
 }
 
-export function pickInstallmentTop(
-  available: Property[],
-  plotBuyTop: Property[],
-  limit: number
-): Property[] {
+export function pickInstallmentTop(available: Property[], plotBuyTop: Property[], limit: number): Property[] {
   const plotIds = new Set(plotBuyTop.map((p) => p.id))
-  let pool = available.filter(
-    (p) => p.property_channel === "installment" && p.land_sale_mode === "fractional_share"
-  )
+  let pool = available.filter((p) => p.property_channel === "installment" && p.land_sale_mode === "fractional_share")
   if (pool.length === 0) {
     pool = available.filter((p) => p.property_channel === "installment")
   }

@@ -1,10 +1,10 @@
 export function ContactPage() {
   return (
-    <main className="bg-slate-950 px-4 py-16 pb-20 text-white sm:px-6">
-      <div className="mx-auto grid max-w-7xl gap-8 sm:grid-cols-2">
+    <main className="bg-slate-950 py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(5rem,env(safe-area-inset-bottom,0px))] text-white sm:px-6">
+      <div className="mx-auto grid min-w-0 max-w-7xl gap-8 sm:grid-cols-2">
         <section>
           <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Contact</p>
-          <h1 className="mt-2 text-3xl font-semibold">Talk to our investment advisors</h1>
+          <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Talk to our investment advisors</h1>
           <p className="mt-3 text-slate-300">
             Share your goals and we will help you choose plot buy or installment plans.
           </p>

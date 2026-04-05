@@ -46,11 +46,6 @@ export function LandingPage() {
     [properties]
   )
 
-  const totalBlocks = useMemo(
-    () => properties.reduce((total, property) => total + property.total_blocks, 0),
-    [properties]
-  )
-
   const plotBuyTop = useMemo(
     () => pickPlotBuyTop(available, LANE_CARD_LIMIT),
     [available]
@@ -135,11 +130,11 @@ export function LandingPage() {
           <RevealStagger className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="metric-card">
               <p>Featured Projects</p>
-              <strong>{properties.length || 20}K</strong>
+              <strong>20K</strong>
             </div>
             <div className="metric-card">
               <p>Luxury Houses</p>
-              <strong>{totalBlocks || 100}K</strong>
+              <strong>100K</strong>
             </div>
             <div className="metric-card">
               <p>Satisfied Clients</p>
@@ -163,9 +158,9 @@ export function LandingPage() {
             View all listings
           </Link>
         </RevealOnView>
-        <div className="flex flex-wrap justify-center gap-6">
+        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {plotBuyTop.map((property) => (
-            <div key={`plot-${property.id}`} className="w-full shrink-0 sm:w-[min(100%,340px)]">
+            <div key={`plot-${property.id}`} className="min-h-0 min-w-0">
               <PropertyCard property={property} />
             </div>
           ))}
@@ -188,9 +183,9 @@ export function LandingPage() {
             View all listings
           </Link>
         </RevealOnView>
-        <div className="flex flex-wrap justify-center gap-6">
+        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {installmentTop.map((property) => (
-            <div key={`inst-${property.id}`} className="w-full shrink-0 sm:w-[min(100%,340px)]">
+            <div key={`inst-${property.id}`} className="min-h-0 min-w-0">
               <PropertyCard property={property} />
             </div>
           ))}

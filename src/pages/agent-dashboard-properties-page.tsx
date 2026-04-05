@@ -1,257 +1,442 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { PropertyEditModal } from "@/components/dashboard/property-edit-modal"
+import { DashboardModal } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
-import { DashboardTablePagination } from "@/components/ui/dashboard-table-pagination"
-import { stickyActionsTdClass, stickyActionsThClass } from "@/components/ui/sticky-table-actions"
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons"
-
-import { TableActionIconButton } from "@/components/ui/table-action-button"
-import { TableLoader } from "@/components/ui/table-loader"
 import { useToast } from "@/components/ui/use-toast"
-import { getManagedPropertiesPaged } from "@/services/api"
-import type { Property } from "@/types/domain"
-
-const PAGE_SIZE_OPTIONS = [10, 25, 50] as const
-
-function labelOrDash(value: string | null | undefined) {
-  const v = value?.trim()
-  return v ? v : "—"
-}
-
-function isInstallmentListing(property: Property): boolean {
-  return property.property_channel === "installment" || property.land_sale_mode === "fractional_share"
-}
-
-function inventoryLabel(property: Property): string {
-  if (isInstallmentListing(property)) {
-    const total = property.total_shares ?? 0
-    const left = property.available_shares ?? 0
-    if (total > 0) return `${left}/${total} shares`
-    return `${left} shares`
-  }
-  return "1/1"
-}
+import { SALE_TYPE_FILTER_OPTIONS } from "@/constants/property-filters"
+import { getPropertiesPaged, updateProperty } from "@/services/api"
+import type { Property, PropertyKind, PropertyUpsertPayload, SaleType } from "@/types/domain"
+import { propertyPrimaryPriceLine, saleTypeLabel } from "@/utils/property-display"
 
 export function AgentDashboardPropertiesPage() {
-  const [pageSize, setPageSize] = useState(10)
-  const [items, setItems] = useState<Property[]>([])
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState<number | null>(null)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [searchInput, setSearchInput] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [filterStatus, setFilterStatus] = useState<string>("all")
-  const [filterType, setFilterType] = useState<string>("all")
-  const [filterChannel, setFilterChannel] = useState<string>("all")
   const { showToast } = useToast()
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 350)
-    return () => window.clearTimeout(t)
-  }, [searchInput])
+  const [rows, setRows] = useState<Property[]>([])
+  const [loading, setLoading] = useState(true)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editing, setEditing] = useState<Property | null>(null)
+  const [form, setForm] = useState({
+    title: "",
+    property_type: "land" as PropertyKind,
+    sale_type: "land_buy" as SaleType,
+    land_price: "",
+    installment_years: "" as string,
+    location_name: "",
+    land_area_sqft: "",
+    description: "",
+    description_secondary: "",
+    amenities_text: "",
+    build_year: "",
+    bedrooms: "",
+    bathrooms: "",
+    flat_label: "",
+    contact_website: "",
+    for_rent: false,
+    top_view_image: "",
+    listing_active: true,
+  })
+  const [saving, setSaving] = useState(false)
+  const [tableSearch, setTableSearch] = useState("")
+  const [tableSaleType, setTableSaleType] = useState<"all" | SaleType>("all")
+  const [tableActive, setTableActive] = useState<"all" | "yes" | "no">("all")
 
   const load = useCallback(async () => {
     const token = localStorage.getItem("accessToken")
     if (!token) return
     setLoading(true)
     try {
-      const { items: next, pagination } = await getManagedPropertiesPaged(token, {
-        page,
-        pageSize,
-        status: filterStatus,
-        propertyType: filterType,
-        propertyChannel: filterChannel,
-        search: debouncedSearch || undefined,
-      })
-      const sorted = [...next].sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
-      setItems(sorted)
-      if (pagination?.total_pages) setTotalPages(pagination.total_pages)
-      else setTotalPages(Math.max(1, Math.ceil(next.length / pageSize)))
-      if (typeof pagination?.count === "number") setTotalCount(pagination.count)
-      else setTotalCount(null)
+      const { items } = await getPropertiesPaged({ pageSize: 100, managedByMe: true, includeInactive: true })
+      setRows(items)
+    } catch {
+      setRows([])
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, debouncedSearch, filterStatus, filterType, filterChannel])
+  }, [])
 
   useEffect(() => {
-    load().catch((error) => {
-      setLoading(false)
-      const message = error instanceof Error ? error.message : "Failed to load properties."
-      showToast(message, "error")
+    void load()
+  }, [load])
+
+  function openEdit(p: Property) {
+    setEditing(p)
+    setForm({
+      title: p.title,
+      property_type: p.property_type,
+      sale_type: p.sale_type,
+      land_price: p.land_price,
+      installment_years: p.installment_years != null ? String(p.installment_years) : "",
+      location_name: p.location_name,
+      land_area_sqft: p.land_area_sqft != null ? String(p.land_area_sqft) : "",
+      description: p.description,
+      description_secondary: p.description_secondary,
+      amenities_text: (p.amenities ?? []).join("\n"),
+      build_year: p.build_year != null ? String(p.build_year) : "",
+      bedrooms: p.bedrooms != null ? String(p.bedrooms) : "",
+      bathrooms: p.bathrooms != null ? String(p.bathrooms) : "",
+      flat_label: p.flat_label,
+      contact_website: p.contact_website,
+      for_rent: p.for_rent,
+      top_view_image: p.top_view_image,
+      listing_active: p.listing_active,
     })
-  }, [load, showToast])
+    setModalOpen(true)
+  }
+
+  async function save() {
+    const token = localStorage.getItem("accessToken")
+    if (!token || !editing) return
+    if (form.sale_type === "installment") {
+      const y = Number(form.installment_years)
+      if (!Number.isFinite(y) || y < 1) {
+        showToast("Installment listings need a positive term in years.", "error")
+        return
+      }
+    }
+    setSaving(true)
+    try {
+      const amenities = form.amenities_text
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const payload: PropertyUpsertPayload = {
+        title: form.title.trim(),
+        property_type: form.property_type,
+        sale_type: form.sale_type,
+        land_price: form.land_price.trim(),
+        installment_years:
+          form.sale_type === "installment" ? Math.max(1, Math.floor(Number(form.installment_years))) : null,
+        location_name: form.location_name.trim(),
+        land_area_sqft: form.land_area_sqft.trim() ? Math.max(0, Math.floor(Number(form.land_area_sqft))) : null,
+        description: form.description,
+        description_secondary: form.description_secondary,
+        amenities,
+        build_year: form.build_year.trim() ? Math.max(0, Math.floor(Number(form.build_year))) : null,
+        bedrooms: form.bedrooms.trim() ? Math.max(0, Math.floor(Number(form.bedrooms))) : null,
+        bathrooms: form.bathrooms.trim() ? Math.max(0, Math.floor(Number(form.bathrooms))) : null,
+        flat_label: form.flat_label.trim(),
+        contact_website: form.contact_website.trim(),
+        for_rent: form.for_rent,
+        top_view_image: form.top_view_image.trim(),
+        listing_active: form.listing_active,
+      }
+      await updateProperty(editing.id, payload, token)
+      showToast("Listing updated.", "success")
+      setModalOpen(false)
+      await load()
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Save failed", "error")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const title = useMemo(() => "My assigned lands", [])
+
+  const filteredRows = useMemo(() => {
+    let list = rows
+    if (tableSaleType !== "all") {
+      list = list.filter((p) => p.sale_type === tableSaleType)
+    }
+    if (tableActive === "yes") {
+      list = list.filter((p) => p.listing_active)
+    } else if (tableActive === "no") {
+      list = list.filter((p) => !p.listing_active)
+    }
+    const q = tableSearch.trim().toLowerCase()
+    if (q) {
+      list = list.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.location_name.toLowerCase().includes(q) ||
+          String(p.id).includes(q),
+      )
+    }
+    return list
+  }, [rows, tableSearch, tableSaleType, tableActive])
+
+  const agentTableSelectClass = "h-9 w-full text-xs leading-9"
 
   return (
-    <section>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold text-white">Assigned properties</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Search and filters apply to your assigned listings. Use Edit in the right column.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
-          <div className="flex min-w-[140px] items-center gap-2">
-            <span className="shrink-0 text-slate-500">Rows</span>
-            <div className="rounded-md border border-white/10 bg-[#152a45]/95 px-2 py-0.5">
-              <CompactFormSelect
-                ariaLabel="Rows per page"
-                value={String(pageSize)}
-                onValueChange={(v) => {
-                  setPageSize(Number(v))
-                  setPage(1)
-                }}
-                options={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: `${n} / page` }))}
-              />
-            </div>
-          </div>
-          <span>Total: {totalCount ?? items.length}</span>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-col gap-3">
-        <input
-          className="dashboard-filter-input w-full max-w-md"
-          placeholder="Search title or location…"
-          value={searchInput}
-          onChange={(e) => {
-            setSearchInput(e.target.value)
-            setPage(1)
-          }}
-        />
-        <div className="dashboard-filters-row">
-          <div className="dashboard-filter-group min-w-[120px]">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status</span>
-            <div className="dashboard-filter-select-shell">
-              <CompactFormSelect
-                ariaLabel="Filter by status"
-                value={filterStatus}
-                onValueChange={(v) => {
-                  setFilterStatus(v)
-                  setPage(1)
-                }}
-                options={[
-                  { value: "all", label: "All statuses" },
-                  { value: "available", label: "Available" },
-                  { value: "booked", label: "Booked" },
-                  { value: "sold", label: "Sold" },
-                ]}
-              />
-            </div>
-          </div>
-          <div className="dashboard-filter-group min-w-[120px]">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Type</span>
-            <div className="dashboard-filter-select-shell">
-              <CompactFormSelect
-                ariaLabel="Filter by type"
-                value={filterType}
-                onValueChange={(v) => {
-                  setFilterType(v)
-                  setPage(1)
-                }}
-                options={[
-                  { value: "all", label: "All types" },
-                  { value: "apartment", label: "Apartment" },
-                  { value: "villa", label: "Villa" },
-                  { value: "commercial", label: "Commercial" },
-                  { value: "land", label: "Land" },
-                ]}
-              />
-            </div>
-          </div>
-          <div className="dashboard-filter-group min-w-[130px]">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Channel</span>
-            <div className="dashboard-filter-select-shell">
-              <CompactFormSelect
-                ariaLabel="Filter by channel"
-                value={filterChannel}
-                onValueChange={(v) => {
-                  setFilterChannel(v)
-                  setPage(1)
-                }}
-                options={[
-                  { value: "all", label: "All channels" },
-                  { value: "plot_buy", label: "Plot buy" },
-                  { value: "installment", label: "Installment" },
-                ]}
-              />
-            </div>
-          </div>
-        </div>
+    <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-white">{title}</h2>
+        <p className="text-sm text-slate-400">Update details and visibility for lands assigned to you.</p>
       </div>
 
       {loading ? (
-        <div className="mt-5">
-          <TableLoader rows={8} cols={7} colClasses={["w-[28%]", "w-[10%]", "w-[10%]", "w-[12%]", "w-[14%]", "w-[12%]", "w-[14%]"]} />
-        </div>
+        <p className="text-slate-500">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-slate-500">No lands assigned yet.</p>
       ) : (
-        <div className="mt-5 overflow-x-auto rounded-2xl border border-white/10 bg-slate-900/40">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-300">
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Channel</th>
-                <th className="px-3 py-2">Location</th>
-                <th className="px-3 py-2 text-right">Inventory</th>
-                <th className={stickyActionsThClass}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.length === 0 ? (
+        <>
+          <div className="dashboard-filters-row">
+            <input
+              className="dashboard-filter-input min-w-[200px] flex-1"
+              placeholder="Search title, location, ID…"
+              value={tableSearch}
+              onChange={(e) => setTableSearch(e.target.value)}
+              aria-label="Search assigned lands"
+            />
+            <div className="dashboard-filter-group min-w-[150px]">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Sale type</span>
+              <div className="dashboard-filter-select-shell">
+                <CompactFormSelect
+                  ariaLabel="Filter by sale type"
+                  className={agentTableSelectClass}
+                  value={tableSaleType}
+                  onValueChange={(v) => setTableSaleType(v as "all" | SaleType)}
+                  options={SALE_TYPE_FILTER_OPTIONS}
+                />
+              </div>
+            </div>
+            <div className="dashboard-filter-group min-w-[120px]">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Active</span>
+              <div className="dashboard-filter-select-shell">
+                <CompactFormSelect
+                  ariaLabel="Filter by active"
+                  className={agentTableSelectClass}
+                  value={tableActive}
+                  onValueChange={(v) => setTableActive(v as "all" | "yes" | "no")}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "yes", label: "Yes" },
+                    { value: "no", label: "No" },
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="min-w-[640px] w-full border-collapse text-left text-sm text-slate-200">
+              <thead className="border-b border-white/10 bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
-                  <td className="px-3 py-6 text-slate-300" colSpan={7}>
-                    No properties match your filters.
-                  </td>
+                  <th className="px-4 py-3 align-middle">Title</th>
+                  <th className="px-4 py-3 align-middle">Sale</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">Price</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">Active</th>
+                  <th className="px-4 py-3 align-middle text-right whitespace-nowrap">Actions</th>
                 </tr>
-              ) : (
-                items.map((property) => (
-                  <tr key={property.id} className="group border-b border-white/10 text-slate-100">
-                    <td className="px-3 py-3 font-medium">{property.title}</td>
-                    <td className="px-3 py-3 capitalize text-slate-300">{property.property_type}</td>
-                    <td className="px-3 py-3 capitalize text-slate-300">{property.status}</td>
-                    <td className="px-3 py-3 capitalize text-slate-300">
-                      {property.property_channel?.replace("_", " ") ?? "—"}
+              </thead>
+              <tbody>
+                {filteredRows.map((p) => (
+                  <tr key={p.id} className="border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                    <td className="max-w-[min(280px,40vw)] px-4 py-3 align-middle font-medium text-white">
+                      <span className="line-clamp-2" title={p.title}>
+                        {p.title}
+                      </span>
                     </td>
-                    <td className="px-3 py-3 text-slate-300">{labelOrDash(property.location_name)}</td>
-                    <td className="px-3 py-3 text-right text-slate-300">{inventoryLabel(property)}</td>
-                    <td className={stickyActionsTdClass}>
-                      <TableActionIconButton
-                        icon={faPenToSquare}
-                        label="Edit property"
-                        tone="neutral"
-                        onClick={() => setSelectedId(property.id)}
-                      />
+                    <td className="px-4 py-3 align-middle text-slate-300">{saleTypeLabel(p.sale_type)}</td>
+                    <td className="px-4 py-3 align-middle tabular-nums">{propertyPrimaryPriceLine(p)}</td>
+                    <td className="px-4 py-3 align-middle text-slate-300">{p.listing_active ? "Yes" : "No"}</td>
+                    <td className="px-4 py-3 align-middle text-right">
+                      <button type="button" className="font-medium text-[#f58e43] hover:underline" onClick={() => openEdit(p)}>
+                        Edit
+                      </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {filteredRows.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-500">No lands match your filters.</p>
+          ) : null}
+        </>
       )}
 
-      <DashboardTablePagination
-        className="mt-4 text-sm"
-        page={page}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={totalCount ?? items.length}
-        onPageChange={setPage}
-      />
-
-      <PropertyEditModal
-        open={selectedId != null}
-        propertyId={selectedId}
-        variant="agent"
-        onClose={() => setSelectedId(null)}
-        onSaved={() => void load()}
-      />
+      <DashboardModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Edit land listing"
+        wide
+        footer={
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void save()}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        }
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Title</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            />
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Display property type</span>
+            <select
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.property_type}
+              onChange={(e) => setForm((f) => ({ ...f, property_type: e.target.value as PropertyKind }))}
+            >
+              <option value="land">Land</option>
+              <option value="apartment">Apartment</option>
+              <option value="villa">Villa</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Sale type</span>
+            <select
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.sale_type}
+              onChange={(e) => setForm((f) => ({ ...f, sale_type: e.target.value as SaleType }))}
+            >
+              <option value="land_buy">Land buy</option>
+              <option value="installment">Installment</option>
+            </select>
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Land price</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.land_price}
+              onChange={(e) => setForm((f) => ({ ...f, land_price: e.target.value }))}
+            />
+          </label>
+          {form.sale_type === "installment" ? (
+            <label>
+              <span className="text-xs text-slate-500">Installment years</span>
+              <input
+                type="number"
+                min={1}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+                value={form.installment_years}
+                onChange={(e) => setForm((f) => ({ ...f, installment_years: e.target.value }))}
+              />
+            </label>
+          ) : null}
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Location</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.location_name}
+              onChange={(e) => setForm((f) => ({ ...f, location_name: e.target.value }))}
+            />
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Land area (sqft)</span>
+            <input
+              type="number"
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.land_area_sqft}
+              onChange={(e) => setForm((f) => ({ ...f, land_area_sqft: e.target.value }))}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Image URL</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.top_view_image}
+              onChange={(e) => setForm((f) => ({ ...f, top_view_image: e.target.value }))}
+            />
+          </label>
+          <label className="flex items-center gap-2 sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={form.listing_active}
+              onChange={(e) => setForm((f) => ({ ...f, listing_active: e.target.checked }))}
+            />
+            <span className="text-sm text-slate-300">Public listing active</span>
+          </label>
+          <label className="flex items-center gap-2 sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={form.for_rent}
+              onChange={(e) => setForm((f) => ({ ...f, for_rent: e.target.checked }))}
+            />
+            <span className="text-sm text-slate-300">For rent (display only)</span>
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Build year</span>
+            <input
+              type="number"
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.build_year}
+              onChange={(e) => setForm((f) => ({ ...f, build_year: e.target.value }))}
+            />
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Bedrooms</span>
+            <input
+              type="number"
+              min={0}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.bedrooms}
+              onChange={(e) => setForm((f) => ({ ...f, bedrooms: e.target.value }))}
+            />
+          </label>
+          <label>
+            <span className="text-xs text-slate-500">Bathrooms</span>
+            <input
+              type="number"
+              min={0}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.bathrooms}
+              onChange={(e) => setForm((f) => ({ ...f, bathrooms: e.target.value }))}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Flat label</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.flat_label}
+              onChange={(e) => setForm((f) => ({ ...f, flat_label: e.target.value }))}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Contact website</span>
+            <input
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.contact_website}
+              onChange={(e) => setForm((f) => ({ ...f, contact_website: e.target.value }))}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Amenities (one per line)</span>
+            <textarea
+              rows={3}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.amenities_text}
+              onChange={(e) => setForm((f) => ({ ...f, amenities_text: e.target.value }))}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Description</span>
+            <textarea
+              rows={4}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className="text-xs text-slate-500">Secondary description</span>
+            <textarea
+              rows={3}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              value={form.description_secondary}
+              onChange={(e) => setForm((f) => ({ ...f, description_secondary: e.target.value }))}
+            />
+          </label>
+        </div>
+      </DashboardModal>
     </section>
   )
 }

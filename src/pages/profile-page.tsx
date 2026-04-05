@@ -3,7 +3,8 @@ import type { FormEvent } from "react"
 import { Navigate } from "react-router-dom"
 
 import { useToast } from "@/components/ui/use-toast"
-import { getMe, updateProfile } from "@/services/api"
+import { normalizeStoredRole } from "@/routes/protected-route"
+import { getMe, postKycRequest, updateProfile } from "@/services/api"
 import type { MeResponse } from "@/types/domain"
 
 const API_HOST = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api").replace(
@@ -24,6 +25,8 @@ export function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [kycRequestMessage, setKycRequestMessage] = useState("")
+  const [kycRequestBusy, setKycRequestBusy] = useState(false)
 
   useEffect(() => {
     if (!token) {
@@ -35,6 +38,7 @@ export function ProfilePage() {
       setLastName(data.last_name || "")
       setEmail(data.email || "")
       setPhone(data.phone || "")
+      setKycRequestMessage(data.kyc_investor_notes ?? "")
     })
   }, [token])
 
@@ -103,9 +107,27 @@ export function ProfilePage() {
     }
   }
 
+  async function submitKycRequest() {
+    if (!token) {
+      showToast("Please login first.", "error")
+      return
+    }
+    setKycRequestBusy(true)
+    try {
+      const updated = await postKycRequest(token, { message: kycRequestMessage.trim() })
+      setProfile(updated)
+      setKycRequestMessage(updated.kyc_investor_notes || "")
+      showToast("KYC request sent. Our team will review your account.", "success")
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Request failed", "error")
+    } finally {
+      setKycRequestBusy(false)
+    }
+  }
+
   return (
-    <main className="bg-[#f4f6fb] px-4 py-14 text-slate-900 sm:px-6">
-      <section className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+    <main className="bg-[#f4f6fb] py-14 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(3.5rem,env(safe-area-inset-bottom,0px))] text-slate-900 sm:px-6">
+      <section className="mx-auto grid min-w-0 max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <aside className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-xl font-semibold">Profile</h2>
           <p className="mt-1 text-sm text-slate-500">Role: {profile?.role ?? "investor"}</p>
@@ -125,6 +147,57 @@ export function ProfilePage() {
           <p className="mt-1 text-sm text-slate-600">
             Your referral commission: {profile?.referral_commission_percent ?? "-"}%
           </p>
+          {profile && normalizeStoredRole(profile.role) === "investor" ? (
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Identity verification (KYC)</p>
+              <p className="mt-2 text-sm text-slate-700">
+                Status:{" "}
+                <span className="font-semibold capitalize text-[#0b1f44]">
+                  {profile.kyc_status === "approved"
+                    ? "Verified"
+                    : profile.kyc_status === "rejected"
+                      ? "Rejected — you may request review again below"
+                      : "Pending review"}
+                </span>
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                Request a review anytime (optional note for our team). Verification is completed by staff; document
+                uploads are not handled in this form — use the note to reference how you will share ID (e.g. email,
+                in-person).
+              </p>
+              {profile.kyc_requested_at ? (
+                <p className="mt-2 text-xs text-slate-600">
+                  Last request: {profile.kyc_requested_at.slice(0, 19).replace("T", " ")}
+                </p>
+              ) : null}
+              {profile.kyc_status === "approved" && profile.kyc_verified_at ? (
+                <p className="mt-2 text-xs text-slate-500">Verified on {profile.kyc_verified_at.slice(0, 10)}</p>
+              ) : null}
+              {profile.kyc_status !== "approved" ? (
+                <div className="mt-4 space-y-2 border-t border-slate-200 pt-4">
+                  <label className="text-xs font-medium text-slate-600" htmlFor="kyc-req-msg">
+                    Message for our team (optional)
+                  </label>
+                  <textarea
+                    id="kyc-req-msg"
+                    className="profile-input min-h-[88px] w-full resize-y text-sm"
+                    value={kycRequestMessage}
+                    onChange={(e) => setKycRequestMessage(e.target.value)}
+                    placeholder="e.g. Ready to verify by video call, or ID sent to your support inbox…"
+                    maxLength={2000}
+                  />
+                  <button
+                    type="button"
+                    disabled={kycRequestBusy}
+                    onClick={() => void submitKycRequest()}
+                    className="w-full rounded-xl bg-[#0b1f44] py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    {kycRequestBusy ? "Sending…" : "Request KYC verification"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {profile?.referral_link ? (
             <div className="mt-3">
               <p className="text-xs font-medium text-slate-500">Share link</p>

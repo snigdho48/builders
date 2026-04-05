@@ -1,31 +1,29 @@
 import { useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFacebookF, faInstagram, faPinterestP, faXTwitter } from "@fortawesome/free-brands-svg-icons"
-import { faBars, faCartShopping, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faBars, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 
-import { useCart } from "@/contexts/use-cart"
+import { normalizeStoredRole } from "@/routes/protected-route"
 import type { UserRole } from "@/types/domain"
 
 const publicLinks = [
   { to: "/", label: "Home" },
   { to: "/listings", label: "Listings" },
+  { to: "/p2p", label: "P2P" },
   { to: "/contact", label: "Contact" },
 ]
 
-const PROPERTY_MANAGER_ROLES: UserRole[] = ["admin", "superadmin", "representative"]
-
 function readUserRole(): UserRole | null {
-  const raw = localStorage.getItem("userRole")
-  return raw ? (raw as UserRole) : null
+  return normalizeStoredRole(localStorage.getItem("userRole"))
 }
 
 function addPropertiesPath(role: UserRole | null): string {
-  if (role === "representative") {
-    return "/dashboard/representative"
+  if (role === "admin") {
+    return "/dashboard/admin/properties"
   }
-  if (role === "admin" || role === "superadmin") {
-    return "/dashboard/admin"
+  if (role === "agent") {
+    return "/dashboard/agent/properties"
   }
   return "/dashboard"
 }
@@ -33,7 +31,6 @@ function addPropertiesPath(role: UserRole | null): string {
 export function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { totalBlockCount } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchText, setSearchText] = useState("")
@@ -71,7 +68,7 @@ export function Navbar() {
     if (!isLoggedIn || !userRole) {
       return false
     }
-    return PROPERTY_MANAGER_ROLES.includes(userRole)
+    return userRole === "admin" || userRole === "agent"
   }, [isLoggedIn, userRole])
 
   const addPropertiesHref = addPropertiesPath(userRole)
@@ -96,11 +93,9 @@ export function Navbar() {
     : publicLinks
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0a2245]/96 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0a2245]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur">
       <div className="border-b border-white/10">
-        <div className="flex w-full items-center justify-between px-3 py-2 text-xs text-slate-200 sm:px-4">
-          <span />
-          <div className="flex items-center gap-4">
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 py-2 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] text-xs text-slate-200 sm:gap-x-4 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
             {!isLoggedIn ? (
               <>
                 <Link to="/auth" className="font-semibold text-white">
@@ -126,16 +121,15 @@ export function Navbar() {
             <span className="text-slate-400">
               <FontAwesomeIcon icon={faPinterestP} />
             </span>
-          </div>
         </div>
       </div>
       <div className="relative">
-        <div className="flex w-full items-center justify-between px-3 py-3.5 sm:px-4">
+        <div className="flex w-full min-w-0 items-center justify-between gap-2 py-3.5 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] sm:gap-3 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
           <Link
             to="/"
-            className="flex items-center gap-3 text-white transition-[filter] duration-300 hover:brightness-110 motion-reduce:transition-none"
+            className="flex min-w-0 items-center gap-2 text-white transition-[filter] duration-300 hover:brightness-110 motion-reduce:transition-none sm:gap-3"
           >
-            <span className="inline-flex h-[52px] w-[52px] overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none">
+            <span className="inline-flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none sm:h-[52px] sm:w-[52px]">
               <img
                 src="/navlogo.jpg"
                 alt="Eurostar"
@@ -143,14 +137,14 @@ export function Navbar() {
                 loading="eager"
               />
             </span>
-            <span className="leading-tight">
+            <span className="min-w-0 leading-tight">
               <span
-                className="block text-[2.35rem] font-normal uppercase tracking-[0.06em]"
+                className="block text-[clamp(1.2rem,5.2vw+0.35rem,2.35rem)] font-normal uppercase tracking-[0.06em]"
                 style={{ fontFamily: "\"Libre Franklin\", system-ui, sans-serif" }}
               >
                 EUROSTAR
               </span>
-              <span className="block text-[0.82rem] font-semibold uppercase tracking-[0.03em] text-slate-200/95">
+              <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.03em] text-slate-200/95 sm:text-[0.82rem]">
                 Living Solutions
               </span>
             </span>
@@ -173,7 +167,7 @@ export function Navbar() {
               </NavLink>
             ))}
           </nav>
-          <div className="relative flex items-center gap-2.5 text-[13px] font-medium text-slate-300">
+          <div className="relative flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-slate-300 sm:gap-2.5">
             <button
               type="button"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -184,18 +178,6 @@ export function Navbar() {
             >
               <FontAwesomeIcon icon={mobileOpen ? faXmark : faBars} className="h-5 w-5" />
             </button>
-            <Link
-              to="/cart"
-              aria-label="cart"
-              className="relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-[#f58e43]/50 hover:bg-[#f58e43]/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
-            >
-              <FontAwesomeIcon icon={faCartShopping} />
-              {totalBlockCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f58e43] px-1 text-[0.65rem] font-bold text-slate-950">
-                  {totalBlockCount > 99 ? "99+" : totalBlockCount}
-                </span>
-              ) : null}
-            </Link>
             <button
               type="button"
               aria-label={searchOpen ? "Search listings" : "Open search"}
@@ -220,7 +202,7 @@ export function Navbar() {
                 to={addPropertiesHref}
                 className="hidden h-12 items-center rounded-full border border-lime-300/60 px-7 font-semibold text-lime-300 transition-[transform,box-shadow,background-color,border-color] duration-300 hover:border-lime-200/80 hover:bg-lime-300/10 hover:shadow-[0_0_28px_rgb(190_242_100/22%)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:shadow-none lg:inline-flex"
               >
-                Add Properties
+                Land dashboard
               </Link>
             ) : null}
             {isLoggedIn ? (
@@ -241,7 +223,7 @@ export function Navbar() {
             role="search"
             aria-label="Site search"
           >
-            <div className="flex w-full items-stretch gap-2 px-3 py-3 sm:gap-3 sm:px-4">
+            <div className="flex w-full min-w-0 items-stretch gap-2 px-[max(0.75rem,env(safe-area-inset-left,0px))] py-3 pr-[max(0.75rem,env(safe-area-inset-right,0px))] sm:gap-3 sm:px-4 sm:pr-4">
               <label htmlFor="nav-site-search" className="sr-only">
                 Search listings by title or location
               </label>
@@ -279,7 +261,7 @@ export function Navbar() {
         {mobileOpen ? (
           <nav
             id="mobile-nav-menu"
-            className="absolute left-0 right-0 top-full border-t border-white/15 bg-[#071a36]/98 px-3 py-4 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-md lg:hidden"
+            className="absolute left-0 right-0 top-full border-t border-white/15 bg-[#071a36]/98 px-[max(0.75rem,env(safe-area-inset-left,0px))] py-4 pr-[max(0.75rem,env(safe-area-inset-right,0px))] shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-md lg:hidden"
             aria-label="Mobile"
           >
             <div className="flex flex-col gap-1">
@@ -298,20 +280,13 @@ export function Navbar() {
                   {item.label}
                 </NavLink>
               ))}
-              <Link
-                to="/cart"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-xl px-3 py-3 text-sm font-semibold text-slate-200 hover:bg-white/5 hover:text-white"
-              >
-                Cart{totalBlockCount > 0 ? ` (${totalBlockCount})` : ""}
-              </Link>
               {canShowAddProperties ? (
                 <Link
                   to={addPropertiesHref}
                   onClick={() => setMobileOpen(false)}
                   className="rounded-xl border border-lime-300/40 px-3 py-3 text-sm font-semibold text-lime-300 hover:bg-lime-300/10"
                 >
-                  Add Properties
+                  Land dashboard
                 </Link>
               ) : null}
               {isLoggedIn ? (

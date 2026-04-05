@@ -7,25 +7,27 @@ const sections: DashboardNavSection[] = [
     items: [{ to: "/dashboard/investor", label: "Overview", end: true }],
   },
   {
-    id: "portfolio",
-    title: "Portfolio",
+    id: "bookings",
+    title: "Bookings",
+    items: [{ to: "/dashboard/investor/bookings", label: "My land bookings" }],
+  },
+  {
+    id: "p2p",
+    title: "P2P market",
     items: [
-      { to: "/dashboard/investor/investments", label: "Investments" },
-      { to: "/dashboard/investor/payout-requests", label: "Payout requests" },
+      { to: "/dashboard/investor/p2p/listings", label: "My P2P listings" },
+      { to: "/dashboard/investor/p2p/offers", label: "Offers on my listings" },
     ],
   },
   {
-    id: "installment",
-    title: "Installment",
-    items: [
-      { to: "/dashboard/investor/installment-tracker", label: "Installment tracker" },
-      { to: "/dashboard/investor/statements", label: "Installment payments" },
-    ],
+    id: "kyc",
+    title: "KYC",
+    items: [{ to: "/dashboard/investor/kyc", label: "Verification & requests", end: true }],
   },
   {
     id: "account",
     title: "Account",
-    items: [{ to: "/dashboard/investor/verification", label: "Verification (KYC)" }],
+    items: [{ to: "/profile", label: "Profile & settings" }],
   },
 ]
 

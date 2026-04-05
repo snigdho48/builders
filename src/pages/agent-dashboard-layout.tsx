@@ -7,22 +7,19 @@ const sections: DashboardNavSection[] = [
     items: [{ to: "/dashboard/agent", label: "Overview", end: true }],
   },
   {
-    id: "portfolio",
-    title: "Portfolio operations",
-    items: [{ to: "/dashboard/agent/investments", label: "Investments" }],
+    id: "lands",
+    title: "Assigned lands",
+    items: [{ to: "/dashboard/agent/properties", label: "My listings" }],
   },
   {
-    id: "installment",
-    title: "Installment",
-    items: [
-      { to: "/dashboard/agent/installment-tracker", label: "Installment tracker" },
-      { to: "/dashboard/agent/installment-payment-requests", label: "Installment payment requests" },
-    ],
+    id: "bookings",
+    title: "Bookings",
+    items: [{ to: "/dashboard/agent/bookings", label: "Booking requests" }],
   },
   {
-    id: "properties",
-    title: "Managed listings",
-    items: [{ to: "/dashboard/agent/properties", label: "Properties" }],
+    id: "investors",
+    title: "Investors",
+    items: [{ to: "/dashboard/agent/investors", label: "Investor KYC" }],
   },
 ]
 

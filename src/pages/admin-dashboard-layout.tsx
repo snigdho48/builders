@@ -8,34 +8,21 @@ const sections: DashboardNavSection[] = [
   },
   {
     id: "people",
-    title: "People & roles",
+    title: "People",
     items: [
       { to: "/dashboard/admin/investors", label: "Investors" },
-      { to: "/dashboard/admin/representatives", label: "Representatives" },
       { to: "/dashboard/admin/agents", label: "Agents" },
     ],
   },
   {
     id: "catalog",
-    title: "Properties & listings",
-    items: [{ to: "/dashboard/admin/properties", label: "All properties" }],
+    title: "Land",
+    items: [{ to: "/dashboard/admin/properties", label: "All listings" }],
   },
   {
-    id: "operations",
-    title: "Operations",
-    items: [
-      { to: "/dashboard/admin/investments", label: "Investments" },
-      { to: "/dashboard/admin/payout-requests", label: "Payout requests" },
-      { to: "/dashboard/admin/kyc", label: "KYC & verification" },
-    ],
-  },
-  {
-    id: "installment",
-    title: "Installment",
-    items: [
-      { to: "/dashboard/admin/installment-tracker", label: "Installment tracker" },
-      { to: "/dashboard/admin/installment-payment-requests", label: "Installment payment requests" },
-    ],
+    id: "bookings",
+    title: "Bookings",
+    items: [{ to: "/dashboard/admin/bookings", label: "Land booking requests" }],
   },
 ]
 

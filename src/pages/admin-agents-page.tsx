@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react"
-import { useLocation } from "react-router-dom"
 
 import { DashboardModal } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
@@ -14,14 +13,12 @@ import { faPenToSquare, faTrash, faUserCheck, faUserSlash } from "@fortawesome/f
 import { TableActionIconButton } from "@/components/ui/table-action-button"
 import { TableLoader } from "@/components/ui/table-loader"
 import { useToast } from "@/components/ui/use-toast"
-import { createAgent, deleteAgent, getAgents, updateAgent } from "@/services/api"
+import { createAgent, deleteAgent, listAgents, updateAgent } from "@/services/api"
 import type { AgentUpsertPayload, AgentUser } from "@/types/domain"
 
 const PAGE_SIZE = 10
 
-export function RepresentativeAgentsPage() {
-  const location = useLocation()
-  const isAdminContext = location.pathname.startsWith("/dashboard/admin")
+export function AdminAgentsPage() {
   const [agents, setAgents] = useState<AgentUser[]>([])
   const [agentPage, setAgentPage] = useState(1)
   const [agentQuery, setAgentQuery] = useState("")
@@ -43,9 +40,12 @@ export function RepresentativeAgentsPage() {
 
   async function loadAgents(token: string) {
     setLoading(true)
-    const list = await getAgents(token)
-    setAgents(list)
-    setLoading(false)
+    try {
+      const list = await listAgents(token)
+      setAgents(list)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -81,19 +81,39 @@ export function RepresentativeAgentsPage() {
       return
     }
     try {
+      const profileFields = {
+        email: agentForm.email,
+        first_name: agentForm.first_name || undefined,
+        last_name: agentForm.last_name || undefined,
+        phone: agentForm.phone || undefined,
+        is_active: agentForm.is_active,
+        referral_commission_percent: agentForm.referral_commission_percent || "5.00",
+      }
       if (editingAgentId) {
-        const payload = { ...agentForm }
-        if (!payload.password) {
-          delete payload.password
+        const payload: Partial<{
+          email: string
+          first_name: string
+          last_name: string
+          phone: string
+          password: string
+          is_active: boolean
+          referral_commission_percent: string
+        }> = { ...profileFields }
+        if (agentForm.password) {
+          payload.password = agentForm.password
         }
-        await updateAgent(editingAgentId, payload, token)
+        await updateAgent(token, editingAgentId, payload)
         showToast("Agent updated.", "success")
       } else {
         if (!agentForm.password) {
           showToast("Password is required for new agent.", "error")
           return
         }
-        await createAgent(agentForm, token)
+        await createAgent(token, {
+          username: agentForm.username,
+          ...profileFields,
+          password: agentForm.password,
+        })
         showToast("Agent created.", "success")
       }
       await loadAgents(token)
@@ -114,7 +134,7 @@ export function RepresentativeAgentsPage() {
       return
     }
     try {
-      await deleteAgent(item.id, token)
+      await deleteAgent(token, item.id)
       showToast("Agent deleted.", "success")
       await loadAgents(token)
       setAgentPage(1)
@@ -140,7 +160,7 @@ export function RepresentativeAgentsPage() {
       return
     }
     try {
-      await updateAgent(item.id, { is_active: next }, token)
+      await updateAgent(token, item.id, { is_active: next })
       showToast(next ? "Agent activated." : "Agent deactivated.", "success")
       await loadAgents(token)
     } catch (error) {
@@ -183,18 +203,14 @@ export function RepresentativeAgentsPage() {
   const paginatedAgents = useMemo(() => {
     const start = (agentPage - 1) * PAGE_SIZE
     return filteredAgents.slice(start, start + PAGE_SIZE)
-  }, [filteredAgents, agentPage, PAGE_SIZE])
+  }, [filteredAgents, agentPage])
 
   return (
     <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-white">Agents</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            {isAdminContext
-              ? "All agent accounts. Property count = listings assigned to that agent."
-              : "Create and manage agents on your team."}
-          </p>
+          <p className="mt-1 text-sm text-slate-400">All agent accounts. Property count = land listings assigned to that agent.</p>
         </div>
         <button
           type="button"
@@ -256,29 +272,31 @@ export function RepresentativeAgentsPage() {
             colClasses={["w-[14%]", "w-[16%]", "w-[18%]", "w-[12%]", "w-[8%]", "w-[8%]", "w-[8%]", "w-[16%]"]}
           />
         ) : (
-          <table className="min-w-full text-left text-sm">
+          <table className="min-w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-slate-300">
-                <th className="px-3 py-2">Username</th>
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2">Email</th>
-                <th className="px-3 py-2">Phone</th>
-                <th className="px-3 py-2">Ref %</th>
-                <th className="px-3 py-2">Properties</th>
-                <th className="px-3 py-2">Status</th>
-                <th className={stickyActionsThCompactClass}>Actions</th>
+              <tr className="border-b border-white/10 bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3 align-middle">Username</th>
+                <th className="px-4 py-3 align-middle">Name</th>
+                <th className="px-4 py-3 align-middle">Email</th>
+                <th className="px-4 py-3 align-middle whitespace-nowrap">Phone</th>
+                <th className="px-4 py-3 align-middle whitespace-nowrap">Ref %</th>
+                <th className="px-4 py-3 align-middle whitespace-nowrap">Properties</th>
+                <th className="px-4 py-3 align-middle whitespace-nowrap">Status</th>
+                <th className={`${stickyActionsThCompactClass} align-middle text-right`}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedAgents.map((item) => (
-                <tr key={item.id} className="group border-b border-white/10">
-                  <td className="px-3 py-3">{item.username}</td>
-                  <td className="px-3 py-3">{[item.first_name, item.last_name].filter(Boolean).join(" ") || "-"}</td>
-                  <td className="px-3 py-3">{item.email}</td>
-                  <td className="px-3 py-3">{item.phone || "-"}</td>
-                  <td className="px-3 py-3">{item.referral_commission_percent ?? "-"}</td>
-                  <td className="px-3 py-3 tabular-nums">{item.property_count ?? 0}</td>
-                  <td className="px-3 py-3">{item.is_active ? "Active" : "Inactive"}</td>
+                <tr key={item.id} className="group border-b border-white/10 transition-colors hover:bg-white/[0.02]">
+                  <td className="px-4 py-3 align-middle text-slate-200">{item.username}</td>
+                  <td className="px-4 py-3 align-middle text-slate-200">
+                    {[item.first_name, item.last_name].filter(Boolean).join(" ") || "-"}
+                  </td>
+                  <td className="px-4 py-3 align-middle text-slate-200">{item.email}</td>
+                  <td className="px-4 py-3 align-middle text-slate-300">{item.phone || "-"}</td>
+                  <td className="px-4 py-3 align-middle tabular-nums text-slate-300">{item.referral_commission_percent ?? "-"}</td>
+                  <td className="px-4 py-3 align-middle tabular-nums text-slate-300">{item.property_count ?? 0}</td>
+                  <td className="px-4 py-3 align-middle text-slate-300">{item.is_active ? "Active" : "Inactive"}</td>
                   <td className={stickyActionsTdCompactClass}>
                     <div className={actionsButtonRowClass}>
                       <TableActionIconButton
@@ -306,6 +324,9 @@ export function RepresentativeAgentsPage() {
             </tbody>
           </table>
         )}
+        {!loading && filteredAgents.length === 0 ? (
+          <p className="py-6 text-center text-sm text-slate-500">No agents match your filters.</p>
+        ) : null}
       </div>
       <DashboardTablePagination
         className="mt-4 text-sm"

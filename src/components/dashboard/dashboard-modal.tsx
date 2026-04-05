@@ -38,7 +38,7 @@ export function DashboardModal({ open, title, onClose, children, footer, wide }:
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-100 flex items-end justify-center sm:items-center sm:p-4 sm:py-10">
+    <div className="fixed inset-0 z-100 flex items-end justify-center pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] pt-[env(safe-area-inset-top,0px)] sm:items-center sm:p-4 sm:py-10">
       <button
         type="button"
         className="absolute inset-0 border-0 bg-[#030912]/82 backdrop-blur-md motion-reduce:backdrop-blur-none"
@@ -47,8 +47,8 @@ export function DashboardModal({ open, title, onClose, children, footer, wide }:
       />
       <div
         className={cn(
-          "relative z-10 flex w-full max-w-none flex-col overflow-hidden rounded-t-[1.35rem] border border-white/8 bg-[#0a1628] shadow-[0_-16px_48px_rgba(0,0,0,0.45),0_24px_64px_rgba(0,0,0,0.35)] ring-1 ring-white/4",
-          "max-h-[92dvh] sm:max-h-[min(92vh,900px)] sm:rounded-2xl",
+          "relative z-10 flex w-full max-w-none flex-col overflow-hidden rounded-t-[1.35rem] border border-white/8 bg-[#0a1628] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] shadow-[0_-16px_48px_rgba(0,0,0,0.45),0_24px_64px_rgba(0,0,0,0.35)] ring-1 ring-white/4",
+          "max-h-[min(92dvh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)))] sm:max-h-[min(92vh,900px)] sm:rounded-2xl sm:pb-0",
           wide ? "sm:max-w-6xl" : "sm:max-w-3xl",
         )}
         role="dialog"

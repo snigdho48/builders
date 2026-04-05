@@ -1,15 +1,14 @@
 import { Navigate } from "react-router-dom"
 
-export function DashboardRouterPage() {
-  const role = localStorage.getItem("userRole")
+import { normalizeStoredRole } from "@/routes/protected-route"
 
-  if (role === "admin" || role === "superadmin") {
+export function DashboardRouterPage() {
+  const role = normalizeStoredRole(localStorage.getItem("userRole"))
+
+  if (role === "admin") {
     return <Navigate to="/dashboard/admin" replace />
   }
-  if (role === "representative") {
-    return <Navigate to="/dashboard/representative" replace />
-  }
-  if (role === "agent" || role === "advertiser") {
+  if (role === "agent") {
     return <Navigate to="/dashboard/agent" replace />
   }
   return <Navigate to="/dashboard/investor" replace />

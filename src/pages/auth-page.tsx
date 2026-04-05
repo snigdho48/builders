@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import { useToast } from "@/components/ui/use-toast"
+import { normalizeStoredRole } from "@/routes/protected-route"
 import { getMe, login } from "@/services/api"
 
 function safeInternalNext(raw: string | null): string | null {
@@ -46,10 +47,12 @@ export function AuthPage() {
       localStorage.setItem("accessToken", data.access)
       localStorage.setItem("refreshToken", data.refresh)
       if (data.role) {
-        localStorage.setItem("userRole", data.role)
+        const r0 = normalizeStoredRole(String(data.role))
+        if (r0) localStorage.setItem("userRole", r0)
       }
       const me = await getMe(data.access)
-      localStorage.setItem("userRole", me.role)
+      const roleNorm = normalizeStoredRole(String(me.role)) ?? String(me.role)
+      localStorage.setItem("userRole", roleNorm)
       localStorage.setItem("userId", String(me.id))
       localStorage.setItem("userUsername", me.username)
       window.dispatchEvent(new Event("auth-state-changed"))
@@ -65,10 +68,10 @@ export function AuthPage() {
   }
 
   return (
-    <main className="bg-slate-950 px-4 py-16 text-white sm:px-6">
-      <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-slate-900/70 p-8">
+    <main className="bg-slate-950 py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(4rem,env(safe-area-inset-bottom,0px))] text-white sm:px-6">
+      <div className="mx-auto min-w-0 max-w-xl rounded-2xl border border-white/10 bg-slate-900/70 p-6 sm:p-8">
         <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Authentication</p>
-        <h1 className="mt-2 text-3xl font-semibold">Sign in</h1>
+        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Sign in</h1>
         <form onSubmit={handleLogin} className="mt-6 grid gap-3">
           <input
             className="template-input"
