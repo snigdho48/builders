@@ -14,6 +14,7 @@ import type {
   P2PListing,
   P2PListingWritePayload,
   LandBookingCreatePayload,
+  LandPlot,
   LandSaleMode,
   MeResponse,
   Property,
@@ -21,6 +22,7 @@ import type {
   PropertyUpsertPayload,
   RetailInvestor,
   ShareInvestmentOption,
+  PlotStatus,
 } from "@/types/domain"
 
 function normalizeDevApiBase(url: string): string {
@@ -301,6 +303,9 @@ function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
     phone: String(raw.phone ?? ""),
     contact_notes: String(raw.contact_notes ?? ""),
     referral_code_used: String(raw.referral_code_used ?? ""),
+    selected_plot_code: raw.selected_plot_code != null ? String(raw.selected_plot_code) : undefined,
+    selected_plot_area_sqft: raw.selected_plot_area_sqft != null ? Number(raw.selected_plot_area_sqft) : null,
+    selected_plot_price: raw.selected_plot_price != null ? String(raw.selected_plot_price) : null,
     status: raw.status as LandBooking["status"],
     reviewed_by: raw.reviewed_by != null ? Number(raw.reviewed_by) : null,
     reviewed_by_username: raw.reviewed_by_username != null ? String(raw.reviewed_by_username) : undefined,
@@ -334,6 +339,34 @@ function normalizeInstallmentLedger(raw: Record<string, unknown>): InstallmentLe
     reminder_sent_at: raw.reminder_sent_at != null ? String(raw.reminder_sent_at) : null,
     reminder_note: String(raw.reminder_note ?? ""),
     payment_reference: String(raw.payment_reference ?? ""),
+    created_at: String(raw.created_at ?? ""),
+    updated_at: String(raw.updated_at ?? ""),
+  }
+}
+
+function normalizeLandPlot(raw: Record<string, unknown>): LandPlot {
+  const st = raw.status
+  const status: PlotStatus = st === "booked" || st === "sold" || st === "available" ? st : "available"
+  const coordsRaw = raw.coordinates
+  const coordinates: [number, number][] = Array.isArray(coordsRaw)
+    ? coordsRaw
+        .map((p) => {
+          if (!Array.isArray(p) || p.length < 2) return null
+          const lng = Number(p[0])
+          const lat = Number(p[1])
+          if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+          return [lng, lat] as [number, number]
+        })
+        .filter((p): p is [number, number] => p != null)
+    : []
+  return {
+    id: Number(raw.id),
+    property_id: Number(raw.property_id),
+    plot_id: String(raw.plot_id ?? ""),
+    area_sqft: Number(raw.area_sqft ?? 0),
+    price: String(raw.price ?? "0"),
+    status,
+    coordinates,
     created_at: String(raw.created_at ?? ""),
     updated_at: String(raw.updated_at ?? ""),
   }
@@ -483,6 +516,20 @@ export async function listInstallmentLedger(token: string): Promise<InstallmentL
   const res = await request<unknown[]>("/installments/", { token })
   const rows = Array.isArray(res.data) ? res.data : []
   return rows.map((r) => normalizeInstallmentLedger(r as Record<string, unknown>))
+}
+
+export async function listPlotsByProperty(params: {
+  propertyId: number
+  availableOnly?: boolean
+  search?: string
+}): Promise<LandPlot[]> {
+  const q = new URLSearchParams()
+  q.set("property", String(params.propertyId))
+  if (params.availableOnly) q.set("available_only", "1")
+  if (params.search?.trim()) q.set("search", params.search.trim())
+  const res = await request<unknown[]>(`/plots/?${q.toString()}`)
+  const rows = Array.isArray(res.data) ? res.data : []
+  return rows.map((r) => normalizeLandPlot(r as Record<string, unknown>))
 }
 
 function normalizeRetailInvestor(raw: Record<string, unknown>): RetailInvestor {

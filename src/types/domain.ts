@@ -92,6 +92,9 @@ export type LandBooking = {
   phone: string
   contact_notes: string
   referral_code_used: string
+  selected_plot_code?: string
+  selected_plot_area_sqft?: number | null
+  selected_plot_price?: string | null
   status: LandBookingStatus
   reviewed_by: number | null
   reviewed_by_username?: string | null
@@ -219,6 +222,23 @@ export type LandBookingCreatePayload = {
   phone: string
   contact_notes?: string
   referral_code_used?: string
+  selected_plot_code?: string
+  selected_plot_area_sqft?: number
+  selected_plot_price?: string
+}
+
+export type PlotStatus = "available" | "booked" | "sold"
+
+export type LandPlot = {
+  id: number
+  property_id: number
+  plot_id: string
+  area_sqft: number
+  price: string
+  status: PlotStatus
+  coordinates: [number, number][]
+  created_at: string
+  updated_at: string
 }
 
 export type RetailInvestor = {

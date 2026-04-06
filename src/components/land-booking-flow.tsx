@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import { LandPlotSelector, type PlotOption } from "@/components/land-plot-selector"
 import { useToast } from "@/components/ui/use-toast"
 import { createLandBooking, getMe } from "@/services/api"
 import type { LandBookingPlanType, Property } from "@/types/domain"
@@ -141,6 +142,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
   const [phone, setPhone] = useState("")
   const [contactNotes, setContactNotes] = useState("")
   const [referralCode, setReferralCode] = useState("")
+  const [selectedPlot, setSelectedPlot] = useState<PlotOption | null>(null)
 
   useEffect(() => {
     setStep("choose")
@@ -161,6 +163,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
 
   function selectPlan(pt: LandBookingPlanType) {
     setPlanType(pt)
+    setSelectedPlot(null)
     setStep("form")
   }
 
@@ -174,6 +177,10 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
       showToast("Name, email, and phone are required.", "error")
       return
     }
+    if (!selectedPlot) {
+      showToast("Please select an available plot from the map.", "error")
+      return
+    }
     setBusy(true)
     try {
       await createLandBooking(
@@ -185,6 +192,9 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
           phone: phone.trim(),
           contact_notes: contactNotes.trim(),
           referral_code_used: referralCode.trim(),
+          selected_plot_code: selectedPlot.plot_id,
+          selected_plot_area_sqft: selectedPlot.area_sqft,
+          selected_plot_price: String(selectedPlot.price),
         },
         token,
       )
@@ -268,6 +278,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
                 </ul>
               </div>
             ) : null}
+            <LandPlotSelector property={property} value={selectedPlot} onChange={setSelectedPlot} />
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
               value={fullName}
