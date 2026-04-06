@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPenToSquare, faTrashCan } from "@fortawesome/free-solid-svg-icons"
 
 import { DashboardModal } from "@/components/dashboard/dashboard-modal"
 import { useToast } from "@/components/ui/use-toast"
@@ -16,6 +18,11 @@ const emptyForm: P2PListingWritePayload = {
   location_name: "",
   asking_price_hint: "",
   land_area_sqft: null,
+  latitude: "",
+  longitude: "",
+  contact_email: "",
+  contact_phone: "",
+  features: [],
   hero_image: "",
   gallery_images: [],
 }
@@ -28,6 +35,7 @@ export function InvestorP2pListingsPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<P2PListingWritePayload>(emptyForm)
   const [galleryText, setGalleryText] = useState("")
+  const [featuresText, setFeaturesText] = useState("")
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
@@ -53,6 +61,7 @@ export function InvestorP2pListingsPage() {
     setEditingId(null)
     setForm(emptyForm)
     setGalleryText("")
+    setFeaturesText("")
     setModalOpen(true)
   }
 
@@ -64,11 +73,17 @@ export function InvestorP2pListingsPage() {
       location_name: row.location_name,
       asking_price_hint: row.asking_price_hint ?? "",
       land_area_sqft: row.land_area_sqft,
+      latitude: row.latitude ?? "",
+      longitude: row.longitude ?? "",
+      contact_email: row.contact_email ?? "",
+      contact_phone: row.contact_phone ?? "",
+      features: row.features ?? [],
       hero_image: row.hero_image,
       gallery_images: row.gallery_images,
       status: row.status,
     })
     setGalleryText((row.gallery_images ?? []).join("\n"))
+    setFeaturesText((row.features ?? []).join("\n"))
     setModalOpen(true)
   }
 
@@ -83,11 +98,20 @@ export function InvestorP2pListingsPage() {
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean)
+    const features = featuresText
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean)
     const body: P2PListingWritePayload = {
       ...form,
       gallery_images: galleries,
+      features,
       asking_price_hint: form.asking_price_hint?.toString().trim() || null,
       land_area_sqft: form.land_area_sqft != null && form.land_area_sqft > 0 ? form.land_area_sqft : null,
+      latitude: form.latitude?.toString().trim() || null,
+      longitude: form.longitude?.toString().trim() || null,
+      contact_email: form.contact_email?.toString().trim() || "",
+      contact_phone: form.contact_phone?.toString().trim() || "",
     }
     setSaving(true)
     try {
@@ -147,9 +171,12 @@ export function InvestorP2pListingsPage() {
               <tr className="border-b border-white/10 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <th className="px-3 py-2">Title</th>
                 <th className="px-3 py-2">Location</th>
+                <th className="px-3 py-2">Contact</th>
+                <th className="px-3 py-2">Map</th>
+                <th className="px-3 py-2">Features</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Bids</th>
-                <th className="px-3 py-2" />
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -157,19 +184,43 @@ export function InvestorP2pListingsPage() {
                 <tr key={r.id} className="border-b border-white/5">
                   <td className="px-3 py-2 text-slate-200">{r.title}</td>
                   <td className="px-3 py-2 text-slate-400">{r.location_name}</td>
+                  <td className="px-3 py-2 text-xs text-slate-400">
+                    <div className="space-y-0.5">
+                      <p>{r.contact_phone || "—"}</p>
+                      <p className="max-w-[180px] truncate">{r.contact_email || "—"}</p>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-slate-400">
+                    {r.latitude && r.longitude ? (
+                      <span className="inline-flex items-center rounded-full bg-[#0b1f44]/20 px-2 py-0.5 text-[11px] text-slate-200">
+                        {r.latitude}, {r.longitude}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-slate-400">{r.features?.length ?? 0}</td>
                   <td className="px-3 py-2 capitalize text-slate-300">{r.status}</td>
                   <td className="px-3 py-2 text-slate-400">{r.bid_count ?? 0}</td>
                   <td className="px-3 py-2 text-right">
-                    <button type="button" className="text-[#f58e43] hover:underline" onClick={() => openEdit(r)}>
-                      Edit
+                    <button
+                      type="button"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#f58e43] hover:bg-white/10"
+                      onClick={() => openEdit(r)}
+                      aria-label="Edit listing"
+                      title="Edit listing"
+                    >
+                      <FontAwesomeIcon icon={faPenToSquare} />
                     </button>
                     {r.status === "active" ? (
                       <button
                         type="button"
-                        className="ml-3 text-rose-400 hover:underline"
+                        className="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-rose-400 hover:bg-white/10"
                         onClick={() => void withdraw(r.id)}
+                        aria-label="Withdraw listing"
+                        title="Withdraw listing"
                       >
-                        Withdraw
+                        <FontAwesomeIcon icon={faTrashCan} />
                       </button>
                     ) : null}
                   </td>
@@ -229,6 +280,30 @@ export function InvestorP2pListingsPage() {
             }
           />
           <input
+            className="template-input"
+            placeholder="Latitude (optional)"
+            value={form.latitude?.toString() ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
+          />
+          <input
+            className="template-input"
+            placeholder="Longitude (optional)"
+            value={form.longitude?.toString() ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
+          />
+          <input
+            className="template-input"
+            placeholder="Seller contact email (optional)"
+            value={form.contact_email ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, contact_email: e.target.value }))}
+          />
+          <input
+            className="template-input"
+            placeholder="Seller contact phone (optional)"
+            value={form.contact_phone ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, contact_phone: e.target.value }))}
+          />
+          <input
             className="template-input sm:col-span-2"
             placeholder="Hero image URL"
             value={form.hero_image ?? ""}
@@ -246,6 +321,13 @@ export function InvestorP2pListingsPage() {
             placeholder="https://…"
             value={galleryText}
             onChange={(e) => setGalleryText(e.target.value)}
+          />
+          <label className="text-xs text-slate-400 sm:col-span-2">Key features (one per line)</label>
+          <textarea
+            className="template-input min-h-[80px] sm:col-span-2"
+            placeholder="Road access&#10;Boundary wall&#10;Water line available"
+            value={featuresText}
+            onChange={(e) => setFeaturesText(e.target.value)}
           />
           {editingId != null ? (
             <div className="sm:col-span-2">

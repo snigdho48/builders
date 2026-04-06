@@ -307,6 +307,11 @@ export type P2PListing = {
   location_name: string
   asking_price_hint: string | null
   land_area_sqft: number | null
+  latitude: string | null
+  longitude: string | null
+  contact_email: string
+  contact_phone: string
+  features: string[]
   hero_image: string
   gallery_images: string[]
   status: P2PListingStatus
@@ -321,6 +326,11 @@ export type P2PListingWritePayload = {
   location_name: string
   asking_price_hint?: string | null
   land_area_sqft?: number | null
+  latitude?: string | null
+  longitude?: string | null
+  contact_email?: string
+  contact_phone?: string
+  features?: string[]
   hero_image?: string
   gallery_images?: string[]
   status?: P2PListingStatus

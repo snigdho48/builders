@@ -518,6 +518,19 @@ export async function listInstallmentLedger(token: string): Promise<InstallmentL
   return rows.map((r) => normalizeInstallmentLedger(r as Record<string, unknown>))
 }
 
+export async function markInstallmentComplete(
+  id: number,
+  token: string,
+  body: { payment_reference?: string } = {},
+): Promise<InstallmentLedgerRow> {
+  const res = await request<Record<string, unknown>>(`/installments/${id}/mark-complete/`, {
+    method: "POST",
+    body,
+    token,
+  })
+  return normalizeInstallmentLedger(res.data as Record<string, unknown>)
+}
+
 export async function listPlotsByProperty(params: {
   propertyId: number
   availableOnly?: boolean
@@ -633,6 +646,11 @@ function normalizeP2PListing(raw: Record<string, unknown>): P2PListing {
     location_name: String(raw.location_name ?? ""),
     asking_price_hint: raw.asking_price_hint != null ? String(raw.asking_price_hint) : null,
     land_area_sqft: raw.land_area_sqft != null ? Number(raw.land_area_sqft) : null,
+    latitude: raw.latitude != null ? String(raw.latitude) : null,
+    longitude: raw.longitude != null ? String(raw.longitude) : null,
+    contact_email: String(raw.contact_email ?? ""),
+    contact_phone: String(raw.contact_phone ?? ""),
+    features: Array.isArray(raw.features) ? raw.features.filter((x): x is string => typeof x === "string") : [],
     hero_image: String(raw.hero_image ?? ""),
     gallery_images,
     status,

@@ -45,6 +45,9 @@ export function P2pDetailPage() {
   const gallery = useMemo(() => (listing?.gallery_images ?? []).filter(Boolean), [listing])
   const mapUrl = useMemo(() => {
     if (!listing) return ""
+    if (listing.latitude && listing.longitude) {
+      return `https://www.google.com/maps?q=${listing.latitude},${listing.longitude}&z=14&output=embed`
+    }
     return `https://www.google.com/maps?q=${encodeURIComponent(listing.location_name)}&z=13&output=embed`
   }, [listing])
 
@@ -206,6 +209,21 @@ export function P2pDetailPage() {
               </div>
             </section>
 
+            <section className="rounded-3xl border border-slate-200 bg-white p-8">
+              <h4 className="mb-5 text-xl font-semibold text-[#0b1f44]">Features</h4>
+              {listing.features.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {listing.features.map((f) => (
+                    <span key={f} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">No features were provided for this listing yet.</p>
+              )}
+            </section>
+
             {related.length > 0 ? (
               <section className="rounded-3xl border border-slate-200 bg-white p-8">
                 <h3 className="mb-5 text-2xl font-semibold text-[#0b1f44]">Related P2P Listings</h3>
@@ -250,6 +268,20 @@ export function P2pDetailPage() {
                   <p className="text-xs text-slate-500">Current pending bids</p>
                   <p className="font-semibold text-[#0b1f44]">{listing.bid_count ?? 0}</p>
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-slate-200 bg-white p-6">
+              <h3 className="text-xl font-semibold text-[#0b1f44]">Seller contact</h3>
+              <div className="mt-4 space-y-2 text-sm text-slate-700">
+                <p>
+                  <span className="text-slate-500">Email: </span>
+                  {listing.contact_email || "Not specified"}
+                </p>
+                <p>
+                  <span className="text-slate-500">Phone: </span>
+                  {listing.contact_phone || "Not specified"}
+                </p>
               </div>
             </section>
 

@@ -4,6 +4,7 @@ import { faBars, faChevronDown, faCircleUser, faXmark } from "@fortawesome/free-
 import { motion, useReducedMotion } from "framer-motion"
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
 
+import { useLanguage } from "@/i18n/language-context"
 import { normalizeStoredRole } from "@/routes/protected-route"
 import { getMe } from "@/services/api"
 import type { UserRole } from "@/types/domain"
@@ -76,6 +77,7 @@ function readStoredIdentity(): { username: string; role: UserRole | null } {
 }
 
 export function DashboardShell({ sections }: DashboardShellProps) {
+  const { language, toggleLanguage, t } = useLanguage()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const prefersReducedMotion = useReducedMotion()
@@ -237,8 +239,16 @@ export function DashboardShell({ sections }: DashboardShellProps) {
             to="/listings"
             className="inline-flex shrink-0 rounded-full px-2 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/10 sm:px-3 sm:text-sm"
           >
-            Listings
+            {t("nav.listings", "Listings")}
           </NavLink>
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="inline-flex shrink-0 rounded-full border border-white/20 px-2.5 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/10 sm:px-3 sm:text-sm"
+            title={language === "en" ? "বাংলা" : "EN"}
+          >
+            {language === "en" ? t("lang.bn", "বাংলা") : t("lang.en", "EN")}
+          </button>
 
           <NavLink
             to="/profile"
@@ -260,7 +270,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
             onClick={handleLogout}
             className="shrink-0 rounded-full bg-[#f58e43] px-2.5 py-2 text-xs font-semibold text-slate-950 hover:bg-[#ff9b4f] sm:px-4 sm:text-sm"
           >
-            Logout
+            {t("nav.logout", "Logout")}
           </button>
         </div>
       </motion.header>

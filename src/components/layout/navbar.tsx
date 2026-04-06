@@ -4,14 +4,15 @@ import { faFacebookF, faInstagram, faPinterestP, faXTwitter } from "@fortawesome
 import { faBars, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 
+import { useLanguage } from "@/i18n/language-context"
 import { normalizeStoredRole } from "@/routes/protected-route"
 import type { UserRole } from "@/types/domain"
 
 const publicLinks = [
-  { to: "/", label: "Home" },
-  { to: "/listings", label: "Listings" },
-  { to: "/p2p", label: "P2P" },
-  { to: "/contact", label: "Contact" },
+  { to: "/", key: "nav.home", fallback: "Home" },
+  { to: "/listings", key: "nav.listings", fallback: "Listings" },
+  { to: "/p2p", key: "nav.p2p", fallback: "P2P" },
+  { to: "/contact", key: "nav.contact", fallback: "Contact" },
 ]
 
 function readUserRole(): UserRole | null {
@@ -29,6 +30,7 @@ function addPropertiesPath(role: UserRole | null): string {
 }
 
 export function Navbar() {
+  const { language, toggleLanguage, t } = useLanguage()
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -89,7 +91,11 @@ export function Navbar() {
   }
 
   const links = isLoggedIn
-    ? [...publicLinks, { to: "/dashboard", label: "Dashboard" }, { to: "/profile", label: "Profile" }]
+    ? [
+        ...publicLinks,
+        { to: "/dashboard", key: "nav.dashboard", fallback: "Dashboard" },
+        { to: "/profile", key: "nav.profile", fallback: "Profile" },
+      ]
     : publicLinks
 
   return (
@@ -99,15 +105,15 @@ export function Navbar() {
             {!isLoggedIn ? (
               <>
                 <Link to="/auth" className="font-semibold text-white">
-                  Sign in
+                  {t("nav.signIn", "Sign in")}
                 </Link>
-                <span className="text-slate-300">or</span>
+                <span className="text-slate-300">{t("nav.or", "or")}</span>
                 <Link to="/register" className="font-semibold text-white">
-                  Register
+                  {t("nav.register", "Register")}
                 </Link>
               </>
             ) : (
-              <span className="font-semibold text-emerald-300">Welcome back</span>
+              <span className="font-semibold text-emerald-300">{t("nav.welcomeBack", "Welcome back")}</span>
             )}
             <span className="text-slate-400">
               <FontAwesomeIcon icon={faFacebookF} />
@@ -163,7 +169,7 @@ export function Navbar() {
                   ].join(" ")
                 }
               >
-                {item.label}
+                {t(item.key, item.fallback)}
               </NavLink>
             ))}
           </nav>
@@ -177,6 +183,15 @@ export function Navbar() {
               className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 lg:hidden"
             >
               <FontAwesomeIcon icon={mobileOpen ? faXmark : faBars} className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              title={language === "en" ? "বাংলা" : "EN"}
+              aria-label="Toggle language"
+              onClick={toggleLanguage}
+              className="inline-flex h-12 min-w-12 items-center justify-center rounded-full border border-white/40 px-3 text-xs font-semibold text-white hover:bg-white/10"
+            >
+              {language === "en" ? t("lang.bn", "বাংলা") : t("lang.en", "EN")}
             </button>
             <button
               type="button"
@@ -202,7 +217,7 @@ export function Navbar() {
                 to={addPropertiesHref}
                 className="hidden h-12 items-center rounded-full border border-lime-300/60 px-7 font-semibold text-lime-300 transition-[transform,box-shadow,background-color,border-color] duration-300 hover:border-lime-200/80 hover:bg-lime-300/10 hover:shadow-[0_0_28px_rgb(190_242_100/22%)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:shadow-none lg:inline-flex"
               >
-                Land dashboard
+                {t("nav.landDashboard", "Land dashboard")}
               </Link>
             ) : null}
             {isLoggedIn ? (
@@ -211,7 +226,7 @@ export function Navbar() {
                 onClick={handleLogout}
                 className="btn-alive hidden rounded-full bg-[#f58e43] px-5 py-2.5 font-medium text-slate-950 hover:bg-[#ff9b4f] sm:inline-block"
               >
-                Logout
+                {t("nav.logout", "Logout")}
               </button>
             ) : null}
           </div>
@@ -244,7 +259,7 @@ export function Navbar() {
                 onClick={submitNavSearch}
                 className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-[#f58e43] px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-[#ff9b4f] sm:px-7"
               >
-                Search
+                {t("nav.search", "Search")}
               </button>
               <button
                 type="button"
@@ -277,7 +292,7 @@ export function Navbar() {
                     ].join(" ")
                   }
                 >
-                  {item.label}
+                  {t(item.key, item.fallback)}
                 </NavLink>
               ))}
               {canShowAddProperties ? (
@@ -286,7 +301,7 @@ export function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className="rounded-xl border border-lime-300/40 px-3 py-3 text-sm font-semibold text-lime-300 hover:bg-lime-300/10"
                 >
-                  Land dashboard
+                  {t("nav.landDashboard", "Land dashboard")}
                 </Link>
               ) : null}
               {isLoggedIn ? (
@@ -298,7 +313,7 @@ export function Navbar() {
                   }}
                   className="mt-1 rounded-xl bg-[#f58e43] px-3 py-3 text-left text-sm font-semibold text-slate-950"
                 >
-                  Logout
+                  {t("nav.logout", "Logout")}
                 </button>
               ) : (
                 <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-3">
@@ -307,14 +322,14 @@ export function Navbar() {
                     onClick={() => setMobileOpen(false)}
                     className="rounded-xl px-3 py-2 text-sm font-semibold text-white hover:bg-white/5"
                   >
-                    Sign in
+                    {t("nav.signIn", "Sign in")}
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setMobileOpen(false)}
                     className="rounded-xl px-3 py-2 text-sm font-semibold text-white hover:bg-white/5"
                   >
-                    Register
+                    {t("nav.register", "Register")}
                   </Link>
                 </div>
               )}

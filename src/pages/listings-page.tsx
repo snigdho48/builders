@@ -6,6 +6,7 @@ import { PropertyCard } from "@/components/property-card"
 import { SALE_TYPE_FILTER_OPTIONS } from "@/constants/property-filters"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { GridLoader } from "@/components/ui/grid-loader"
+import { useLanguage } from "@/i18n/language-context"
 import { getPropertiesPaged } from "@/services/api"
 import type { Property, SaleType } from "@/types/domain"
 
@@ -38,15 +39,8 @@ function parseSaleTypeParam(raw: string | null): "all" | SaleType {
   return raw === "land_buy" || raw === "installment" ? raw : "all"
 }
 
-function parseOptionalPrice(raw: string): number | undefined {
-  const cleaned = raw.replace(/,/g, "").trim()
-  if (!cleaned) return undefined
-  const n = Number(cleaned)
-  if (!Number.isFinite(n) || n < 0) return undefined
-  return n
-}
-
 export function ListingsPage() {
+  const { t } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(false)
@@ -62,13 +56,9 @@ export function ListingsPage() {
 
   const query = searchParams.get("q") ?? ""
   const locationFilter = searchParams.get("location") ?? ""
-  const minPriceRaw = searchParams.get("min_price") ?? ""
-  const maxPriceRaw = searchParams.get("max_price") ?? ""
 
   const [debouncedQuery, setDebouncedQuery] = useState(() => query)
   const [debouncedLocation, setDebouncedLocation] = useState(() => locationFilter)
-  const [debouncedMinPrice, setDebouncedMinPrice] = useState(() => minPriceRaw)
-  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState(() => maxPriceRaw)
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedQuery(query), 320)
@@ -80,19 +70,6 @@ export function ListingsPage() {
     return () => window.clearTimeout(t)
   }, [locationFilter])
 
-  useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedMinPrice(minPriceRaw), 400)
-    return () => window.clearTimeout(t)
-  }, [minPriceRaw])
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedMaxPrice(maxPriceRaw), 400)
-    return () => window.clearTimeout(t)
-  }, [maxPriceRaw])
-
-  const minPrice = parseOptionalPrice(debouncedMinPrice)
-  const maxPrice = parseOptionalPrice(debouncedMaxPrice)
-
   const updateParams = useCallback(
     (mutate: (p: URLSearchParams) => void) => () => {
       const next = new URLSearchParams(searchParams)
@@ -103,14 +80,8 @@ export function ListingsPage() {
   )
 
   const hasActiveFilters = useMemo(() => {
-    return (
-      query.trim() !== "" ||
-      locationFilter.trim() !== "" ||
-      minPriceRaw.trim() !== "" ||
-      maxPriceRaw.trim() !== "" ||
-      saleFilter !== "all"
-    )
-  }, [query, locationFilter, minPriceRaw, maxPriceRaw, saleFilter])
+    return query.trim() !== "" || locationFilter.trim() !== "" || saleFilter !== "all"
+  }, [query, locationFilter, saleFilter])
 
   const clearFilters = useCallback(() => {
     const next = new URLSearchParams()
@@ -128,8 +99,6 @@ export function ListingsPage() {
       status: "available",
       search: debouncedQuery.trim() ? debouncedQuery.trim() : undefined,
       location: debouncedLocation.trim() ? debouncedLocation.trim() : undefined,
-      minPrice,
-      maxPrice,
     })
       .then(({ items, pagination }) => {
         if (cancelled) return
@@ -145,14 +114,16 @@ export function ListingsPage() {
     return () => {
       cancelled = true
     }
-  }, [page, pageSize, saleFilter, debouncedQuery, debouncedLocation, minPrice, maxPrice])
+  }, [page, pageSize, saleFilter, debouncedQuery, debouncedLocation])
 
   const footerLabel = useMemo(() => {
     if (totalCount != null) {
-      return `Showing ${properties.length} of ${totalCount} listings`
+      return t("listings.showing", `Showing ${properties.length} of ${totalCount} listings`)
     }
-    return `Page ${page} of ${totalPages}`
-  }, [properties.length, totalCount, page, totalPages])
+    return t("listings.pageOf", "Page {page} / {totalPages}")
+      .replace("{page}", String(page))
+      .replace("{totalPages}", String(totalPages))
+  }, [properties.length, t, totalCount, page, totalPages])
 
   function patchSearchParams(mutate: (p: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams)
@@ -166,17 +137,17 @@ export function ListingsPage() {
         <RevealOnView className="mb-8 space-y-6" variant="fade-up">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Land</p>
-            <h1 className="text-2xl font-semibold sm:text-3xl">Explore land listings</h1>
-            <p className="mt-2 text-sm text-slate-400">Search and filter whole-parcel land: direct buy or installment plans.</p>
+            <h1 className="text-2xl font-semibold sm:text-3xl">{t("listings.title", "Explore land listings")}</h1>
+            <p className="mt-2 text-sm text-slate-400">{t("listings.subtitle", "Search and filter whole-parcel land: direct buy or installment plans.")}</p>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-slate-900/35 p-4 shadow-lg sm:p-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              <FilterField label="Search">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <FilterField label={t("listings.search", "Search")}>
                 <div className={FILTER_SHELL}>
                   <input
                     className={FILTER_INPUT}
-                    placeholder="Title or location"
+                    placeholder={t("listings.searchPlaceholder", "Title or location")}
                     value={query}
                     onChange={(e) => {
                       patchSearchParams((p) => {
@@ -192,11 +163,11 @@ export function ListingsPage() {
                 </div>
               </FilterField>
 
-              <FilterField label="Location">
+              <FilterField label={t("listings.location", "Location")}>
                 <div className={FILTER_SHELL}>
                   <input
                     className={FILTER_INPUT}
-                    placeholder="Area / district"
+                    placeholder={t("listings.locationPlaceholder", "Area / district")}
                     value={locationFilter}
                     onChange={(e) => {
                       patchSearchParams((p) => {
@@ -212,47 +183,7 @@ export function ListingsPage() {
                 </div>
               </FilterField>
 
-              <FilterField label="Min price">
-                <div className={FILTER_SHELL}>
-                  <input
-                    className={FILTER_INPUT}
-                    inputMode="decimal"
-                    placeholder="e.g. 1000000"
-                    value={minPriceRaw}
-                    onChange={(e) => {
-                      patchSearchParams((p) => {
-                        const v = e.target.value
-                        if (v.trim()) p.set("min_price", v)
-                        else p.delete("min_price")
-                        p.delete("page")
-                      })
-                    }}
-                    aria-label="Minimum price"
-                  />
-                </div>
-              </FilterField>
-
-              <FilterField label="Max price">
-                <div className={FILTER_SHELL}>
-                  <input
-                    className={FILTER_INPUT}
-                    inputMode="decimal"
-                    placeholder="e.g. 50000000"
-                    value={maxPriceRaw}
-                    onChange={(e) => {
-                      patchSearchParams((p) => {
-                        const v = e.target.value
-                        if (v.trim()) p.set("max_price", v)
-                        else p.delete("max_price")
-                        p.delete("page")
-                      })
-                    }}
-                    aria-label="Maximum price"
-                  />
-                </div>
-              </FilterField>
-
-              <FilterField label="Sale type">
+              <FilterField label={t("listings.saleType", "Sale type")}>
                 <div className={FILTER_SHELL}>
                   <CompactFormSelect
                     className={SELECT_CLASS}
@@ -271,7 +202,7 @@ export function ListingsPage() {
                 </div>
               </FilterField>
 
-              <FilterField label="Per page">
+              <FilterField label={t("listings.perPage", "Per page")}>
                 <div className={FILTER_SHELL}>
                   <CompactFormSelect
                     className={SELECT_CLASS}
@@ -296,7 +227,7 @@ export function ListingsPage() {
                   onClick={clearFilters}
                   className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10"
                 >
-                  Clear filters
+                  {t("listings.clearFilters", "Clear filters")}
                 </button>
                 <span className="text-xs text-slate-500">Search matches title or location; location also filters the area field.</span>
               </div>
@@ -317,7 +248,7 @@ export function ListingsPage() {
         )}
 
         {!loading && properties.length === 0 ? (
-          <p className="mt-10 text-center text-sm text-slate-400">No listings match your filters.</p>
+          <p className="mt-10 text-center text-sm text-slate-400">{t("listings.noMatch", "No listings match your filters.")}</p>
         ) : null}
 
         {!loading && totalPages > 1 ? (
@@ -330,9 +261,9 @@ export function ListingsPage() {
                 className="rounded-lg border border-white/20 px-4 py-2 font-medium disabled:opacity-40"
                 onClick={updateParams((p) => p.set("page", String(Math.max(1, page - 1))))}
               >
-                Previous
+                {t("listings.previous", "Previous")}
               </button>
-              <span className="min-w-[7rem] text-center tabular-nums">
+              <span className="min-w-28 text-center tabular-nums">
                 Page {page} / {totalPages}
               </span>
               <button
@@ -341,7 +272,7 @@ export function ListingsPage() {
                 className="rounded-lg border border-white/20 px-4 py-2 font-medium disabled:opacity-40"
                 onClick={updateParams((p) => p.set("page", String(Math.min(totalPages, page + 1))))}
               >
-                Next
+                {t("listings.next", "Next")}
               </button>
             </div>
           </div>
