@@ -146,8 +146,8 @@ export function PropertyLandBookPage() {
   }
 
   return (
-    <main className="min-h-[60vh] bg-[#f6f7fb] px-4 py-12 text-slate-900 sm:py-16">
-      <div className="mx-auto w-full max-w-lg space-y-6">
+    <main className="min-h-[60vh] bg-[#f6f7fb] px-4 py-10 text-slate-900 sm:py-14">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
         <div>
           <Link
             to={`/properties/${property.id}`}
