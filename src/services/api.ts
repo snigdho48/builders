@@ -8,6 +8,7 @@ import type {
   InvestorKycStatus,
   InvestorUpsertPayload,
   LandBooking,
+  InstallmentLedgerRow,
   P2PBidIncoming,
   P2PBidSent,
   P2PListing,
@@ -310,6 +311,34 @@ function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
   }
 }
 
+function normalizeInstallmentLedger(raw: Record<string, unknown>): InstallmentLedgerRow {
+  const st = raw.status
+  const status = st === "paid" || st === "overdue" || st === "partial" || st === "unpaid" ? st : "unpaid"
+  const nt = raw.notification
+  const notification = nt === "paid" || nt === "overdue" || nt === "due_soon" || nt === "upcoming" ? nt : "upcoming"
+  return {
+    id: Number(raw.id),
+    booking_id: Number(raw.booking_id),
+    property_title: String(raw.property_title ?? ""),
+    plan_type:
+      raw.plan_type === "one_percent_installment" || raw.plan_type === "fifty_percent_installment"
+        ? raw.plan_type
+        : "one_percent_installment",
+    installment_no: Number(raw.installment_no ?? 0),
+    due_date: String(raw.due_date ?? ""),
+    amount_due: String(raw.amount_due ?? "0"),
+    amount_paid: String(raw.amount_paid ?? "0"),
+    status,
+    paid_at: raw.paid_at != null ? String(raw.paid_at) : null,
+    notification,
+    reminder_sent_at: raw.reminder_sent_at != null ? String(raw.reminder_sent_at) : null,
+    reminder_note: String(raw.reminder_note ?? ""),
+    payment_reference: String(raw.payment_reference ?? ""),
+    created_at: String(raw.created_at ?? ""),
+    updated_at: String(raw.updated_at ?? ""),
+  }
+}
+
 export async function login(username: string, password: string) {
   const res = await request<{ access: string; refresh: string; role: string }>("/auth/login/", {
     method: "POST",
@@ -448,6 +477,12 @@ export async function rejectLandBooking(id: number, token: string, rejection_rea
     token,
   })
   return normalizeLandBooking(res.data as Record<string, unknown>)
+}
+
+export async function listInstallmentLedger(token: string): Promise<InstallmentLedgerRow[]> {
+  const res = await request<unknown[]>("/installments/", { token })
+  const rows = Array.isArray(res.data) ? res.data : []
+  return rows.map((r) => normalizeInstallmentLedger(r as Record<string, unknown>))
 }
 
 function normalizeRetailInvestor(raw: Record<string, unknown>): RetailInvestor {

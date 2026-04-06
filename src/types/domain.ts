@@ -101,6 +101,28 @@ export type LandBooking = {
   updated_at: string
 }
 
+export type InstallmentLedgerStatus = "unpaid" | "paid" | "overdue" | "partial"
+export type InstallmentNotification = "paid" | "overdue" | "due_soon" | "upcoming"
+
+export type InstallmentLedgerRow = {
+  id: number
+  booking_id: number
+  property_title: string
+  plan_type: LandBookingPlanType
+  installment_no: number
+  due_date: string
+  amount_due: string
+  amount_paid: string
+  status: InstallmentLedgerStatus
+  paid_at: string | null
+  notification: InstallmentNotification
+  reminder_sent_at: string | null
+  reminder_note: string
+  payment_reference: string
+  created_at: string
+  updated_at: string
+}
+
 export type InvestorKycStatus = "pending" | "approved" | "rejected"
 
 export type MeResponse = {
