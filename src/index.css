@@ -235,7 +235,7 @@
   }
 
   .template-input {
-    @apply w-full rounded-xl border border-white/15 bg-[#1a2d4a]/85 px-4 py-3 text-sm text-white shadow-[inset_0_1px_0_rgb(255_255_255/4%)] placeholder:text-slate-400 transition-[border-color,box-shadow] duration-200 focus:border-[#f58e43]/90 focus:outline-none focus:ring-2 focus:ring-[#f58e43]/25;
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-[inset_0_1px_0_rgb(255_255_255/65%)] placeholder:text-slate-400 transition-[border-color,box-shadow] duration-200 focus:border-[#f58e43]/80 focus:outline-none focus:ring-2 focus:ring-[#f58e43]/20;
   }
 
   .dashboard-modal-scroll {
@@ -259,7 +259,7 @@
   }
 
   .dashboard-modal-btn-secondary {
-    @apply inline-flex min-h-8 items-center justify-center rounded-lg border border-white/14 bg-white/4 px-3.5 py-1.5 text-xs font-medium text-slate-200 transition hover:border-white/22 hover:bg-white/8 active:translate-y-px motion-reduce:transition-none;
+    @apply inline-flex min-h-8 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 active:translate-y-px motion-reduce:transition-none;
   }
 
   .dashboard-filters-row {
@@ -274,11 +274,11 @@
   }
 
   .dashboard-filter-input {
-    @apply h-9 rounded-md border border-white/10 bg-[#152a45]/95 px-2 text-xs text-white placeholder:text-slate-500 focus:border-[#f58e43]/50 focus:outline-none;
+    @apply h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#f58e43]/60 focus:outline-none;
   }
 
   .dashboard-filter-select-shell {
-    @apply h-9 rounded-md border border-white/10 bg-[#152a45]/95 px-2;
+    @apply h-9 rounded-md border border-slate-300 bg-white px-2;
   }
 
   .detail-input {
@@ -290,7 +290,7 @@
   }
 
   .metric-card {
-    @apply rounded-2xl border border-white/15 bg-[#072349]/80 p-5 shadow-[0_16px_45px_rgba(3,15,35,0.25)];
+    @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.08)];
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -322,11 +322,11 @@
   }
 
   .metric-card p {
-    @apply text-sm text-slate-200;
+    @apply text-sm text-slate-600;
   }
 
   .metric-card strong {
-    @apply mt-1 block text-2xl font-semibold text-white;
+    @apply mt-1 block text-2xl font-semibold text-slate-900;
   }
 
   .partner-slider {
@@ -354,7 +354,7 @@
   }
 
   .glass-panel {
-    @apply rounded-3xl border border-white/20 bg-[#3a4b65]/38 shadow-[0_20px_46px_rgba(2,10,28,0.45)] backdrop-blur-sm;
+    @apply rounded-3xl border border-slate-200 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)];
   }
 
   /* Subtle animated sheen over hero (motion-safe) */
@@ -379,6 +379,43 @@
     .home-hero::before {
       animation: hero-sheen 14s ease-in-out infinite;
     }
+  }
+}
+
+@layer utilities {
+  /* Strict light mode overrides across legacy dark utility usage */
+  .bg-slate-950,
+  .bg-slate-900,
+  .bg-slate-900\/80,
+  .bg-slate-900\/70,
+  .bg-slate-900\/60,
+  .bg-slate-900\/50,
+  .bg-slate-900\/35,
+  .bg-slate-950\/50,
+  .bg-white\/2,
+  .bg-white\/4,
+  .bg-white\/5,
+  .bg-white\/10,
+  .bg-\[\#152a45\]\/95,
+  .bg-\[\#1a2d4a\]\/85,
+  .bg-\[\#072349\]\/80 {
+    background-color: #ffffff !important;
+  }
+
+  .border-white\/10,
+  .border-white\/14,
+  .border-white\/15,
+  .border-white\/20,
+  .border-white\/25,
+  .border-white\/30 {
+    border-color: rgb(226 232 240) !important;
+  }
+
+  .hover\:bg-white\/10:hover,
+  .hover\:bg-white\/8:hover,
+  .hover\:bg-white\/5:hover,
+  .hover\:bg-white\/2:hover {
+    background-color: rgb(248 250 252) !important;
   }
 }
 

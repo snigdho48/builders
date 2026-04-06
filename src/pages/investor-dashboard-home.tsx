@@ -36,8 +36,8 @@ export function InvestorDashboardHomePage() {
   return (
     <section className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-white">Welcome</h2>
-        <p className="mt-2 text-sm text-slate-400">
+        <h2 className="text-2xl font-semibold text-slate-900">Welcome</h2>
+        <p className="mt-2 text-sm text-slate-600">
           Browse <Link to="/listings" className="text-[#f58e43] hover:underline">land listings</Link> and book a parcel.
           Track requests on{" "}
           <Link to="/dashboard/investor/bookings" className="text-[#f58e43] hover:underline">My bookings</Link>.
@@ -45,7 +45,7 @@ export function InvestorDashboardHomePage() {
           <Link to="/dashboard/investor/kyc" className="font-semibold text-[#f58e43] hover:underline">
             KYC & verification
           </Link>{" "}
-          is under <strong className="text-slate-300">KYC</strong> in the sidebar.
+          is under <strong className="text-slate-700">KYC</strong> in the sidebar.
         </p>
       </div>
       <InvestorKycPanel />

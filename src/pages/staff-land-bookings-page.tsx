@@ -4,6 +4,7 @@ import { faCircleCheck } from "@fortawesome/free-solid-svg-icons"
 
 import { DashboardModal } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
+import { useLanguage } from "@/i18n/language-context"
 import { useToast } from "@/components/ui/use-toast"
 import { acceptLandBooking, listInstallmentLedger, listLandBookings, markInstallmentComplete, rejectLandBooking } from "@/services/api"
 import type { InstallmentLedgerRow, LandBooking } from "@/types/domain"
@@ -14,6 +15,7 @@ const planLabel: Record<string, string> = {
 }
 
 export function StaffLandBookingsPage() {
+  const { language } = useLanguage()
   const { showToast } = useToast()
   const [rows, setRows] = useState<LandBooking[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,11 +57,11 @@ export function StaffLandBookingsPage() {
     setBusy(true)
     try {
       await acceptLandBooking(selected.id, token)
-      showToast("Booking accepted.", "success")
+      showToast(language === "bn" ? "বুকিং অনুমোদিত হয়েছে।" : "Booking accepted.", "success")
       setSelected(null)
       await load()
     } catch (e) {
-      showToast(e instanceof Error ? e.message : "Failed", "error")
+      showToast(e instanceof Error ? e.message : language === "bn" ? "ব্যর্থ হয়েছে" : "Failed", "error")
     } finally {
       setBusy(false)
     }
@@ -72,12 +74,12 @@ export function StaffLandBookingsPage() {
     setBusy(true)
     try {
       await rejectLandBooking(selected.id, token, rejectNote)
-      showToast("Booking rejected.", "success")
+      showToast(language === "bn" ? "বুকিং প্রত্যাখ্যাত হয়েছে।" : "Booking rejected.", "success")
       setSelected(null)
       setRejectNote("")
       await load()
     } catch (e) {
-      showToast(e instanceof Error ? e.message : "Failed", "error")
+      showToast(e instanceof Error ? e.message : language === "bn" ? "ব্যর্থ হয়েছে" : "Failed", "error")
     } finally {
       setBusy(false)
     }
@@ -88,10 +90,13 @@ export function StaffLandBookingsPage() {
     if (!token) return
     try {
       await markInstallmentComplete(rowId, token)
-      showToast("Installment marked as paid.", "success")
+      showToast(language === "bn" ? "কিস্তি পরিশোধিত হিসেবে চিহ্নিত করা হয়েছে।" : "Installment marked as paid.", "success")
       await load()
     } catch (e) {
-      showToast(e instanceof Error ? e.message : "Failed to update installment", "error")
+      showToast(
+        e instanceof Error ? e.message : language === "bn" ? "কিস্তি আপডেট করা যায়নি" : "Failed to update installment",
+        "error",
+      )
     }
   }
 
@@ -159,25 +164,29 @@ export function StaffLandBookingsPage() {
     <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <div>
         <h2 className="text-2xl font-semibold text-white">Land booking requests</h2>
-        <p className="mt-1 text-sm text-slate-400">Review investor requests for your assigned lands (or all lands as admin).</p>
+        <p className="mt-1 text-sm text-slate-400">
+          {language === "bn"
+            ? "আপনার দায়িত্বপ্রাপ্ত জমির (অ্যাডমিন হলে সব জমির) বিনিয়োগকারীর বুকিং অনুরোধ পর্যালোচনা করুন।"
+            : "Review investor requests for your assigned lands (or all lands as admin)."}
+        </p>
       </div>
 
       {loading ? (
-        <p className="text-slate-500">Loading…</p>
+        <p className="text-slate-500">{language === "bn" ? "লোড হচ্ছে…" : "Loading…"}</p>
       ) : rows.length === 0 ? (
-        <p className="text-slate-500">No booking requests.</p>
+        <p className="text-slate-500">{language === "bn" ? "কোনো বুকিং অনুরোধ নেই।" : "No booking requests."}</p>
       ) : (
         <>
           <div className="dashboard-filters-row">
             <input
               className="dashboard-filter-input min-w-[200px] flex-1"
-              placeholder="Search land, investor, email, booking ID…"
+              placeholder={language === "bn" ? "জমি, বিনিয়োগকারী, ইমেইল, বুকিং আইডি খুঁজুন…" : "Search land, investor, email, booking ID…"}
               value={tableSearch}
               onChange={(e) => setTableSearch(e.target.value)}
               aria-label="Search bookings"
             />
             <div className="dashboard-filter-group min-w-[130px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "স্ট্যাটাস" : "Status"}</span>
               <div className="dashboard-filter-select-shell">
                 <CompactFormSelect
                   ariaLabel="Filter by status"
@@ -185,16 +194,16 @@ export function StaffLandBookingsPage() {
                   value={statusFilter}
                   onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
                   options={[
-                    { value: "all", label: "All statuses" },
-                    { value: "pending", label: "Pending" },
-                    { value: "accepted", label: "Accepted" },
-                    { value: "rejected", label: "Rejected" },
+                    { value: "all", label: language === "bn" ? "সব স্ট্যাটাস" : "All statuses" },
+                    { value: "pending", label: language === "bn" ? "পেন্ডিং" : "Pending" },
+                    { value: "accepted", label: language === "bn" ? "অনুমোদিত" : "Accepted" },
+                    { value: "rejected", label: language === "bn" ? "প্রত্যাখ্যাত" : "Rejected" },
                   ]}
                 />
               </div>
             </div>
             <div className="dashboard-filter-group min-w-[150px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Plan</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "প্ল্যান" : "Plan"}</span>
               <div className="dashboard-filter-select-shell">
                 <CompactFormSelect
                   ariaLabel="Filter by plan"
@@ -202,7 +211,7 @@ export function StaffLandBookingsPage() {
                   value={planFilter}
                   onValueChange={(v) => setPlanFilter(v as typeof planFilter)}
                   options={[
-                    { value: "all", label: "All plans" },
+                    { value: "all", label: language === "bn" ? "সব প্ল্যান" : "All plans" },
                     { value: "one_percent_installment", label: "1% installment" },
                     { value: "fifty_percent_installment", label: "50% installment" },
                   ]}
@@ -215,12 +224,12 @@ export function StaffLandBookingsPage() {
               <thead className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">ID</th>
-                  <th className="px-4 py-3 align-middle">Land</th>
-                  <th className="px-4 py-3 align-middle">Investor</th>
-                  <th className="px-4 py-3 align-middle">Plan</th>
-                  <th className="px-4 py-3 align-middle whitespace-nowrap">Status</th>
-                  <th className="px-4 py-3 align-middle whitespace-nowrap">Booked</th>
-                  <th className="px-4 py-3 align-middle text-right whitespace-nowrap">Actions</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "জমি" : "Land"}</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "বিনিয়োগকারী" : "Investor"}</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "প্ল্যান" : "Plan"}</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "বুকিং তারিখ" : "Booked"}</th>
+                  <th className="px-4 py-3 align-middle text-right whitespace-nowrap">{language === "bn" ? "অ্যাকশন" : "Actions"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -247,7 +256,7 @@ export function StaffLandBookingsPage() {
                           setSelected(r)
                         }}
                       >
-                        Details
+                        {language === "bn" ? "বিস্তারিত" : "Details"}
                       </button>
                     </td>
                   </tr>
@@ -256,7 +265,9 @@ export function StaffLandBookingsPage() {
             </table>
           </div>
           {filteredRows.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-500">No bookings match your filters.</p>
+            <p className="py-6 text-center text-sm text-slate-500">
+              {language === "bn" ? "আপনার ফিল্টারের সাথে কোনো বুকিং মিলেনি।" : "No bookings match your filters."}
+            </p>
           ) : null}
         </>
       )}
@@ -274,7 +285,7 @@ export function StaffLandBookingsPage() {
                 onClick={() => void onAccept()}
                 className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
               >
-                Accept
+                {language === "bn" ? "অনুমোদন" : "Accept"}
               </button>
               <button
                 type="button"
@@ -282,7 +293,7 @@ export function StaffLandBookingsPage() {
                 onClick={() => void onReject()}
                 className="rounded-lg border border-rose-400/50 px-4 py-2 text-sm font-semibold text-rose-300 disabled:opacity-50"
               >
-                Reject
+                {language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
               </button>
             </div>
           ) : null
@@ -291,42 +302,42 @@ export function StaffLandBookingsPage() {
         {selected ? (
           <div className="space-y-3 text-sm text-slate-200">
             <p>
-              <span className="text-slate-500">Land:</span> {selected.property_title}
+              <span className="text-slate-500">{language === "bn" ? "জমি:" : "Land:"}</span> {selected.property_title}
             </p>
             <p>
-              <span className="text-slate-500">Investor:</span> {selected.investor_username}
+              <span className="text-slate-500">{language === "bn" ? "বিনিয়োগকারী:" : "Investor:"}</span> {selected.investor_username}
             </p>
             <p>
-              <span className="text-slate-500">Plan:</span> {planLabel[selected.plan_type]}
+              <span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selected.plan_type]}
             </p>
             <p>
-              <span className="text-slate-500">Name:</span> {selected.full_name}
+              <span className="text-slate-500">{language === "bn" ? "নাম:" : "Name:"}</span> {selected.full_name}
             </p>
             <p>
-              <span className="text-slate-500">Email:</span> {selected.email}
+              <span className="text-slate-500">{language === "bn" ? "ইমেইল:" : "Email:"}</span> {selected.email}
             </p>
             <p>
-              <span className="text-slate-500">Phone:</span> {selected.phone}
+              <span className="text-slate-500">{language === "bn" ? "ফোন:" : "Phone:"}</span> {selected.phone}
             </p>
             {selected.contact_notes ? (
               <p>
-                <span className="text-slate-500">Notes:</span> {selected.contact_notes}
+                <span className="text-slate-500">{language === "bn" ? "নোট:" : "Notes:"}</span> {selected.contact_notes}
               </p>
             ) : null}
             {selected.referral_code_used ? (
               <p>
-                <span className="text-slate-500">Referral code:</span> {selected.referral_code_used}
+                <span className="text-slate-500">{language === "bn" ? "রেফারেল কোড:" : "Referral code:"}</span> {selected.referral_code_used}
               </p>
             ) : null}
             <p>
-              <span className="text-slate-500">Status:</span> {selected.status}
+              <span className="text-slate-500">{language === "bn" ? "স্ট্যাটাস:" : "Status:"}</span> {selected.status}
             </p>
             {selected.status === "rejected" && selected.rejection_reason ? (
-              <p className="text-rose-300">Reason: {selected.rejection_reason}</p>
+              <p className="text-rose-300">{language === "bn" ? "কারণ:" : "Reason:"} {selected.rejection_reason}</p>
             ) : null}
             {selected.status === "pending" ? (
               <label className="block pt-2">
-                <span className="text-xs text-slate-500">Rejection reason (optional)</span>
+                <span className="text-xs text-slate-500">{language === "bn" ? "প্রত্যাখ্যানের কারণ (ঐচ্ছিক)" : "Rejection reason (optional)"}</span>
                 <textarea
                   className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
                   rows={2}
@@ -340,22 +351,28 @@ export function StaffLandBookingsPage() {
       </DashboardModal>
 
       <div className="rounded-xl border border-white/10 bg-white/2 p-4 sm:p-5">
-        <h3 className="text-lg font-semibold text-white">Installment tracker</h3>
-        <p className="mt-1 text-xs text-slate-500">Track due, paid, overdue and reminder status across visible bookings.</p>
+        <h3 className="text-lg font-semibold text-white">{language === "bn" ? "কিস্তি ট্র্যাকার" : "Installment tracker"}</h3>
+        <p className="mt-1 text-xs text-slate-500">
+          {language === "bn"
+            ? "দেখা যাচ্ছে এমন বুকিংগুলোর বকেয়া, পরিশোধিত, ওভারডিউ এবং রিমাইন্ডার স্ট্যাটাস দেখুন।"
+            : "Track due, paid, overdue and reminder status across visible bookings."}
+        </p>
         {installments.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">No installment schedules available yet.</p>
+          <p className="py-6 text-center text-sm text-slate-500">
+            {language === "bn" ? "এখনও কোনো কিস্তির সময়সূচি নেই।" : "No installment schedules available yet."}
+          </p>
         ) : (
           <>
             <div className="dashboard-filters-row mt-4">
               <input
                 className="dashboard-filter-input min-w-[220px] flex-1"
-                placeholder="Search land, booking, installment…"
+                placeholder={language === "bn" ? "জমি, বুকিং, কিস্তি খুঁজুন…" : "Search land, booking, installment…"}
                 value={instSearch}
                 onChange={(e) => setInstSearch(e.target.value)}
                 aria-label="Search installment tracker"
               />
               <div className="dashboard-filter-group min-w-[140px]">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "স্ট্যাটাস" : "Status"}</span>
                 <div className="dashboard-filter-select-shell">
                   <CompactFormSelect
                     ariaLabel="Filter installment status"
@@ -363,17 +380,17 @@ export function StaffLandBookingsPage() {
                     value={instStatusFilter}
                     onValueChange={(v) => setInstStatusFilter(v as typeof instStatusFilter)}
                     options={[
-                      { value: "all", label: "All status" },
-                      { value: "unpaid", label: "Unpaid" },
-                      { value: "partial", label: "Partial" },
-                      { value: "overdue", label: "Overdue" },
-                      { value: "paid", label: "Paid" },
+                      { value: "all", label: language === "bn" ? "সব স্ট্যাটাস" : "All status" },
+                      { value: "unpaid", label: language === "bn" ? "অপরিশোধিত" : "Unpaid" },
+                      { value: "partial", label: language === "bn" ? "আংশিক" : "Partial" },
+                      { value: "overdue", label: language === "bn" ? "ওভারডিউ" : "Overdue" },
+                      { value: "paid", label: language === "bn" ? "পরিশোধিত" : "Paid" },
                     ]}
                   />
                 </div>
               </div>
               <div className="dashboard-filter-group min-w-[160px]">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Notification</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "নোটিফিকেশন" : "Notification"}</span>
                 <div className="dashboard-filter-select-shell">
                   <CompactFormSelect
                     ariaLabel="Filter installment notification"
@@ -381,11 +398,11 @@ export function StaffLandBookingsPage() {
                     value={instNotificationFilter}
                     onValueChange={(v) => setInstNotificationFilter(v as typeof instNotificationFilter)}
                     options={[
-                      { value: "all", label: "All notices" },
-                      { value: "upcoming", label: "Upcoming" },
-                      { value: "due_soon", label: "Due soon" },
-                      { value: "overdue", label: "Overdue" },
-                      { value: "paid", label: "Paid" },
+                      { value: "all", label: language === "bn" ? "সব নোটিস" : "All notices" },
+                      { value: "upcoming", label: language === "bn" ? "আসন্ন" : "Upcoming" },
+                      { value: "due_soon", label: language === "bn" ? "শীঘ্রই বকেয়া" : "Due soon" },
+                      { value: "overdue", label: language === "bn" ? "ওভারডিউ" : "Overdue" },
+                      { value: "paid", label: language === "bn" ? "পরিশোধিত" : "Paid" },
                     ]}
                   />
                 </div>
@@ -396,15 +413,15 @@ export function StaffLandBookingsPage() {
               <table className="min-w-full w-full border-collapse text-left text-sm text-slate-200">
                 <thead className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   <tr>
-                    <th className="px-3 py-2">Land</th>
-                    <th className="px-3 py-2">Booking</th>
+                    <th className="px-3 py-2">{language === "bn" ? "জমি" : "Land"}</th>
+                    <th className="px-3 py-2">{language === "bn" ? "বুকিং" : "Booking"}</th>
                     <th className="px-3 py-2">Inst #</th>
-                    <th className="px-3 py-2">Due</th>
-                    <th className="px-3 py-2">Amount</th>
-                    <th className="px-3 py-2">Paid</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Notification</th>
-                    <th className="px-3 py-2 text-right">Action</th>
+                    <th className="px-3 py-2">{language === "bn" ? "বকেয়া তারিখ" : "Due"}</th>
+                    <th className="px-3 py-2">{language === "bn" ? "পরিমাণ" : "Amount"}</th>
+                    <th className="px-3 py-2">{language === "bn" ? "পরিশোধিত" : "Paid"}</th>
+                    <th className="px-3 py-2">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
+                    <th className="px-3 py-2">{language === "bn" ? "নোটিফিকেশন" : "Notification"}</th>
+                    <th className="px-3 py-2 text-right">{language === "bn" ? "অ্যাকশন" : "Action"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -428,7 +445,7 @@ export function StaffLandBookingsPage() {
                             type="button"
                             onClick={() => void onMarkInstallmentPaid(r.id)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-md text-emerald-400 hover:bg-white/10"
-                            title="Mark complete"
+                            title={language === "bn" ? "সম্পন্ন হিসেবে চিহ্নিত করুন" : "Mark complete"}
                             aria-label="Mark installment complete"
                           >
                             <FontAwesomeIcon icon={faCircleCheck} />
@@ -444,7 +461,9 @@ export function StaffLandBookingsPage() {
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
               <span>
-                Showing {pagedInstallments.length} of {filteredInstallments.length} row(s)
+                {language === "bn"
+                  ? `মোট ${filteredInstallments.length} সারির মধ্যে ${pagedInstallments.length} টি দেখানো হচ্ছে`
+                  : `Showing ${pagedInstallments.length} of ${filteredInstallments.length} row(s)`}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -453,10 +472,10 @@ export function StaffLandBookingsPage() {
                   onClick={() => setInstPage((p) => Math.max(1, p - 1))}
                   className="rounded border border-white/20 px-2 py-1 disabled:opacity-40"
                 >
-                  Prev
+                  {language === "bn" ? "আগের" : "Prev"}
                 </button>
                 <span>
-                  Page {instPage} / {instTotalPages}
+                  {language === "bn" ? `পৃষ্ঠা ${instPage} / ${instTotalPages}` : `Page ${instPage} / ${instTotalPages}`}
                 </span>
                 <button
                   type="button"
@@ -464,7 +483,7 @@ export function StaffLandBookingsPage() {
                   onClick={() => setInstPage((p) => Math.min(instTotalPages, p + 1))}
                   className="rounded border border-white/20 px-2 py-1 disabled:opacity-40"
                 >
-                  Next
+                  {language === "bn" ? "পরের" : "Next"}
                 </button>
               </div>
             </div>

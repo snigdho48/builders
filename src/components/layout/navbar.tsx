@@ -99,8 +99,8 @@ export function Navbar() {
     : publicLinks
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0a2245]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur">
-      <div className="border-b border-white/10">
+    <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0a2245]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur">
+      <div className="border-b border-white/5">
         <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 py-2 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] text-xs text-slate-200 sm:gap-x-4 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
             {!isLoggedIn ? (
               <>
@@ -151,7 +151,7 @@ export function Navbar() {
                 EUROSTAR
               </span>
               <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.03em] text-slate-200/95 sm:text-[0.82rem]">
-                Living Solutions
+              Group
               </span>
             </span>
           </Link>

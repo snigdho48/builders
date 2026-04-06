@@ -29,7 +29,7 @@ export type DashboardNavSection = {
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   [
     "block rounded-lg py-2 pl-3 pr-2 text-[13px] font-semibold transition-colors",
-    isActive ? "bg-emerald-500 text-slate-950" : "text-slate-200 hover:bg-white/10",
+    isActive ? "bg-emerald-500 text-slate-950" : "text-slate-700 hover:bg-slate-100",
   ].join(" ")
 
 function linkMatchesPath(pathname: string, item: DashboardNavLink): boolean {
@@ -195,9 +195,9 @@ export function DashboardShell({ sections }: DashboardShellProps) {
   const profileRole = formatRoleLabel(displayRole)
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-slate-950 text-white">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-white text-slate-900">
       <motion.header
-        className="z-40 flex min-h-14 shrink-0 items-center gap-2 border-b border-white/10 bg-[#0a2245]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:gap-3 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]"
+        className="z-40 flex min-h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white pt-[env(safe-area-inset-top,0px)] pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:gap-3 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]"
         initial={topInitial}
         animate={topTarget}
         transition={exiting ? transitionOut : transitionIn}
@@ -206,7 +206,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
           type="button"
           aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileNavOpen}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/25 text-white md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-300 text-slate-700 md:hidden"
           onClick={() => setMobileNavOpen((o) => !o)}
         >
           <FontAwesomeIcon icon={mobileNavOpen ? faXmark : faBars} className="h-5 w-5" />
@@ -216,7 +216,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
           type="button"
           aria-label="Back to home"
           onClick={goHome}
-          className="flex min-w-0 max-w-[min(100%,220px)] flex-1 items-center gap-2 rounded-xl border border-transparent py-1 text-left transition-colors hover:border-white/10 hover:bg-white/5 sm:max-w-none sm:flex-none md:gap-2.5"
+          className="flex min-w-0 max-w-[min(100%,220px)] flex-1 items-center gap-2 rounded-xl border border-transparent py-1 text-left transition-colors hover:border-slate-200 hover:bg-slate-50 sm:max-w-none sm:flex-none md:gap-2.5"
         >
           <span className="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] sm:h-10 sm:w-10" aria-hidden>
             <img src="/navlogo.jpg" alt="" className="h-full w-full object-cover" />
@@ -228,7 +228,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
             >
               EUROSTAR
             </span>
-            <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-slate-400 sm:text-[0.65rem]">
+            <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[0.65rem]">
               Back to home
             </span>
           </span>
@@ -237,14 +237,14 @@ export function DashboardShell({ sections }: DashboardShellProps) {
         <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-2 md:gap-3">
           <NavLink
             to="/listings"
-            className="inline-flex shrink-0 rounded-full px-2 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/10 sm:px-3 sm:text-sm"
+            className="inline-flex shrink-0 rounded-full px-2 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:text-sm"
           >
             {t("nav.listings", "Listings")}
           </NavLink>
           <button
             type="button"
             onClick={toggleLanguage}
-            className="inline-flex shrink-0 rounded-full border border-white/20 px-2.5 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/10 sm:px-3 sm:text-sm"
+            className="inline-flex shrink-0 rounded-full border border-slate-300 px-2.5 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:text-sm"
             title={language === "en" ? "বাংলা" : "EN"}
           >
             {language === "en" ? t("lang.bn", "বাংলা") : t("lang.en", "EN")}
@@ -252,14 +252,14 @@ export function DashboardShell({ sections }: DashboardShellProps) {
 
           <NavLink
             to="/profile"
-            className="flex max-w-[min(100%,120px)] items-center gap-1.5 rounded-full border border-white/15 bg-white/5 py-1 pl-1.5 pr-2 transition-colors hover:border-white/25 hover:bg-white/10 min-[400px]:max-w-[150px] sm:max-w-[220px] sm:gap-2 sm:pl-2 sm:pr-3"
+            className="flex max-w-[min(100%,120px)] items-center gap-1.5 rounded-full border border-slate-300 bg-white py-1 pl-1.5 pr-2 transition-colors hover:border-slate-400 hover:bg-slate-50 min-[400px]:max-w-[150px] sm:max-w-[220px] sm:gap-2 sm:pl-2 sm:pr-3"
           >
             <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f58e43]/20 text-[#f58e43]">
               <FontAwesomeIcon icon={faCircleUser} className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col leading-tight text-left">
               <span className="truncate text-xs font-semibold text-white sm:text-sm">{profileName}</span>
-              <span className="hidden min-[400px]:block truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
+              <span className="hidden min-[400px]:block truncate text-[10px] font-medium uppercase tracking-wide text-slate-500">
                 {profileRole}
               </span>
             </span>
@@ -287,7 +287,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
         ) : null}
 
         <motion.aside
-          className="fixed bottom-0 left-0 z-40 flex w-[260px] flex-col border-r border-white/10 bg-[#071a36] pl-[env(safe-area-inset-left,0px)] shadow-[8px_0_32px_rgba(0,0,0,0.35)] md:relative md:z-0 md:h-full md:min-h-0 md:pl-0 md:shadow-none"
+          className="fixed bottom-0 left-0 z-40 flex w-[260px] flex-col border-r border-slate-200 bg-white pl-[env(safe-area-inset-left,0px)] shadow-[8px_0_32px_rgba(15,23,42,0.08)] md:relative md:z-0 md:h-full md:min-h-0 md:pl-0 md:shadow-none"
           style={{ top: isWide ? undefined : topBelowHeader }}
           initial={prefersReducedMotion ? false : { x: -SIDEBAR_W, opacity: 0.96 }}
           animate={{ x: sidebarX, opacity: sidebarOpacity }}
@@ -305,7 +305,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
                       id={`${panelId}-trigger`}
                       aria-expanded={isOpen}
                       aria-controls={panelId}
-                      className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-400"
+                      className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
                       onClick={() =>
                         setOpenSections((p) => ({
                           ...p,
@@ -325,7 +325,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
                         id={panelId}
                         role="region"
                         aria-labelledby={`${panelId}-trigger`}
-                        className="ml-1 flex flex-col gap-0.5 border-l border-white/10 pl-2"
+                        className="ml-1 flex flex-col gap-0.5 border-l border-slate-200 pl-2"
                       >
                         {section.items.map((item) => (
                           <NavLink

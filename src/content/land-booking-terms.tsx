@@ -126,7 +126,7 @@ export function LandBookingTermsPanel({ planType }: LandBookingTermsPanelProps) 
       <div className="border-b border-slate-200 bg-white px-3 py-2">
         <p className="text-xs font-semibold text-[#0b1f44]">Terms and conditions</p>
         <p className="mt-0.5 text-[11px] text-slate-500">
-          EUROSTAR LIVING SOLUTIONS — land booking. Review before you submit; the signed agreement prevails where
+          EUROSTAR Group — land booking. Review before you submit; the signed agreement prevails where
           stated.
         </p>
       </div>

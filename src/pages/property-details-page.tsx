@@ -81,7 +81,6 @@ export function PropertyDetailsPage() {
   const [property, setProperty] = useState<Property | null>(null)
   const [related, setRelated] = useState<Property[]>([])
   const [activeImage, setActiveImage] = useState(0)
-  const [activeFloorIdx, setActiveFloorIdx] = useState(0)
   const [userRole, setUserRole] = useState<string | null>(() => localStorage.getItem("userRole"))
   const [sessionActive, setSessionActive] = useState(() => Boolean(localStorage.getItem("accessToken")))
   const [shareOpen, setShareOpen] = useState(false)
@@ -237,9 +236,6 @@ export function PropertyDetailsPage() {
     }
     return raw
   }, [property?.video_url])
-
-  const floorPlans = property?.floor_plans ?? []
-  const activeFloor = floorPlans[activeFloorIdx]
 
   async function copyListingLink() {
     try {
@@ -616,7 +612,7 @@ export function PropertyDetailsPage() {
                       </div>
                     </motion.section>
 
-                    {floorPlans.length ? (
+                    {/* {floorPlans.length ? (
                       <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
                         <h4 className="mb-5 text-xl font-semibold text-[#0b1f44]">Floor Plan</h4>
                         <div className="mb-4 flex flex-wrap gap-2">
@@ -644,9 +640,9 @@ export function PropertyDetailsPage() {
                           <p className="mt-4 text-sm leading-7 text-slate-600">{activeFloor.description}</p>
                         ) : null}
                       </motion.section>
-                    ) : null}
+                    ) : null} */}
 
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
+                    {/* <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
                       <h4 className="mb-4 text-xl font-semibold text-[#0b1f44]">Tag</h4>
                       {property.tags.length ? (
                         <div className="flex flex-wrap gap-2">
@@ -662,7 +658,7 @@ export function PropertyDetailsPage() {
                       ) : (
                         <p className="text-sm text-slate-500">No tags.</p>
                       )}
-                    </motion.section>
+                    </motion.section> */}
 
                     <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
                       <h3 className="text-2xl font-semibold text-[#0b1f44]">Review</h3>

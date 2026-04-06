@@ -24,8 +24,8 @@ export function AgentDashboardHomePage() {
   return (
     <section className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-white">Agent workspace</h2>
-        <p className="mt-2 text-sm text-slate-400">
+        <h2 className="text-xl font-semibold text-slate-900">Agent workspace</h2>
+        <p className="mt-2 text-sm text-slate-600">
           You manage assigned land listings. Review{" "}
           <Link to="/dashboard/agent/bookings" className="text-[#f58e43] hover:underline">booking requests</Link> for
           those lands.

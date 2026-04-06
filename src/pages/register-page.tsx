@@ -45,7 +45,7 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="bg-slate-950 py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(4rem,env(safe-area-inset-bottom,0px))] text-white sm:px-6">
+    <main className="bg-white py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(4rem,env(safe-area-inset-bottom,0px))] text-slate-900 sm:px-6">
       <div className="mx-auto min-w-0 max-w-xl rounded-2xl border border-white/10 bg-slate-900/70 p-6 sm:p-8">
         <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Authentication</p>
         <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Register (Investor)</h1>

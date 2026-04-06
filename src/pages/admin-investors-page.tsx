@@ -189,11 +189,11 @@ export function AdminInvestorsPage({ allowCreateInvestor = true }: AdminInvestor
   }, [filtered, page])
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+    <section className="rounded-2xl border border-slate-200 bg-white p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-white">Investors</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <h2 className="text-xl font-semibold text-slate-900">Investors</h2>
+          <p className="mt-1 text-sm text-slate-600">
             {allowCreateInvestor
               ? "Investors can request KYC review from their profile; staff set the final status here."
               : "Investors can request KYC from their profile; you can record verification here. Creation is admin-only."}
@@ -249,7 +249,7 @@ export function AdminInvestorsPage({ allowCreateInvestor = true }: AdminInvestor
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-3 align-middle">Username</th>
                   <th className="px-4 py-3 align-middle">Name</th>
                   <th className="px-4 py-3 align-middle">Email</th>
@@ -263,16 +263,16 @@ export function AdminInvestorsPage({ allowCreateInvestor = true }: AdminInvestor
               </thead>
               <tbody>
                 {pageRows.map((r) => (
-                  <tr key={r.id} className="border-b border-white/10 transition-colors hover:bg-white/2">
-                    <td className="px-4 py-3 align-middle text-slate-200">{r.username}</td>
-                    <td className="px-4 py-3 align-middle text-slate-200">
+                  <tr key={r.id} className="border-b border-slate-100 transition-colors hover:bg-slate-50">
+                    <td className="px-4 py-3 align-middle text-slate-900">{r.username}</td>
+                    <td className="px-4 py-3 align-middle text-slate-800">
                       {[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}
                     </td>
-                    <td className="px-4 py-3 align-middle text-slate-200">{r.email}</td>
-                    <td className="px-4 py-3 align-middle text-slate-300">{r.phone || "—"}</td>
-                    <td className="px-4 py-3 align-middle font-mono text-xs text-slate-300">{r.referral_code}</td>
+                    <td className="px-4 py-3 align-middle text-slate-800">{r.email}</td>
+                    <td className="px-4 py-3 align-middle text-slate-600">{r.phone || "—"}</td>
+                    <td className="px-4 py-3 align-middle font-mono text-xs text-slate-600">{r.referral_code}</td>
                     <td className="px-4 py-3 align-middle text-xs text-slate-400">{r.date_joined?.slice(0, 10) ?? "—"}</td>
-                    <td className="px-4 py-3 align-middle text-slate-300">{r.is_active ? "Active" : "Inactive"}</td>
+                    <td className="px-4 py-3 align-middle text-slate-700">{r.is_active ? "Active" : "Inactive"}</td>
                     <td className="px-4 py-3 align-middle">
                       <KycPill status={r.kyc_status} />
                       {r.kyc_requested_at ? (
@@ -337,7 +337,7 @@ export function AdminInvestorsPage({ allowCreateInvestor = true }: AdminInvestor
       >
         {kycTarget ? (
           <div className="space-y-4">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Investor request</p>
               {kycTarget.kyc_requested_at ? (
                 <p className="mt-1 text-xs text-slate-400">
@@ -347,7 +347,7 @@ export function AdminInvestorsPage({ allowCreateInvestor = true }: AdminInvestor
                 <p className="mt-1 text-xs text-slate-500">No in-app request yet.</p>
               )}
               {kycTarget.kyc_investor_notes ? (
-                <p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">{kycTarget.kyc_investor_notes}</p>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">{kycTarget.kyc_investor_notes}</p>
               ) : (
                 <p className="mt-2 text-xs text-slate-500">No message from investor.</p>
               )}
@@ -448,12 +448,12 @@ export function AdminInvestorsPage({ allowCreateInvestor = true }: AdminInvestor
             value={form.password ?? ""}
             onChange={(e) => setForm((s) => ({ ...s, password: e.target.value }))}
           />
-          <label className="mt-1 flex items-center gap-2 text-sm text-slate-300 sm:col-span-2">
+          <label className="mt-1 flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
             <input
               type="checkbox"
               checked={Boolean(form.is_active)}
               onChange={(e) => setForm((s) => ({ ...s, is_active: e.target.checked }))}
-              className="rounded border-white/20"
+              className="rounded border-slate-300"
             />
             Active account
           </label>

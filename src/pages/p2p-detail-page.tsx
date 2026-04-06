@@ -76,7 +76,7 @@ export function P2pDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-[50vh] bg-slate-950 px-4 py-16 text-slate-400">
+      <main className="min-h-[50vh] bg-white px-4 py-16 text-slate-500">
         <div className="mx-auto max-w-3xl text-center text-sm">Loading…</div>
       </main>
     )
@@ -84,7 +84,7 @@ export function P2pDetailPage() {
 
   if (listing === null) {
     return (
-      <main className="min-h-[50vh] bg-slate-950 px-4 py-16 text-white">
+      <main className="min-h-[50vh] bg-white px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-slate-400">This listing could not be loaded.</p>
           <Link to="/p2p" className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline">
@@ -97,7 +97,7 @@ export function P2pDetailPage() {
 
   if (listing.status !== "active") {
     return (
-      <main className="min-h-[50vh] bg-slate-950 px-4 py-16 text-white">
+      <main className="min-h-[50vh] bg-white px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-slate-400">This listing is no longer active.</p>
           <Link to="/p2p" className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline">

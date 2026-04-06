@@ -1,6 +1,6 @@
 export function ContactPage() {
   return (
-    <main className="bg-slate-950 py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(5rem,env(safe-area-inset-bottom,0px))] text-white sm:px-6">
+    <main className="bg-white py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(5rem,env(safe-area-inset-bottom,0px))] text-slate-900 sm:px-6">
       <div className="mx-auto grid min-w-0 max-w-7xl gap-8 sm:grid-cols-2">
         <section>
           <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Contact</p>

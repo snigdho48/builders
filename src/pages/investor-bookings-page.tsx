@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
+import { useLanguage } from "@/i18n/language-context"
 import { listInstallmentLedger, listLandBookings } from "@/services/api"
 import type { InstallmentLedgerRow, LandBooking } from "@/types/domain"
 
@@ -10,6 +11,7 @@ const planLabel: Record<string, string> = {
 }
 
 export function InvestorBookingsPage() {
+  const { language } = useLanguage()
   const [rows, setRows] = useState<LandBooking[]>([])
   const [installments, setInstallments] = useState<InstallmentLedgerRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -124,27 +126,35 @@ export function InvestorBookingsPage() {
     <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <div>
         <h2 className="text-2xl font-semibold text-white">My land bookings</h2>
-        <p className="mt-1 text-sm text-slate-400">Track requests you submitted from land detail pages.</p>
+        <p className="mt-1 text-sm text-slate-400">
+          {language === "bn"
+            ? "জমির বিস্তারিত পেজ থেকে আপনার জমা দেওয়া বুকিং অনুরোধগুলো ট্র্যাক করুন।"
+            : "Track requests you submitted from land detail pages."}
+        </p>
       </div>
 
       {loading ? (
-        <p className="text-slate-500">Loading…</p>
+        <p className="text-slate-500">{language === "bn" ? "লোড হচ্ছে…" : "Loading…"}</p>
       ) : rows.length === 0 ? (
         <p className="rounded-xl border border-white/10 bg-white/3 px-6 py-10 text-center text-slate-400">
-          No bookings yet. Open a land listing and use <strong className="text-white">Book now</strong>.
+          {language === "bn" ? (
+            <>এখনও কোনো বুকিং নেই। জমির লিস্টিং খুলে <strong className="text-white">Book now</strong> ব্যবহার করুন।</>
+          ) : (
+            <>No bookings yet. Open a land listing and use <strong className="text-white">Book now</strong>.</>
+          )}
         </p>
       ) : (
         <>
           <div className="dashboard-filters-row">
             <input
               className="dashboard-filter-input min-w-[200px] flex-1"
-              placeholder="Search land title or booking ID…"
+              placeholder={language === "bn" ? "জমির শিরোনাম বা বুকিং আইডি খুঁজুন…" : "Search land title or booking ID…"}
               value={tableSearch}
               onChange={(e) => setTableSearch(e.target.value)}
               aria-label="Search my bookings"
             />
             <div className="dashboard-filter-group min-w-[130px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "স্ট্যাটাস" : "Status"}</span>
               <div className="dashboard-filter-select-shell">
                 <CompactFormSelect
                   ariaLabel="Filter by status"
@@ -152,16 +162,16 @@ export function InvestorBookingsPage() {
                   value={statusFilter}
                   onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
                   options={[
-                    { value: "all", label: "All statuses" },
-                    { value: "pending", label: "Pending" },
-                    { value: "accepted", label: "Accepted" },
-                    { value: "rejected", label: "Rejected" },
+                    { value: "all", label: language === "bn" ? "সব স্ট্যাটাস" : "All statuses" },
+                    { value: "pending", label: language === "bn" ? "পেন্ডিং" : "Pending" },
+                    { value: "accepted", label: language === "bn" ? "অনুমোদিত" : "Accepted" },
+                    { value: "rejected", label: language === "bn" ? "প্রত্যাখ্যাত" : "Rejected" },
                   ]}
                 />
               </div>
             </div>
             <div className="dashboard-filter-group min-w-[150px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Plan</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "প্ল্যান" : "Plan"}</span>
               <div className="dashboard-filter-select-shell">
                 <CompactFormSelect
                   ariaLabel="Filter by plan"
@@ -169,7 +179,7 @@ export function InvestorBookingsPage() {
                   value={planFilter}
                   onValueChange={(v) => setPlanFilter(v as typeof planFilter)}
                   options={[
-                    { value: "all", label: "All plans" },
+                    { value: "all", label: language === "bn" ? "সব প্ল্যান" : "All plans" },
                     { value: "one_percent_installment", label: "1% installment" },
                     { value: "fifty_percent_installment", label: "50% installment" },
                   ]}
@@ -181,10 +191,10 @@ export function InvestorBookingsPage() {
             <table className="min-w-full w-full border-collapse text-left text-sm text-slate-200">
               <thead className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
-                  <th className="px-4 py-3 align-middle">Land</th>
-                  <th className="px-4 py-3 align-middle">Plan</th>
-                  <th className="px-4 py-3 align-middle whitespace-nowrap">Booked</th>
-                  <th className="px-4 py-3 align-middle whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "জমি" : "Land"}</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "প্ল্যান" : "Plan"}</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "বুকিং তারিখ" : "Booked"}</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,32 +216,38 @@ export function InvestorBookingsPage() {
             </table>
           </div>
           {filteredRows.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-500">No bookings match your filters.</p>
+            <p className="py-6 text-center text-sm text-slate-500">
+              {language === "bn" ? "আপনার ফিল্টারের সাথে কোনো বুকিং মিলেনি।" : "No bookings match your filters."}
+            </p>
           ) : null}
         </>
       )}
 
       <div className="rounded-xl border border-white/10 bg-white/2 p-4 sm:p-5">
-        <h3 className="text-lg font-semibold text-white">Installment progress tracker</h3>
+        <h3 className="text-lg font-semibold text-white">{language === "bn" ? "কিস্তি অগ্রগতি ট্র্যাকার" : "Installment progress tracker"}</h3>
         <p className="mt-1 text-xs text-slate-500">
-          One table for due date, payment state, reminders, and overall progress.
+          {language === "bn"
+            ? "বকেয়ার তারিখ, পেমেন্ট স্টেট, রিমাইন্ডার এবং মোট অগ্রগতি — সব এক টেবিলে।"
+            : "One table for due date, payment state, reminders, and overall progress."}
         </p>
         {installments.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-500">
-            No installment schedule yet. It appears after a booking is accepted.
+            {language === "bn"
+              ? "এখনও কোনো কিস্তির সময়সূচি নেই। বুকিং অনুমোদনের পর এটি দেখা যাবে।"
+              : "No installment schedule yet. It appears after a booking is accepted."}
           </p>
         ) : (
           <>
             <div className="dashboard-filters-row mt-4">
               <input
                 className="dashboard-filter-input min-w-[220px] flex-1"
-                placeholder="Search land, booking, installment…"
+                placeholder={language === "bn" ? "জমি, বুকিং, কিস্তি খুঁজুন…" : "Search land, booking, installment…"}
                 value={instSearch}
                 onChange={(e) => setInstSearch(e.target.value)}
                 aria-label="Search installment tracker"
               />
               <div className="dashboard-filter-group min-w-[140px]">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Status</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "স্ট্যাটাস" : "Status"}</span>
                 <div className="dashboard-filter-select-shell">
                   <CompactFormSelect
                     ariaLabel="Filter installment status"
@@ -239,17 +255,17 @@ export function InvestorBookingsPage() {
                     value={instStatusFilter}
                     onValueChange={(v) => setInstStatusFilter(v as typeof instStatusFilter)}
                     options={[
-                      { value: "all", label: "All status" },
-                      { value: "unpaid", label: "Unpaid" },
-                      { value: "partial", label: "Partial" },
-                      { value: "overdue", label: "Overdue" },
-                      { value: "paid", label: "Paid" },
+                      { value: "all", label: language === "bn" ? "সব স্ট্যাটাস" : "All status" },
+                      { value: "unpaid", label: language === "bn" ? "অপরিশোধিত" : "Unpaid" },
+                      { value: "partial", label: language === "bn" ? "আংশিক" : "Partial" },
+                      { value: "overdue", label: language === "bn" ? "ওভারডিউ" : "Overdue" },
+                      { value: "paid", label: language === "bn" ? "পরিশোধিত" : "Paid" },
                     ]}
                   />
                 </div>
               </div>
               <div className="dashboard-filter-group min-w-[160px]">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Notification</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{language === "bn" ? "নোটিফিকেশন" : "Notification"}</span>
                 <div className="dashboard-filter-select-shell">
                   <CompactFormSelect
                     ariaLabel="Filter installment notification"
@@ -257,11 +273,11 @@ export function InvestorBookingsPage() {
                     value={instNotificationFilter}
                     onValueChange={(v) => setInstNotificationFilter(v as typeof instNotificationFilter)}
                     options={[
-                      { value: "all", label: "All notices" },
-                      { value: "upcoming", label: "Upcoming" },
-                      { value: "due_soon", label: "Due soon" },
-                      { value: "overdue", label: "Overdue" },
-                      { value: "paid", label: "Paid" },
+                      { value: "all", label: language === "bn" ? "সব নোটিস" : "All notices" },
+                      { value: "upcoming", label: language === "bn" ? "আসন্ন" : "Upcoming" },
+                      { value: "due_soon", label: language === "bn" ? "শীঘ্রই বকেয়া" : "Due soon" },
+                      { value: "overdue", label: language === "bn" ? "ওভারডিউ" : "Overdue" },
+                      { value: "paid", label: language === "bn" ? "পরিশোধিত" : "Paid" },
                     ]}
                   />
                 </div>
@@ -272,14 +288,14 @@ export function InvestorBookingsPage() {
             <table className="min-w-full w-full border-collapse text-left text-sm text-slate-200">
               <thead className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
-                  <th className="px-3 py-2">Land</th>
+                  <th className="px-3 py-2">{language === "bn" ? "জমি" : "Land"}</th>
                   <th className="px-3 py-2">Inst #</th>
-                  <th className="px-3 py-2">Due</th>
-                  <th className="px-3 py-2">Amount</th>
-                  <th className="px-3 py-2">Paid</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Notification</th>
-                  <th className="px-3 py-2">Progress</th>
+                  <th className="px-3 py-2">{language === "bn" ? "বকেয়া তারিখ" : "Due"}</th>
+                  <th className="px-3 py-2">{language === "bn" ? "পরিমাণ" : "Amount"}</th>
+                  <th className="px-3 py-2">{language === "bn" ? "পরিশোধিত" : "Paid"}</th>
+                  <th className="px-3 py-2">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
+                  <th className="px-3 py-2">{language === "bn" ? "নোটিফিকেশন" : "Notification"}</th>
+                  <th className="px-3 py-2">{language === "bn" ? "অগ্রগতি" : "Progress"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -312,7 +328,9 @@ export function InvestorBookingsPage() {
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
               <span>
-                Showing {pagedInstallments.length} of {filteredInstallments.length} row(s)
+                {language === "bn"
+                  ? `মোট ${filteredInstallments.length} সারির মধ্যে ${pagedInstallments.length} টি দেখানো হচ্ছে`
+                  : `Showing ${pagedInstallments.length} of ${filteredInstallments.length} row(s)`}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -321,10 +339,10 @@ export function InvestorBookingsPage() {
                   onClick={() => setInstPage((p) => Math.max(1, p - 1))}
                   className="rounded border border-white/20 px-2 py-1 disabled:opacity-40"
                 >
-                  Prev
+                  {language === "bn" ? "আগের" : "Prev"}
                 </button>
                 <span>
-                  Page {instPage} / {instTotalPages}
+                  {language === "bn" ? `পৃষ্ঠা ${instPage} / ${instTotalPages}` : `Page ${instPage} / ${instTotalPages}`}
                 </span>
                 <button
                   type="button"
@@ -332,7 +350,7 @@ export function InvestorBookingsPage() {
                   onClick={() => setInstPage((p) => Math.min(instTotalPages, p + 1))}
                   className="rounded border border-white/20 px-2 py-1 disabled:opacity-40"
                 >
-                  Next
+                  {language === "bn" ? "পরের" : "Next"}
                 </button>
               </div>
             </div>

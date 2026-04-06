@@ -13,7 +13,7 @@ function statusLabel(s: InvestorKycStatus | string | undefined): string {
 }
 
 /**
- * KYC status + request form for the investor dashboard (dark shell).
+ * KYC status + request form for the investor dashboard.
  * Loads its own `/auth/me/` data so it still appears if dashboard metrics fail.
  */
 export function InvestorKycPanel() {
@@ -43,7 +43,7 @@ export function InvestorKycPanel() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-sm text-slate-400">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
         Loading identity verification…
       </div>
     )
@@ -58,26 +58,26 @@ export function InvestorKycPanel() {
 
   const banner =
     kyc === "approved" ? (
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
         <strong className="font-semibold">KYC verified.</strong>{" "}
-        <span className="text-emerald-200/90">Your account has been verified by our team.</span>
+        <span className="text-emerald-700">Your account has been verified by our team.</span>
         {me.kyc_verified_at ? (
-          <span className="mt-2 block text-xs text-emerald-200/70">Verified on {me.kyc_verified_at.slice(0, 10)}</span>
+          <span className="mt-2 block text-xs text-emerald-700/80">Verified on {me.kyc_verified_at.slice(0, 10)}</span>
         ) : null}
       </div>
     ) : kyc === "rejected" ? (
-      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+      <div className="rounded-xl border border-rose-500/30 bg-rose-50 px-4 py-3 text-sm text-rose-800">
         <strong className="font-semibold">KYC needs attention.</strong>{" "}
-        <span className="text-rose-200/90">
+        <span className="text-rose-700">
           Contact support if needed, or send a new verification request using the form below.
         </span>
       </div>
     ) : (
-      <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
-        <strong className="font-semibold text-white">KYC: {statusLabel(kyc)}.</strong>{" "}
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <strong className="font-semibold text-slate-900">KYC: {statusLabel(kyc)}.</strong>{" "}
         Submit a request below (optional note). Staff complete verification — you can still browse and book land.
         {requestedAt ? (
-          <span className="mt-2 block text-xs text-slate-400">Last request: {requestedAt.slice(0, 10)}</span>
+          <span className="mt-2 block text-xs text-slate-500">Last request: {requestedAt.slice(0, 10)}</span>
         ) : null}
       </div>
     )
@@ -102,14 +102,14 @@ export function InvestorKycPanel() {
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/70 p-5" aria-labelledby="inv-kyc-heading">
+    <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5" aria-labelledby="inv-kyc-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="inv-kyc-heading" className="text-lg font-semibold text-white">
+          <h2 id="inv-kyc-heading" className="text-lg font-semibold text-slate-900">
             Identity verification (KYC)
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
-            Status: <span className="font-semibold text-slate-200">{statusLabel(kyc)}</span>
+          <p className="mt-1 text-xs text-slate-500">
+            Status: <span className="font-semibold text-slate-700">{statusLabel(kyc)}</span>
           </p>
         </div>
         <Link
@@ -121,13 +121,13 @@ export function InvestorKycPanel() {
       </div>
       {banner}
       {kyc !== "approved" ? (
-        <div className="space-y-2 border-t border-white/10 pt-4">
-          <label className="text-xs font-medium text-slate-400" htmlFor="dash-kyc-msg">
+        <div className="space-y-2 border-t border-slate-200 pt-4">
+          <label className="text-xs font-medium text-slate-600" htmlFor="dash-kyc-msg">
             Message for our team (optional)
           </label>
           <textarea
             id="dash-kyc-msg"
-            className="min-h-[88px] w-full resize-y rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#f58e43]/50 focus:outline-none focus:ring-1 focus:ring-[#f58e43]/40"
+            className="min-h-[88px] w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f58e43]/60 focus:outline-none focus:ring-1 focus:ring-[#f58e43]/30"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="e.g. Ready to verify by call, or ID sent to your inbox…"

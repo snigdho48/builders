@@ -75,7 +75,7 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] text-xs text-slate-400 sm:px-6">
+      <div className="border-t border-white/5 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] text-xs text-slate-400 sm:px-6">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3">
           <p>© 2026 LandBlocks. All Rights Reserved.</p>
           <div className="flex items-center gap-4">

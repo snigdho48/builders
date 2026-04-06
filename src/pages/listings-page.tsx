@@ -132,7 +132,7 @@ export function ListingsPage() {
   }
 
   return (
-    <main className="bg-slate-950 py-12 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(3.5rem,env(safe-area-inset-bottom,0px))] text-white sm:px-6 sm:py-14">
+    <main className="bg-white py-12 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(3.5rem,env(safe-area-inset-bottom,0px))] text-slate-900 sm:px-6 sm:py-14">
       <div className="mx-auto max-w-7xl min-w-0">
         <RevealOnView className="mb-8 space-y-6" variant="fade-up">
           <div className="max-w-2xl">

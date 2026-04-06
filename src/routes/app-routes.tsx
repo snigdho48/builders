@@ -40,8 +40,8 @@ function AppShell() {
     <div
       className={
         isDashboard
-          ? "flex h-dvh max-h-dvh min-h-0 min-w-0 flex-col overflow-hidden bg-slate-950 text-white"
-          : "flex min-h-svh min-w-0 flex-col bg-slate-950 text-white"
+          ? "flex h-dvh max-h-dvh min-h-0 min-w-0 flex-col overflow-hidden bg-white text-slate-900"
+          : "flex min-h-svh min-w-0 flex-col bg-white text-slate-900"
       }
     >
       {!isDashboard ? <Navbar /> : null}

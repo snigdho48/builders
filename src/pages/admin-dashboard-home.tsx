@@ -24,8 +24,8 @@ export function AdminDashboardHomePage() {
   return (
     <section className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-white">Admin overview</h2>
-        <p className="mt-2 text-sm text-slate-400">
+        <h2 className="text-xl font-semibold text-slate-900">Admin overview</h2>
+        <p className="mt-2 text-sm text-slate-600">
           Manage <Link to="/dashboard/admin/properties" className="text-[#f58e43] hover:underline">land listings</Link>
           ,{" "}
           <Link to="/dashboard/admin/bookings" className="text-[#f58e43] hover:underline">booking requests</Link>, agents,

@@ -83,7 +83,8 @@ const LanguageContext = createContext<LanguageContextValue | null>(null)
 function readInitialLanguage(): AppLanguage {
   if (typeof window === "undefined") return "en"
   const raw = localStorage.getItem(LANGUAGE_KEY)
-  return raw === "bn" ? "bn" : "en"
+  if (raw === "en" || raw === "bn") return raw
+  return "bn"
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
