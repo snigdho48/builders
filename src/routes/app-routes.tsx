@@ -12,6 +12,7 @@ import { AgentDashboardHomePage } from "@/pages/agent-dashboard-home"
 import { AgentDashboardLayout } from "@/pages/agent-dashboard-layout"
 import { AgentDashboardPropertiesPage } from "@/pages/agent-dashboard-properties-page"
 import { AgentInvestorsPage } from "@/pages/agent-investors-page"
+import { AboutPage } from "@/pages/about-page"
 import { AuthPage } from "@/pages/auth-page"
 import { ContactPage } from "@/pages/contact-page"
 import { DashboardRouterPage } from "@/pages/dashboard-router-page"
@@ -30,6 +31,7 @@ import { PropertyDetailsPage } from "@/pages/property-details-page"
 import { PropertyLandBookPage } from "@/pages/property-land-book-page"
 import { RegisterPage } from "@/pages/register-page"
 import { StaffLandBookingsPage } from "@/pages/staff-land-bookings-page"
+import { StaffInstallmentTrackerPage } from "@/pages/staff-installment-tracker-page"
 import { ProtectedRoute } from "@/routes/protected-route"
 
 function AppShell() {
@@ -45,8 +47,9 @@ function AppShell() {
       }
     >
       {!isDashboard ? <Navbar /> : null}
-      <Routes>
-        <Route element={<PageTransitionLayout />}>
+      <div className="light-content flex min-h-0 flex-1 flex-col">
+        <Routes>
+          <Route element={<PageTransitionLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/listings" element={<ListingsPage />} />
           <Route path="/properties" element={<ListingsPage />} />
@@ -54,6 +57,7 @@ function AppShell() {
           <Route path="/properties/:id" element={<PropertyDetailsPage />} />
           <Route path="/p2p" element={<P2pListPage />} />
           <Route path="/p2p/:id" element={<P2pDetailPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route
             path="/profile"
@@ -97,7 +101,8 @@ function AppShell() {
             <Route path="investors" element={<AdminInvestorsPage />} />
             <Route path="agents" element={<AdminAgentsPage />} />
             <Route path="properties" element={<AdminPropertiesPage />} />
-            <Route path="bookings" element={<StaffLandBookingsPage />} />
+            <Route path="bookings" element={<StaffLandBookingsPage mode="bookings" />} />
+            <Route path="installments" element={<StaffInstallmentTrackerPage />} />
           </Route>
           <Route
             path="/dashboard/agent"
@@ -109,15 +114,17 @@ function AppShell() {
           >
             <Route index element={<AgentDashboardHomePage />} />
             <Route path="properties" element={<AgentDashboardPropertiesPage />} />
-            <Route path="bookings" element={<StaffLandBookingsPage />} />
+            <Route path="bookings" element={<StaffLandBookingsPage mode="bookings" />} />
+            <Route path="installments" element={<StaffInstallmentTrackerPage />} />
             <Route path="investors" element={<AgentInvestorsPage />} />
           </Route>
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </div>
       {!isDashboard ? <ConditionalFooter /> : null}
     </div>
   )

@@ -14,9 +14,15 @@ const planLabel: Record<string, string> = {
   fifty_percent_installment: "50% installment",
 }
 
-export function StaffLandBookingsPage() {
+type StaffLandBookingsPageProps = {
+  mode?: "both" | "bookings" | "installments"
+}
+
+export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPageProps) {
   const { language } = useLanguage()
   const { showToast } = useToast()
+  const showBookings = mode !== "installments"
+  const showInstallments = mode !== "bookings"
   const [rows, setRows] = useState<LandBooking[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<LandBooking | null>(null)
@@ -30,21 +36,32 @@ export function StaffLandBookingsPage() {
   const [instStatusFilter, setInstStatusFilter] = useState<"all" | InstallmentLedgerRow["status"]>("all")
   const [instNotificationFilter, setInstNotificationFilter] = useState<"all" | InstallmentLedgerRow["notification"]>("all")
   const [instPage, setInstPage] = useState(1)
+  const [instPageSize, setInstPageSize] = useState(12)
+  const [bookingPage, setBookingPage] = useState(1)
+  const [bookingPageSize, setBookingPageSize] = useState(10)
 
   const load = useCallback(async () => {
     const token = localStorage.getItem("accessToken")
     if (!token) return
     setLoading(true)
     try {
-      setRows(await listLandBookings(token))
-      setInstallments(await listInstallmentLedger(token))
+      if (showBookings) {
+        setRows(await listLandBookings(token))
+      } else {
+        setRows([])
+      }
+      if (showInstallments) {
+        setInstallments(await listInstallmentLedger(token))
+      } else {
+        setInstallments([])
+      }
     } catch {
       setRows([])
       setInstallments([])
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [showBookings, showInstallments])
 
   useEffect(() => {
     void load()
@@ -121,9 +138,13 @@ export function StaffLandBookingsPage() {
     }
     return list
   }, [rows, tableSearch, statusFilter, planFilter])
+  const bookingTotalPages = Math.max(1, Math.ceil(filteredRows.length / bookingPageSize))
+  const pagedRows = useMemo(() => {
+    const start = (bookingPage - 1) * bookingPageSize
+    return filteredRows.slice(start, start + bookingPageSize)
+  }, [filteredRows, bookingPage, bookingPageSize])
 
   const bookingSelectClass = "h-9 w-full text-xs leading-9"
-  const INSTALLMENT_PAGE_SIZE = 12
   const filteredInstallments = useMemo(() => {
     let list = installments
     if (instStatusFilter !== "all") {
@@ -146,11 +167,11 @@ export function StaffLandBookingsPage() {
     return list
   }, [installments, instSearch, instStatusFilter, instNotificationFilter])
 
-  const instTotalPages = Math.max(1, Math.ceil(filteredInstallments.length / INSTALLMENT_PAGE_SIZE))
+  const instTotalPages = Math.max(1, Math.ceil(filteredInstallments.length / instPageSize))
   const pagedInstallments = useMemo(() => {
-    const start = (instPage - 1) * INSTALLMENT_PAGE_SIZE
-    return filteredInstallments.slice(start, start + INSTALLMENT_PAGE_SIZE)
-  }, [filteredInstallments, instPage])
+    const start = (instPage - 1) * instPageSize
+    return filteredInstallments.slice(start, start + instPageSize)
+  }, [filteredInstallments, instPage, instPageSize])
 
   useEffect(() => {
     setInstPage(1)
@@ -160,18 +181,46 @@ export function StaffLandBookingsPage() {
     if (instPage > instTotalPages) setInstPage(instTotalPages)
   }, [instPage, instTotalPages])
 
+  useEffect(() => {
+    setInstPage(1)
+  }, [instPageSize])
+
+  useEffect(() => {
+    setBookingPage(1)
+  }, [tableSearch, statusFilter, planFilter])
+
+  useEffect(() => {
+    if (bookingPage > bookingTotalPages) setBookingPage(bookingTotalPages)
+  }, [bookingPage, bookingTotalPages])
+
+  useEffect(() => {
+    setBookingPage(1)
+  }, [bookingPageSize])
+
   return (
     <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <div>
-        <h2 className="text-2xl font-semibold text-white">Land booking requests</h2>
+        <h2 className="text-2xl font-semibold text-white">
+          {showBookings
+            ? language === "bn"
+              ? "জমি বুকিং অনুরোধ"
+              : "Land booking requests"
+            : language === "bn"
+              ? "কিস্তি ট্র্যাকার"
+              : "Installment tracker"}
+        </h2>
         <p className="mt-1 text-sm text-slate-400">
-          {language === "bn"
-            ? "আপনার দায়িত্বপ্রাপ্ত জমির (অ্যাডমিন হলে সব জমির) বিনিয়োগকারীর বুকিং অনুরোধ পর্যালোচনা করুন।"
-            : "Review investor requests for your assigned lands (or all lands as admin)."}
+          {showBookings
+            ? language === "bn"
+              ? "আপনার দায়িত্বপ্রাপ্ত জমির (অ্যাডমিন হলে সব জমির) বিনিয়োগকারীর বুকিং অনুরোধ পর্যালোচনা করুন।"
+              : "Review investor requests for your assigned lands (or all lands as admin)."
+            : language === "bn"
+              ? "বকেয়া, পরিশোধিত, ওভারডিউ এবং নোটিফিকেশন অনুযায়ী কিস্তি ট্র্যাক করুন।"
+              : "Track due, paid, overdue and notification status for installments."}
         </p>
       </div>
 
-      {loading ? (
+      {showBookings ? (loading ? (
         <p className="text-slate-500">{language === "bn" ? "লোড হচ্ছে…" : "Loading…"}</p>
       ) : rows.length === 0 ? (
         <p className="text-slate-500">{language === "bn" ? "কোনো বুকিং অনুরোধ নেই।" : "No booking requests."}</p>
@@ -233,7 +282,7 @@ export function StaffLandBookingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((r) => (
+                {pagedRows.map((r) => (
                   <tr key={r.id} className="border-b border-white/5 transition-colors hover:bg-white/2">
                     <td className="px-4 py-3 align-middle tabular-nums text-slate-400">#{r.id}</td>
                     <td className="max-w-[min(220px,35vw)] px-4 py-3 align-middle font-medium text-white">
@@ -268,11 +317,55 @@ export function StaffLandBookingsPage() {
             <p className="py-6 text-center text-sm text-slate-500">
               {language === "bn" ? "আপনার ফিল্টারের সাথে কোনো বুকিং মিলেনি।" : "No bookings match your filters."}
             </p>
-          ) : null}
+          ) : (
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+              <span>
+                {language === "bn"
+                  ? `মোট ${filteredRows.length} সারির মধ্যে ${pagedRows.length} টি দেখানো হচ্ছে`
+                  : `Showing ${pagedRows.length} of ${filteredRows.length} row(s)`}
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="dashboard-filter-select-shell h-7 min-w-[90px]">
+                  <CompactFormSelect
+                    ariaLabel="Rows per page"
+                    className="h-7 w-full text-[11px] leading-7"
+                    value={String(bookingPageSize)}
+                    onValueChange={(v) => setBookingPageSize(Number(v))}
+                    options={[
+                      { value: "10", label: language === "bn" ? "10 / পৃষ্ঠা" : "10 / page" },
+                      { value: "20", label: language === "bn" ? "20 / পৃষ্ঠা" : "20 / page" },
+                      { value: "50", label: language === "bn" ? "50 / পৃষ্ঠা" : "50 / page" },
+                    ]}
+                  />
+                </div>
+                <button
+                  type="button"
+                  disabled={bookingPage <= 1}
+                  onClick={() => setBookingPage((p) => Math.max(1, p - 1))}
+                  className="rounded border border-white/20 px-2 py-1 disabled:opacity-40"
+                >
+                  {language === "bn" ? "আগের" : "Prev"}
+                </button>
+                <span>
+                  {language === "bn"
+                    ? `পৃষ্ঠা ${bookingPage} / ${bookingTotalPages}`
+                    : `Page ${bookingPage} / ${bookingTotalPages}`}
+                </span>
+                <button
+                  type="button"
+                  disabled={bookingPage >= bookingTotalPages}
+                  onClick={() => setBookingPage((p) => Math.min(bookingTotalPages, p + 1))}
+                  className="rounded border border-white/20 px-2 py-1 disabled:opacity-40"
+                >
+                  {language === "bn" ? "পরের" : "Next"}
+                </button>
+              </div>
+            </div>
+          )}
         </>
-      )}
+      )) : null}
 
-      <DashboardModal
+      {showBookings ? <DashboardModal
         open={Boolean(selected)}
         title={selected ? `Booking #${selected.id}` : ""}
         onClose={() => setSelected(null)}
@@ -348,16 +441,18 @@ export function StaffLandBookingsPage() {
             ) : null}
           </div>
         ) : null}
-      </DashboardModal>
+      </DashboardModal> : null}
 
-      <div className="rounded-xl border border-white/10 bg-white/2 p-4 sm:p-5">
+      {showInstallments ? <div className="rounded-xl border border-white/10 bg-white/2 p-4 sm:p-5">
         <h3 className="text-lg font-semibold text-white">{language === "bn" ? "কিস্তি ট্র্যাকার" : "Installment tracker"}</h3>
         <p className="mt-1 text-xs text-slate-500">
           {language === "bn"
             ? "দেখা যাচ্ছে এমন বুকিংগুলোর বকেয়া, পরিশোধিত, ওভারডিউ এবং রিমাইন্ডার স্ট্যাটাস দেখুন।"
             : "Track due, paid, overdue and reminder status across visible bookings."}
         </p>
-        {installments.length === 0 ? (
+        {loading ? (
+          <p className="py-6 text-center text-sm text-slate-500">{language === "bn" ? "লোড হচ্ছে…" : "Loading…"}</p>
+        ) : installments.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-500">
             {language === "bn" ? "এখনও কোনো কিস্তির সময়সূচি নেই।" : "No installment schedules available yet."}
           </p>
@@ -466,6 +561,19 @@ export function StaffLandBookingsPage() {
                   : `Showing ${pagedInstallments.length} of ${filteredInstallments.length} row(s)`}
               </span>
               <div className="flex items-center gap-2">
+                <div className="dashboard-filter-select-shell h-7 min-w-[90px]">
+                  <CompactFormSelect
+                    ariaLabel="Installments rows per page"
+                    className="h-7 w-full text-[11px] leading-7"
+                    value={String(instPageSize)}
+                    onValueChange={(v) => setInstPageSize(Number(v))}
+                    options={[
+                      { value: "10", label: language === "bn" ? "10 / পৃষ্ঠা" : "10 / page" },
+                      { value: "20", label: language === "bn" ? "20 / পৃষ্ঠা" : "20 / page" },
+                      { value: "50", label: language === "bn" ? "50 / পৃষ্ঠা" : "50 / page" },
+                    ]}
+                  />
+                </div>
                 <button
                   type="button"
                   disabled={instPage <= 1}
@@ -489,7 +597,7 @@ export function StaffLandBookingsPage() {
             </div>
           </>
         )}
-      </div>
+      </div> : null}
     </section>
   )
 }

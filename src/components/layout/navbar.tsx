@@ -12,6 +12,7 @@ const publicLinks = [
   { to: "/", key: "nav.home", fallback: "Home" },
   { to: "/listings", key: "nav.listings", fallback: "Listings" },
   { to: "/p2p", key: "nav.p2p", fallback: "P2P" },
+  { to: "/about", key: "nav.about", fallback: "About" },
   { to: "/contact", key: "nav.contact", fallback: "Contact" },
 ]
 

@@ -14,36 +14,41 @@ export function Footer() {
 
   return (
     <footer className="bg-[#031632] text-slate-300">
-      <div className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
-        <div className="rounded-xl bg-[#f58e43] px-5 py-4 text-sm text-slate-950 sm:flex sm:items-center sm:justify-between">
-          <p className="font-medium">6391 Elgin St, Delaware</p>
-          <p className="font-medium">contact@example.com</p>
-          <p className="font-medium">+88 0123 654 99</p>
+      <div className="mx-auto max-w-[1240px] px-4 pt-10 sm:px-6">
+        <div className="rounded-2xl bg-[#f15a24] px-5 py-4 text-slate-950 shadow-[0_14px_30px_rgba(0,0,0,0.2)] sm:px-8 sm:py-5">
+          <div className="grid gap-3 text-[13px] sm:grid-cols-3 sm:gap-6">
+            <p className="font-semibold">6391 Elgin St, Delaware</p>
+            <p className="font-semibold">contact@example.com</p>
+            <p className="font-semibold">+88 0123 654 99</p>
+          </div>
         </div>
       </div>
-      <div className="mx-auto grid max-w-[1240px] gap-8 px-4 py-10 text-sm sm:grid-cols-2 lg:grid-cols-4 sm:px-6">
+
+      <div className="mx-auto grid max-w-[1240px] gap-9 px-4 pb-10 pt-12 text-[13px] leading-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:gap-10">
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-white">LandBlocks</h3>
-          <p>Nullam interdum libero vitae pretium aliquam donec nibh purus laoreet in ullamcorper vel malesuada sit amet enim.</p>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Follow on</p>
-          <div className="flex gap-2 text-xs">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20">
+          <h3 className="text-[18px] font-semibold text-white">EUROSTAR</h3>
+          <p className="max-w-[280px] text-slate-400">
+            Nullam interdum libero vitae pretium aliquam donec nibh purus laoreet in ullamcorper vel malesuada sit amet enim.
+          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Follow on</p>
+          <div className="flex gap-2.5 text-[11px]">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/25">
               <FontAwesomeIcon icon={faFacebookF} />
             </span>
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/25">
               <FontAwesomeIcon icon={faXTwitter} />
             </span>
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/25">
               <FontAwesomeIcon icon={faLinkedinIn} />
             </span>
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/25">
               <FontAwesomeIcon icon={faInstagram} />
             </span>
           </div>
         </div>
         <div>
-          <h3 className="mb-2 text-base font-semibold text-white">Quick Link</h3>
-          <ul className="space-y-1">
+          <h3 className="mb-3 text-[16px] font-semibold text-white">Quick Link</h3>
+          <ul className="space-y-1.5 text-slate-400">
             <li>Startup Business</li>
             <li>Financial Advice</li>
             <li>Management</li>
@@ -52,8 +57,8 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <h3 className="mb-2 text-base font-semibold text-white">Discover</h3>
-          <ul className="space-y-1">
+          <h3 className="mb-3 text-[16px] font-semibold text-white">Discover</h3>
+          <ul className="space-y-1.5 text-slate-400">
             <li>About</li>
             <li>Our Team</li>
             <li>Testimonials</li>
@@ -62,20 +67,21 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <h3 className="mb-2 text-base font-semibold text-white">Gallery</h3>
-          <div className="grid grid-cols-3 gap-2">
+          <h3 className="mb-3 text-[16px] font-semibold text-white">Gallery</h3>
+          <div className="grid grid-cols-3 gap-2.5">
             {gallery.map((image) => (
               <img
                 key={image}
                 src={image}
                 alt="gallery"
-                className="h-16 w-full rounded-md object-cover"
+                className="h-14 w-full rounded-sm object-cover"
               />
             ))}
           </div>
         </div>
       </div>
-      <div className="border-t border-white/5 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] text-xs text-slate-400 sm:px-6">
+
+      <div className="border-t border-white/5 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] text-[12px] text-slate-400 sm:px-6">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3">
           <p>© 2026 LandBlocks. All Rights Reserved.</p>
           <div className="flex items-center gap-4">

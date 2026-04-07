@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
+import { Autoplay, Pagination } from "swiper/modules"
+import { Swiper, SwiperSlide } from "swiper/react"
 
 import { RevealOnView, RevealStagger } from "@/components/motion/reveal-on-view"
 import { PropertyCard } from "@/components/property-card"
@@ -7,7 +10,22 @@ import { getProperties } from "@/services/api"
 import type { Property } from "@/types/domain"
 import { pickInstallmentTop, pickPlotBuyTop } from "@/utils/property-lanes"
 
-const partnerNames = ["Trustpilot", "Google", "PropertyHub", "UrbanVest", "Prime Assets", "EstateFlow"]
+const partnerLogos = [
+  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
+  { name: "Trustpilot", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Trustpilot_logo_2022.svg" },
+  { name: "Airbnb", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Belo.svg" },
+  { name: "Booking.com", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" },
+  { name: "Zillow", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5a/Zillow_logo.svg" },
+  { name: "Redfin", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Redfin_logo.svg" },
+]
+const marqueeLogosA = [...partnerLogos, ...partnerLogos, ...partnerLogos, ...partnerLogos]
+const reversedPartnerLogos = [...partnerLogos].reverse()
+const marqueeLogosB = [
+  ...reversedPartnerLogos,
+  ...reversedPartnerLogos,
+  ...reversedPartnerLogos,
+  ...reversedPartnerLogos,
+]
 
 const faqItems = [
   {
@@ -33,9 +51,16 @@ const faqItems = [
 ]
 
 const LANE_CARD_LIMIT = 5
+const welcomePoints = [
+  "Proactively pontificate client",
+  "Is there a waiting list for desired",
+  "Immediate 24/ 7 Emergency",
+]
 
 export function LandingPage() {
   const [properties, setProperties] = useState<Property[]>([])
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
+  const heroSlides = useMemo(() => ["/1%25-intereste-jomir-malik.png", "/50%25-registration.png"], [])
 
   useEffect(() => {
     getProperties().then(setProperties)
@@ -57,65 +82,31 @@ export function LandingPage() {
   )
 
   return (
-    <main className="bg-[#f6f7fb] text-slate-900">
+    <main className="bg-[#f6f7fb] text-slate-900 relative">
       <section className="home-hero border-b border-white/10">
-        <div className="mx-auto max-w-[1240px] px-4 pb-14 pt-18 sm:px-6">
+        <div className="mx-auto max-w-full px-4 pt-18 pb-14 sm:px-6">
           <RevealOnView className="w-full" variant="fade-up">
-            <div className="max-w-[1160px] space-y-4">
-              <h1 className="text-[3.1rem] font-semibold leading-[1.08] text-white lg:text-[3.55rem]">
-                Journey To Your Perfect Luxury Home
-              </h1>
-              <p className="max-w-[840px] text-[1.05rem] leading-8 text-slate-100/95">
-                Explore premium opportunities with plot buy and installment investment plans.
-                Track ROI, installments, and referrals in one modern dashboard.
-              </p>
-            </div>
-            <div className="mt-10 flex gap-1.5">
-              <button
-                type="button"
-                className="btn-alive rounded-t-2xl bg-[#f26932] px-8 py-3.5 font-semibold text-white shadow-[0_8px_28px_rgb(242_105_50/35%)] hover:brightness-105"
-              >
-                Plot Buy
-              </button>
-              <button
-                type="button"
-                className="rounded-t-2xl border border-white/30 bg-[#22304a]/85 px-8 py-3.5 font-semibold text-white transition-[transform,background-color,border-color] duration-300 hover:border-white/45 hover:bg-[#2a3d5c]/90 active:scale-[0.98] motion-reduce:active:scale-100"
-              >
-                Installment
-              </button>
-            </div>
-            <div className="glass-panel rounded-tl-none p-5 sm:p-6">
-              <div className="grid gap-3 sm:grid-cols-[1.15fr_1fr_1fr_0.95fr]">
-                <input className="template-input" placeholder="Keyword" />
-                <select className="template-input">
-                  <option>Category</option>
-                  <option>Apartment</option>
-                  <option>Villa</option>
-                  <option>Commercial</option>
-                </select>
-                <input className="template-input" placeholder="Location" />
-                <button
-                  type="button"
-                  className="btn-alive rounded-xl bg-[#f58e43] py-3.5 text-sm font-semibold text-slate-950 hover:bg-[#ff9b4f]"
+            <div className="mx-auto max-w-full">
+              <div className="overflow-hidden">
+                <Swiper
+                  modules={[Autoplay, Pagination]}
+                  slidesPerView={1}
+                  loop
+                  autoplay={{ delay: 3200, disableOnInteraction: false }}
+                  pagination={{ clickable: true }}
+                  className="hero-plan-swiper"
                 >
-                  Search
-                </button>
+                  {heroSlides.map((src, idx) => (
+                    <SwiperSlide key={src}>
+                      <img
+                        src={src}
+                        alt={`Plan banner ${idx + 1}`}
+                        className="mx-auto h-auto w-full max-w-7xl object-cover"
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-                <span className="rounded-full bg-white/12 px-3 py-1 text-white">Commercial</span>
-                <span className="rounded-full bg-white/12 px-3 py-1 text-white">Apartment</span>
-                <span className="rounded-full bg-white/12 px-3 py-1 text-white">Sales</span>
-              </div>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <article className="rounded-2xl border border-white/15 bg-[#072349]/80 px-4 py-3 text-white">
-                <p className="text-xs text-slate-300">Trustpilot</p>
-                <p className="text-sm font-semibold">450+ reviews</p>
-              </article>
-              <article className="rounded-2xl border border-white/15 bg-[#072349]/80 px-4 py-3 text-white">
-                <p className="text-xs text-slate-300">Google</p>
-                <p className="text-sm font-semibold">450+ reviews</p>
-              </article>
             </div>
           </RevealOnView>
         </div>
@@ -124,8 +115,12 @@ export function LandingPage() {
       <section className="bg-[#0b2348]">
         <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6">
           <RevealOnView className="w-full" variant="fade-up">
-            <p className="text-sm uppercase tracking-[0.22em] text-[#f58e43]">Our Achievement</p>
-            <h2 className="mt-2 text-3xl font-semibold text-white">Our Realhr Awesome Success Story.</h2>
+            <p className="text-sm tracking-[0.22em] text-[#f58e43] uppercase">
+              Our Achievement
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-[#f8fafc]">
+              Our Realhr Awesome Success Story.
+            </h2>
           </RevealOnView>
           <RevealStagger className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="metric-card">
@@ -144,17 +139,129 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6">
+        <div className="welcome-homirx">
+          <RevealOnView className="welcome-homirx-left" variant="fade-up">
+            <div className="about-one__single">
+              <div className="about-one__image">
+                <div className="image-inner">
+                  <img src="image-01.jpg" alt="Welcome property" />
+                </div>
+              </div>
+              <Link
+                to="/about"
+                aria-label="About page"
+                className="about-one__link-overlay"
+              />
+            </div>
+            <div className="video-two__single">
+              <div className="video-two__inner">
+                <div className="video-two__content">
+                  <div className="video-two__action">
+                    <span className="video-two__icon">▶</span>
+                  </div>
+                  <svg
+                    className="video-two__rotatingText"
+                    viewBox="0 0 200 200"
+                    width="200"
+                    height="200"
+                  >
+                    <defs>
+                      <path
+                        id="welcome-circle-text"
+                        d="M 100, 100 m -75, 0 a 75, 75 0 1, 0 150, 0 a 75, 75 0 1, 0 -150, 0"
+                      />
+                    </defs>
+                    <text>
+                      <textPath
+                        href="#welcome-circle-text"
+                        className="video-two__title"
+                      >
+                        PLAY INTRO VIDEO - PLAY INTRO VIDEO -
+                      </textPath>
+                    </text>
+                  </svg>
+                  <button
+                    type="button"
+                    className="video-two__link"
+                    aria-label="Play intro video"
+                    onClick={() => setIsVideoOpen(true)}
+                  />
+                </div>
+              </div>
+            </div>
+          </RevealOnView>
+
+          <RevealOnView className="welcome-homirx-right" variant="fade-up">
+            <div className="sub-title">
+              <span className="tagline">About Company</span>
+            </div>
+            <h2 className="welcome-title">
+              <span>Welcome To Properties</span>
+            </h2>
+            <p className="welcome-desc">
+              It is a long established fact that a reader will be distracted the
+              readable content of a page when looking at layout the point of
+              using lorem the is Ipsum less normal distribution of letters.
+            </p>
+
+            <ul className="welcome-list">
+              {welcomePoints.map((point) => (
+                <li key={point}>
+                  <span className="welcome-list-icon">→</span>
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="welcome-bottom">
+              <Link to="/about" className="btn-theme-2">
+                <span className="btn-icon">⌂</span>
+                Explore More
+              </Link>
+
+              <div className="welcome-counters">
+                <div className="milestone-one__single">
+                  <div className="milestone-one__content">
+                    <div className="milestone-one__number">30k+</div>
+                    <div className="milestone-one__title">
+                      Satisficed Client
+                    </div>
+                  </div>
+                </div>
+                <div className="milestone-one__single">
+                  <div className="milestone-one__content">
+                    <div className="milestone-one__number">700+</div>
+                    <div className="milestone-one__title">House</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </RevealOnView>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 py-18 sm:px-6">
-        <RevealOnView className="mb-8 flex w-full flex-wrap items-end justify-between gap-4" variant="fade-up">
+        <RevealOnView
+          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
+          variant="fade-up"
+        >
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-[#f58e43]">Plot buy</p>
-            <h2 className="text-[2rem] font-semibold">Top properties for plot buy</h2>
+            <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
+              Plot buy
+            </p>
+            <h2 className="text-[2rem] font-semibold">
+              Top properties for plot buy
+            </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Whole land and per-block listings — best for upfront, full ownership style buys (up to{" "}
-              {LANE_CARD_LIMIT}).
+              Whole land and per-block listings — best for upfront, full
+              ownership style buys (up to {LANE_CARD_LIMIT}).
             </p>
           </div>
-          <Link to="/listings" className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]">
+          <Link
+            to="/listings"
+            className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]"
+          >
             View all listings
           </Link>
         </RevealOnView>
@@ -166,20 +273,33 @@ export function LandingPage() {
           ))}
         </div>
         {plotBuyTop.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-slate-500">No plot-buy listings available yet.</p>
+          <p className="mt-6 text-center text-sm text-slate-500">
+            No plot-buy listings available yet.
+          </p>
         ) : null}
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-18 sm:px-6">
-        <RevealOnView className="mb-8 flex w-full flex-wrap items-end justify-between gap-4" variant="fade-up">
+        <RevealOnView
+          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
+          variant="fade-up"
+        >
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-[#f58e43]">Installment</p>
-            <h2 className="text-[2rem] font-semibold">Top properties for installment plans</h2>
+            <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
+              Installment
+            </p>
+            <h2 className="text-[2rem] font-semibold">
+              Top properties for installment plans
+            </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Fractional and extended-payment friendly picks — ranked by rating (up to {LANE_CARD_LIMIT}).
+              Fractional and extended-payment friendly picks — ranked by rating
+              (up to {LANE_CARD_LIMIT}).
             </p>
           </div>
-          <Link to="/listings" className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]">
+          <Link
+            to="/listings"
+            className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]"
+          >
             View all listings
           </Link>
         </RevealOnView>
@@ -191,25 +311,54 @@ export function LandingPage() {
           ))}
         </div>
         {installmentTop.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-slate-500">No installment-friendly listings available yet.</p>
+          <p className="mt-6 text-center text-sm text-slate-500">
+            No installment-friendly listings available yet.
+          </p>
         ) : null}
       </section>
 
       <section className="mx-auto max-w-[1240px] overflow-hidden px-4 pb-18 sm:px-6">
         <div className="partners-shell">
           <RevealOnView className="mb-6 w-full" variant="fade-up">
-            <p className="text-xs uppercase tracking-[0.25em] text-[#f8ab71]">Partners</p>
-            <h2 className="text-[2rem] font-semibold text-white">Trusted by global partners</h2>
+            <p className="text-xs tracking-[0.25em] text-[#f8ab71] uppercase">
+              Partners
+            </p>
+            <h2 className="text-[2rem] font-semibold text-[#f8fafc]">
+              Trusted by global partners
+            </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-200/90">
-              Backed by brands and marketplaces that help us deliver secure, transparent, and scalable
-              real-estate investing.
+              Backed by brands and marketplaces that help us deliver secure,
+              transparent, and scalable real-estate investing.
             </p>
           </RevealOnView>
-          <div className="partner-slider rounded-2xl border border-white/15 bg-white/5 py-4">
-            <div className="partner-track">
-              {[...partnerNames, ...partnerNames].map((name, index) => (
-                <div key={`${name}-${index}`} className="partner-pill">
-                  {name}
+          <div className="partner-slider rounded-2xl border border-white/15 bg-white/5 p-3 sm:p-4">
+            <div className="partner-track partner-track-a">
+              {marqueeLogosA.map((item, index) => (
+                <div
+                  key={`${item.name}-a-${index}`}
+                  className="partner-logo-pill"
+                >
+                  <img
+                    src={item.logo}
+                    alt={item.name}
+                    className="h-6 w-auto object-contain"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="partner-track partner-track-b mt-3 sm:mt-4">
+              {marqueeLogosB.map((item, index) => (
+                <div
+                  key={`${item.name}-b-${index}`}
+                  className="partner-logo-pill partner-logo-pill-soft"
+                >
+                  <img
+                    src={item.logo}
+                    alt={item.name}
+                    className="h-6 w-auto object-contain"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
@@ -219,25 +368,64 @@ export function LandingPage() {
 
       <section className="mx-auto max-w-[1240px] px-4 pb-20 sm:px-6">
         <RevealOnView className="mb-6 w-full" variant="fade-up">
-          <p className="text-xs uppercase tracking-[0.25em] text-[#f58e43]">FAQ</p>
-          <h2 className="text-[2rem] font-semibold">Frequently asked questions</h2>
+          <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
+            FAQ
+          </p>
+          <h2 className="text-[2rem] font-semibold">
+            Frequently asked questions
+          </h2>
         </RevealOnView>
-        <RevealStagger className="grid gap-4">
+        <RevealStagger className="grid gap-3">
           {faqItems.map((item) => (
             <details
               key={item.question}
-              className="group rounded-2xl border border-white/10 bg-slate-900/70 p-5"
+              className="group rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_10px_26px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:shadow-[0_14px_30px_rgba(15,23,42,0.1)]"
             >
-              <summary className="cursor-pointer list-none font-medium text-white">
-                {item.question}
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-slate-900 marker:content-['']">
+                <span>{item.question}</span>
+                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold text-slate-500 transition group-open:rotate-45 group-open:border-[#f58e43] group-open:text-[#f58e43]">
+                  +
+                </span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-slate-300 group-open:animate-fade-in">
+              <p className="group-open:animate-fade-in mt-3 border-t border-slate-100 pt-3 text-sm leading-7 text-slate-600">
                 {item.answer}
               </p>
             </details>
           ))}
         </RevealStagger>
       </section>
+      {isVideoOpen
+        ? createPortal(
+            <div
+              className="video-modal-overlay"
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setIsVideoOpen(false)}
+            >
+              <div
+                className="video-modal-body"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  className="video-modal-close"
+                  aria-label="Close video"
+                  onClick={() => setIsVideoOpen(false)}
+                >
+                  ×
+                </button>
+                <iframe
+                  className="video-modal-frame"
+                  src="https://www.youtube.com/embed/QmfVLaBan5I?autoplay=1&rel=0"
+                  title="Intro video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </main>
   )
 }

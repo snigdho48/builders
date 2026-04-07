@@ -168,11 +168,14 @@ export type AdminDashboardData = {
   total_properties: number
   total_bookings: number
   pending_bookings: number
+  booking_trend?: Array<{ label: string; total: number; pending: number }>
+  asset_trend?: Array<{ label: string; users: number; properties: number }>
 }
 
 export type AgentDashboardData = {
   managed_properties: number
   pending_bookings: number
+  workload_trend?: Array<{ label: string; managed: number; pending: number }>
 }
 
 export type InvestorDashboardData = {
