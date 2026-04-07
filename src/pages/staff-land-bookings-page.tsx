@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import L from "leaflet"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons"
 
@@ -6,8 +7,8 @@ import { DashboardModal } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { useLanguage } from "@/i18n/language-context"
 import { useToast } from "@/components/ui/use-toast"
-import { acceptLandBooking, listInstallmentLedger, listLandBookings, markInstallmentComplete, rejectLandBooking } from "@/services/api"
-import type { InstallmentLedgerRow, LandBooking } from "@/types/domain"
+import { acceptLandBooking, listInstallmentLedger, listLandBookings, listPlotsByProperty, markInstallmentComplete, rejectLandBooking } from "@/services/api"
+import type { InstallmentLedgerRow, LandBooking, LandPlot } from "@/types/domain"
 
 const planLabel: Record<string, string> = {
   one_percent_installment: "1% installment",
@@ -39,6 +40,11 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
   const [instPageSize, setInstPageSize] = useState(12)
   const [bookingPage, setBookingPage] = useState(1)
   const [bookingPageSize, setBookingPageSize] = useState(10)
+  const [modalPlots, setModalPlots] = useState<LandPlot[]>([])
+  const [loadingModalPlots, setLoadingModalPlots] = useState(false)
+  const plotMapDivRef = useRef<HTMLDivElement | null>(null)
+  const plotMapRef = useRef<L.Map | null>(null)
+  const plotLayerRef = useRef<L.LayerGroup | null>(null)
 
   const load = useCallback(async () => {
     const token = localStorage.getItem("accessToken")
@@ -196,6 +202,77 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
   useEffect(() => {
     setBookingPage(1)
   }, [bookingPageSize])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!selected || !selected.selected_plot_code) {
+      setModalPlots([])
+      return
+    }
+    setLoadingModalPlots(true)
+    void listPlotsByProperty({ propertyId: selected.property })
+      .then((rows) => {
+        if (cancelled) return
+        setModalPlots(rows)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setModalPlots([])
+      })
+      .finally(() => {
+        if (cancelled) return
+        setLoadingModalPlots(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [selected])
+
+  useEffect(() => {
+    if (!selected || !selected.selected_plot_code) {
+      plotLayerRef.current?.clearLayers()
+      if (plotMapRef.current) {
+        plotMapRef.current.remove()
+        plotMapRef.current = null
+        plotLayerRef.current = null
+      }
+      return
+    }
+    if (!plotMapDivRef.current || plotMapRef.current) return
+    const map = L.map(plotMapDivRef.current, { zoomControl: true }).setView([23.8103, 90.4125], 16)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map)
+    plotMapRef.current = map
+    plotLayerRef.current = L.layerGroup().addTo(map)
+    return () => {
+      map.remove()
+      plotMapRef.current = null
+      plotLayerRef.current = null
+    }
+  }, [selected])
+
+  useEffect(() => {
+    const map = plotMapRef.current
+    const group = plotLayerRef.current
+    if (!map || !group || !selected || !selected.selected_plot_code) return
+    group.clearLayers()
+    const bounds = L.latLngBounds([])
+    const pickedPlot = modalPlots.find((plot) => plot.plot_id === selected.selected_plot_code)
+    if (!pickedPlot) return
+    const latlngs = pickedPlot.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+    const polygon = L.polygon(latlngs, {
+      color: "#0b1f44",
+      fillColor: "#f58e43",
+      fillOpacity: 0.72,
+      weight: 3,
+    }).addTo(group)
+    polygon.bindTooltip(`Selected ${pickedPlot.plot_id}`, { permanent: true, direction: "center", opacity: 0.9 }).openTooltip()
+    bounds.extend(L.latLngBounds(latlngs))
+    if (bounds.isValid()) {
+      map.fitBounds(bounds.pad(0.2))
+    }
+  }, [modalPlots, selected])
 
   return (
     <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
@@ -384,7 +461,7 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
                 type="button"
                 disabled={busy}
                 onClick={() => void onReject()}
-                className="rounded-lg border border-rose-400/50 px-4 py-2 text-sm font-semibold text-rose-300 disabled:opacity-50"
+                className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
               >
                 {language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
               </button>
@@ -393,7 +470,7 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
         }
       >
         {selected ? (
-          <div className="space-y-3 text-sm text-slate-200">
+          <div className="space-y-3 text-sm text-slate-700">
             <p>
               <span className="text-slate-500">{language === "bn" ? "জমি:" : "Land:"}</span> {selected.property_title}
             </p>
@@ -403,6 +480,35 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
             <p>
               <span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selected.plan_type]}
             </p>
+            {selected.selected_plot_code ? (
+              <p>
+                <span className="text-slate-500">{language === "bn" ? "প্লট আইডি:" : "Plot ID:"}</span>{" "}
+                {selected.selected_plot_code}
+              </p>
+            ) : null}
+            {selected.selected_plot_area_sqft ? (
+              <p>
+                <span className="text-slate-500">{language === "bn" ? "প্লট এরিয়া:" : "Plot area:"}</span>{" "}
+                {selected.selected_plot_area_sqft} {language === "bn" ? "বর্গফুট" : "sqft"}
+              </p>
+            ) : null}
+            {selected.selected_plot_price ? (
+              <p>
+                <span className="text-slate-500">{language === "bn" ? "প্লট মূল্য:" : "Plot price:"}</span>{" "}
+                {selected.selected_plot_price}
+              </p>
+            ) : null}
+            {selected.selected_plot_code ? (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                <p className="mb-2 text-xs font-medium text-slate-600">
+                  {language === "bn" ? "নির্বাচিত প্লটের ম্যাপ" : "Selected plot map"}
+                </p>
+                <div ref={plotMapDivRef} className="h-[230px] w-full overflow-hidden rounded-md border border-slate-200 bg-white" />
+                {loadingModalPlots ? (
+                  <p className="mt-1 text-xs text-slate-500">{language === "bn" ? "ম্যাপ লোড হচ্ছে..." : "Loading map..."}</p>
+                ) : null}
+              </div>
+            ) : null}
             <p>
               <span className="text-slate-500">{language === "bn" ? "নাম:" : "Name:"}</span> {selected.full_name}
             </p>
@@ -426,13 +532,13 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
               <span className="text-slate-500">{language === "bn" ? "স্ট্যাটাস:" : "Status:"}</span> {selected.status}
             </p>
             {selected.status === "rejected" && selected.rejection_reason ? (
-              <p className="text-rose-300">{language === "bn" ? "কারণ:" : "Reason:"} {selected.rejection_reason}</p>
+              <p className="text-rose-600">{language === "bn" ? "কারণ:" : "Reason:"} {selected.rejection_reason}</p>
             ) : null}
             {selected.status === "pending" ? (
               <label className="block pt-2">
                 <span className="text-xs text-slate-500">{language === "bn" ? "প্রত্যাখ্যানের কারণ (ঐচ্ছিক)" : "Rejection reason (optional)"}</span>
                 <textarea
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f58e43]/70 focus:outline-none"
                   rows={2}
                   value={rejectNote}
                   onChange={(e) => setRejectNote(e.target.value)}

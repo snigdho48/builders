@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import L from "leaflet"
 
+import { DashboardModal } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { useLanguage } from "@/i18n/language-context"
-import { listInstallmentLedger, listLandBookings } from "@/services/api"
-import type { InstallmentLedgerRow, LandBooking } from "@/types/domain"
+import { listInstallmentLedger, listLandBookings, listPlotsByProperty } from "@/services/api"
+import type { InstallmentLedgerRow, LandBooking, LandPlot } from "@/types/domain"
 
 const planLabel: Record<string, string> = {
   one_percent_installment: "1% installment",
@@ -26,6 +28,12 @@ export function InvestorBookingsPage() {
     "all" | InstallmentLedgerRow["notification"]
   >("all")
   const [instPage, setInstPage] = useState(1)
+  const [selectedBooking, setSelectedBooking] = useState<LandBooking | null>(null)
+  const [modalPlots, setModalPlots] = useState<LandPlot[]>([])
+  const [loadingModalPlots, setLoadingModalPlots] = useState(false)
+  const plotMapDivRef = useRef<HTMLDivElement | null>(null)
+  const plotMapRef = useRef<L.Map | null>(null)
+  const plotLayerRef = useRef<L.LayerGroup | null>(null)
 
   const load = useCallback(async () => {
     const token = localStorage.getItem("accessToken")
@@ -122,6 +130,77 @@ export function InvestorBookingsPage() {
     if (instPage > instTotalPages) setInstPage(instTotalPages)
   }, [instPage, instTotalPages])
 
+  useEffect(() => {
+    let cancelled = false
+    if (!selectedBooking || !selectedBooking.selected_plot_code) {
+      setModalPlots([])
+      return
+    }
+    setLoadingModalPlots(true)
+    void listPlotsByProperty({ propertyId: selectedBooking.property })
+      .then((rows) => {
+        if (cancelled) return
+        setModalPlots(rows)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setModalPlots([])
+      })
+      .finally(() => {
+        if (cancelled) return
+        setLoadingModalPlots(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [selectedBooking])
+
+  useEffect(() => {
+    if (!selectedBooking || !selectedBooking.selected_plot_code) {
+      plotLayerRef.current?.clearLayers()
+      if (plotMapRef.current) {
+        plotMapRef.current.remove()
+        plotMapRef.current = null
+        plotLayerRef.current = null
+      }
+      return
+    }
+    if (!plotMapDivRef.current || plotMapRef.current) return
+    const map = L.map(plotMapDivRef.current, { zoomControl: true }).setView([23.8103, 90.4125], 16)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map)
+    plotMapRef.current = map
+    plotLayerRef.current = L.layerGroup().addTo(map)
+    return () => {
+      map.remove()
+      plotMapRef.current = null
+      plotLayerRef.current = null
+    }
+  }, [selectedBooking])
+
+  useEffect(() => {
+    const map = plotMapRef.current
+    const group = plotLayerRef.current
+    if (!map || !group || !selectedBooking || !selectedBooking.selected_plot_code) return
+    group.clearLayers()
+    const pickedPlot = modalPlots.find((plot) => plot.plot_id === selectedBooking.selected_plot_code)
+    if (!pickedPlot) return
+    const latlngs = pickedPlot.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+    const bounds = L.latLngBounds([])
+    const polygon = L.polygon(latlngs, {
+      color: "#0b1f44",
+      fillColor: "#f58e43",
+      fillOpacity: 0.72,
+      weight: 3,
+    }).addTo(group)
+    polygon.bindTooltip(`Selected ${pickedPlot.plot_id}`, { permanent: true, direction: "center", opacity: 0.9 }).openTooltip()
+    bounds.extend(L.latLngBounds(latlngs))
+    if (bounds.isValid()) {
+      map.fitBounds(bounds.pad(0.2))
+    }
+  }, [modalPlots, selectedBooking])
+
   return (
     <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <div>
@@ -195,6 +274,7 @@ export function InvestorBookingsPage() {
                   <th className="px-4 py-3 align-middle">{language === "bn" ? "প্ল্যান" : "Plan"}</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "বুকিং তারিখ" : "Booked"}</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
+                  <th className="px-4 py-3 align-middle text-right whitespace-nowrap">{language === "bn" ? "অ্যাকশন" : "Actions"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,6 +290,15 @@ export function InvestorBookingsPage() {
                       {new Date(r.created_at).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 align-middle capitalize text-slate-300">{r.status}</td>
+                    <td className="px-4 py-3 align-middle text-right">
+                      <button
+                        type="button"
+                        className="text-sm font-semibold text-[#f58e43] hover:underline"
+                        onClick={() => setSelectedBooking(r)}
+                      >
+                        {language === "bn" ? "বিস্তারিত" : "Details"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -222,6 +311,37 @@ export function InvestorBookingsPage() {
           ) : null}
         </>
       )}
+
+      <DashboardModal
+        open={Boolean(selectedBooking)}
+        title={selectedBooking ? `Booking #${selectedBooking.id}` : ""}
+        onClose={() => setSelectedBooking(null)}
+      >
+        {selectedBooking ? (
+          <div className="space-y-3 text-sm text-slate-700">
+            <p><span className="text-slate-500">{language === "bn" ? "জমি:" : "Land:"}</span> {selectedBooking.property_title}</p>
+            <p><span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selectedBooking.plan_type]}</p>
+            {selectedBooking.selected_plot_code ? (
+              <p><span className="text-slate-500">{language === "bn" ? "প্লট আইডি:" : "Plot ID:"}</span> {selectedBooking.selected_plot_code}</p>
+            ) : null}
+            {selectedBooking.selected_plot_area_sqft ? (
+              <p><span className="text-slate-500">{language === "bn" ? "প্লট এরিয়া:" : "Plot area:"}</span> {selectedBooking.selected_plot_area_sqft} {language === "bn" ? "বর্গফুট" : "sqft"}</p>
+            ) : null}
+            {selectedBooking.selected_plot_price ? (
+              <p><span className="text-slate-500">{language === "bn" ? "প্লট মূল্য:" : "Plot price:"}</span> {selectedBooking.selected_plot_price}</p>
+            ) : null}
+            {selectedBooking.selected_plot_code ? (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                <p className="mb-2 text-xs font-medium text-slate-600">{language === "bn" ? "নির্বাচিত প্লটের ম্যাপ" : "Selected plot map"}</p>
+                <div ref={plotMapDivRef} className="h-[230px] w-full overflow-hidden rounded-md border border-slate-200 bg-white" />
+                {loadingModalPlots ? (
+                  <p className="mt-1 text-xs text-slate-500">{language === "bn" ? "ম্যাপ লোড হচ্ছে..." : "Loading map..."}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </DashboardModal>
 
       <div className="rounded-xl border border-white/10 bg-white/2 p-4 sm:p-5">
         <h3 className="text-lg font-semibold text-white">{language === "bn" ? "কিস্তি অগ্রগতি ট্র্যাকার" : "Installment progress tracker"}</h3>

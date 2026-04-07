@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons"
 
 import { ConditionalFooter } from "@/components/layout/footer"
 import { Navbar } from "@/components/layout/navbar"
@@ -125,6 +127,15 @@ function AppShell() {
           </Route>
         </Routes>
       </div>
+      <a
+        href="https://wa.me/8801312345003"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Chat on WhatsApp"
+        className="fixed right-5 bottom-5 z-[2147483646] inline-flex h-13 w-13 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_12px_28px_rgba(37,211,102,0.45)] transition hover:scale-105"
+      >
+        <FontAwesomeIcon icon={faWhatsapp} className="text-[1.7rem]" />
+      </a>
       {!isDashboard ? <ConditionalFooter /> : null}
     </div>
   )

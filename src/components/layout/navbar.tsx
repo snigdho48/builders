@@ -31,7 +31,7 @@ function addPropertiesPath(role: UserRole | null): string {
 }
 
 export function Navbar() {
-  const { language, toggleLanguage, t } = useLanguage()
+  const { t } = useLanguage()
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -184,15 +184,6 @@ export function Navbar() {
               className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 lg:hidden"
             >
               <FontAwesomeIcon icon={mobileOpen ? faXmark : faBars} className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              title={language === "en" ? "বাংলা" : "EN"}
-              aria-label="Toggle language"
-              onClick={toggleLanguage}
-              className="inline-flex h-12 min-w-12 items-center justify-center rounded-full border border-white/40 px-3 text-xs font-semibold text-white hover:bg-white/10"
-            >
-              {language === "en" ? t("lang.bn", "বাংলা") : t("lang.en", "EN")}
             </button>
             <button
               type="button"

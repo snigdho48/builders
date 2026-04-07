@@ -97,11 +97,14 @@ export function LandingPage() {
                   className="hero-plan-swiper"
                 >
                   {heroSlides.map((src, idx) => (
-                    <SwiperSlide key={src}>
+                    <SwiperSlide
+                      key={src}
+                      className="!flex min-h-[320px] items-center justify-center sm:min-h-[420px]"
+                    >
                       <img
                         src={src}
                         alt={`Plan banner ${idx + 1}`}
-                        className="mx-auto h-auto w-full max-w-7xl object-cover"
+                        className="mx-auto block h-auto max-h-full w-full max-w-[50vw] object-center"
                       />
                     </SwiperSlide>
                   ))}
@@ -119,7 +122,7 @@ export function LandingPage() {
               Our Achievement
             </p>
             <h2 className="mt-2 text-3xl font-semibold text-[#f8fafc]">
-              Our Realhr Awesome Success Story.
+              Our Awesome Success Story.
             </h2>
           </RevealOnView>
           <RevealStagger className="mt-8 grid gap-4 sm:grid-cols-3">

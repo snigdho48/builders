@@ -203,7 +203,7 @@
     overflow: hidden;
     background:
       linear-gradient(rgba(10, 31, 62, 0.34), rgba(10, 31, 62, 0.55)),
-      url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80")
+      url("beautiful-landscape-with-small-village.webp")
         center/cover no-repeat;
     min-height: min(650px, 88svh);
   }

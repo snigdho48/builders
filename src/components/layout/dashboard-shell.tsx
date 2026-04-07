@@ -77,7 +77,7 @@ function readStoredIdentity(): { username: string; role: UserRole | null } {
 }
 
 export function DashboardShell({ sections }: DashboardShellProps) {
-  const { language, toggleLanguage, t } = useLanguage()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const prefersReducedMotion = useReducedMotion()
@@ -241,15 +241,6 @@ export function DashboardShell({ sections }: DashboardShellProps) {
           >
             {t("nav.listings", "Listings")}
           </NavLink>
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className="inline-flex shrink-0 rounded-full border border-slate-300 px-2.5 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 sm:px-3 sm:text-sm"
-            title={language === "en" ? "বাংলা" : "EN"}
-          >
-            {language === "en" ? t("lang.bn", "বাংলা") : t("lang.en", "EN")}
-          </button>
-
           <NavLink
             to="/profile"
             className="flex max-w-[min(100%,120px)] items-center gap-1.5 rounded-full border border-slate-300 bg-white py-1 pl-1.5 pr-2 transition-colors hover:border-slate-400 hover:bg-slate-50 min-[400px]:max-w-[150px] sm:max-w-[220px] sm:gap-2 sm:pl-2 sm:pr-3"
