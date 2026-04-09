@@ -10,6 +10,12 @@ import type { InstallmentLedgerRow, LandBooking, LandPlot } from "@/types/domain
 const planLabel: Record<string, string> = {
   one_percent_installment: "1% installment",
   fifty_percent_installment: "50% installment",
+  investment: "Investment",
+}
+
+const kindLabel: Record<string, string> = {
+  plot_buy: "Plot buy",
+  investment: "Investment",
 }
 
 export function InvestorBookingsPage() {
@@ -70,7 +76,8 @@ export function InvestorBookingsPage() {
         (r) =>
           (r.property_title ?? "").toLowerCase().includes(q) ||
           String(r.id).includes(q) ||
-          (planLabel[r.plan_type] ?? r.plan_type).toLowerCase().includes(q),
+          (planLabel[r.plan_type] ?? r.plan_type).toLowerCase().includes(q) ||
+          (kindLabel[r.booking_kind] ?? r.booking_kind).toLowerCase().includes(q),
       )
     }
     return list
@@ -261,6 +268,7 @@ export function InvestorBookingsPage() {
                     { value: "all", label: language === "bn" ? "সব প্ল্যান" : "All plans" },
                     { value: "one_percent_installment", label: "1% installment" },
                     { value: "fifty_percent_installment", label: "50% installment" },
+                    { value: "investment", label: "Investment" },
                   ]}
                 />
               </div>
@@ -271,6 +279,7 @@ export function InvestorBookingsPage() {
               <thead className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
                   <th className="px-4 py-3 align-middle">{language === "bn" ? "জমি" : "Land"}</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "ধরন" : "Type"}</th>
                   <th className="px-4 py-3 align-middle">{language === "bn" ? "প্ল্যান" : "Plan"}</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "বুকিং তারিখ" : "Booked"}</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
@@ -285,6 +294,7 @@ export function InvestorBookingsPage() {
                         {r.property_title ?? `#${r.property}`}
                       </span>
                     </td>
+                    <td className="px-4 py-3 align-middle text-slate-300">{kindLabel[r.booking_kind] ?? r.booking_kind}</td>
                     <td className="px-4 py-3 align-middle text-slate-300">{planLabel[r.plan_type] ?? r.plan_type}</td>
                     <td className="px-4 py-3 align-middle whitespace-nowrap text-slate-400">
                       {new Date(r.created_at).toLocaleString()}
@@ -320,7 +330,8 @@ export function InvestorBookingsPage() {
         {selectedBooking ? (
           <div className="space-y-3 text-sm text-slate-700">
             <p><span className="text-slate-500">{language === "bn" ? "জমি:" : "Land:"}</span> {selectedBooking.property_title}</p>
-            <p><span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selectedBooking.plan_type]}</p>
+            <p><span className="text-slate-500">{language === "bn" ? "ধরন:" : "Type:"}</span> {kindLabel[selectedBooking.booking_kind] ?? selectedBooking.booking_kind}</p>
+            <p><span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selectedBooking.plan_type] ?? selectedBooking.plan_type}</p>
             {selectedBooking.selected_plot_code ? (
               <p><span className="text-slate-500">{language === "bn" ? "প্লট আইডি:" : "Plot ID:"}</span> {selectedBooking.selected_plot_code}</p>
             ) : null}

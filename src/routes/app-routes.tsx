@@ -17,6 +17,7 @@ import { AgentInvestorsPage } from "@/pages/agent-investors-page"
 import { AboutPage } from "@/pages/about-page"
 import { AuthPage } from "@/pages/auth-page"
 import { ContactPage } from "@/pages/contact-page"
+import { LegalPage } from "@/pages/legal-page"
 import { DashboardRouterPage } from "@/pages/dashboard-router-page"
 import { InvestorBookingsPage } from "@/pages/investor-bookings-page"
 import { InvestorDashboardHomePage } from "@/pages/investor-dashboard-home"
@@ -27,6 +28,7 @@ import { InvestorP2pOffersPage } from "@/pages/investor-p2p-offers-page"
 import { LandingPage } from "@/pages/landing-page"
 import { ListingsPage } from "@/pages/listings-page"
 import { P2pDetailPage } from "@/pages/p2p-detail-page"
+import { PlotPlansPage } from "@/pages/plot-plans-page"
 import { P2pListPage } from "@/pages/p2p-list-page"
 import { ProfilePage } from "@/pages/profile-page"
 import { PropertyDetailsPage } from "@/pages/property-details-page"
@@ -53,6 +55,7 @@ function AppShell() {
         <Routes>
           <Route element={<PageTransitionLayout />}>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/plans" element={<PlotPlansPage />} />
           <Route path="/listings" element={<ListingsPage />} />
           <Route path="/properties" element={<ListingsPage />} />
           <Route path="/properties/:id/book" element={<PropertyLandBookPage />} />
@@ -61,6 +64,7 @@ function AppShell() {
           <Route path="/p2p/:id" element={<P2pDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/legal" element={<LegalPage />} />
           <Route
             path="/profile"
             element={

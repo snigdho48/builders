@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
 import { LandPlotSelector, type PlotOption } from "@/components/land-plot-selector"
 import { useToast } from "@/components/ui/use-toast"
-import { createLandBooking, getMe } from "@/services/api"
-import type { LandBookingPlanType, Property } from "@/types/domain"
+import { createLandBooking, getBookingPromoSettings, getMe } from "@/services/api"
+import type { BookingPromoSettings, LandBookingKind, LandBookingPlanType, Property } from "@/types/domain"
+import { propertyUsesInvestmentBooking } from "@/utils/property-display"
+
+type PlotInstallmentPlan = "one_percent_installment" | "fifty_percent_installment"
 
 type Step = "choose" | "form"
 
@@ -85,10 +89,7 @@ function renderInstructionText(line: string) {
   )
 }
 
-const PLAN_INSTRUCTIONS: Record<
-  LandBookingPlanType,
-  { title: string; points: string[] }
-> = {
+const PLAN_INSTRUCTIONS: Record<PlotInstallmentPlan, { title: string; points: string[] }> = {
   one_percent_installment: {
     title: "🔷 ১% মাসিক কিস্তি প্ল্যান",
     points: [
@@ -119,7 +120,7 @@ const PLAN_INSTRUCTIONS: Record<
   },
 }
 
-const PLAN_THEME: Record<LandBookingPlanType, { wrap: string; title: string; item: string }> = {
+const PLAN_THEME: Record<PlotInstallmentPlan, { wrap: string; title: string; item: string }> = {
   one_percent_installment: {
     wrap: "border-[#0b1f44]/20 bg-gradient-to-br from-[#0b1f44]/5 via-white to-[#f58e43]/10",
     title: "text-[#0b1f44]",
@@ -132,10 +133,23 @@ const PLAN_THEME: Record<LandBookingPlanType, { wrap: string; title: string; ite
   },
 }
 
+function planTypeLabel(pt: LandBookingPlanType): string {
+  if (pt === "one_percent_installment") return "1% installment plan"
+  if (pt === "fifty_percent_installment") return "50% installment plan"
+  return "Investment"
+}
+
 export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
+  const listingIsInvestment = propertyUsesInvestmentBooking(property)
   const { showToast } = useToast()
-  const [step, setStep] = useState<Step>("choose")
-  const [planType, setPlanType] = useState<LandBookingPlanType | null>(null)
+  const [step, setStep] = useState<Step>(() => (listingIsInvestment ? "form" : "choose"))
+  const [bookingKind, setBookingKind] = useState<LandBookingKind | null>(() =>
+    listingIsInvestment ? "investment" : null,
+  )
+  const [planType, setPlanType] = useState<LandBookingPlanType | null>(() =>
+    listingIsInvestment ? "investment" : null,
+  )
+  const [promo, setPromo] = useState<BookingPromoSettings | null>(null)
   const [busy, setBusy] = useState(false)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -145,8 +159,27 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
   const [selectedPlot, setSelectedPlot] = useState<PlotOption | null>(null)
 
   useEffect(() => {
-    setStep("choose")
-    setPlanType(null)
+    if (listingIsInvestment) {
+      setPromo(null)
+      return
+    }
+    void getBookingPromoSettings()
+      .then(setPromo)
+      .catch(() => setPromo(null))
+  }, [listingIsInvestment])
+
+  useEffect(() => {
+    const inv = propertyUsesInvestmentBooking(property)
+    setSelectedPlot(null)
+    if (inv) {
+      setStep("form")
+      setBookingKind("investment")
+      setPlanType("investment")
+    } else {
+      setStep("choose")
+      setBookingKind(null)
+      setPlanType(null)
+    }
     const token = localStorage.getItem("accessToken")
     if (!token) {
       return
@@ -159,9 +192,13 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
         setPhone(m.phone || "")
       })
       .catch(() => {})
-  }, [property.id])
+  }, [property.id, property.property_channel, property.sale_type, property.land_sale_mode])
 
-  function selectPlan(pt: LandBookingPlanType) {
+  const plotBuySlotsClosed = promo != null && promo.plot_buy_installment_slots_available <= 0
+
+  function selectPlotBuyPlan(pt: PlotInstallmentPlan) {
+    if (plotBuySlotsClosed) return
+    setBookingKind("plot_buy")
     setPlanType(pt)
     setSelectedPlot(null)
     setStep("form")
@@ -169,7 +206,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
 
   async function submit() {
     const token = localStorage.getItem("accessToken")
-    if (!token || !planType) {
+    if (!token || !planType || !bookingKind) {
       showToast("Please sign in to book.", "error")
       return
     }
@@ -186,6 +223,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
       await createLandBooking(
         {
           property: property.id,
+          booking_kind: bookingKind,
           plan_type: planType,
           full_name: fullName.trim(),
           email: email.trim(),
@@ -207,18 +245,29 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
     }
   }
 
-  const selectedPlanLabel = planType === "one_percent_installment" ? "1% installment plan" : "50% installment plan"
+  const plotPlan =
+    planType === "one_percent_installment" || planType === "fifty_percent_installment" ? planType : null
 
   return (
     <>
       {step === "choose" ? (
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-sm text-slate-600">Select one plan to continue.</p>
+          {promo ? (
+            <p className="mt-2 text-xs text-slate-500">
+              Plot buy (1% / 50%) promo slots:{" "}
+              <strong className="text-[#0b1f44]">
+                {promo.plot_buy_installment_slots_available} of {promo.plot_buy_installment_slot_limit} left
+              </strong>
+              {plotBuySlotsClosed ? <span className="text-amber-700"> — full; try again later or contact support.</span> : null}
+            </p>
+          ) : null}
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <button
               type="button"
-              className="group min-h-[320px] rounded-2xl border-2 border-[#0b1f44] bg-white p-8 text-left transition hover:-translate-y-0.5 hover:bg-slate-50"
-              onClick={() => selectPlan("one_percent_installment")}
+              disabled={plotBuySlotsClosed}
+              className="group min-h-[320px] rounded-2xl border-2 border-[#0b1f44] bg-white p-8 text-left transition hover:-translate-y-0.5 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => selectPlotBuyPlan("one_percent_installment")}
             >
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Plan A</p>
               <h3 className="mt-3 text-3xl font-semibold text-[#0b1f44]">1% Plan</h3>
@@ -231,8 +280,9 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
             </button>
             <button
               type="button"
-              className="group min-h-[320px] rounded-2xl border-2 border-[#f58e43] bg-[#f58e43] p-8 text-left text-slate-950 transition hover:-translate-y-0.5 hover:bg-[#ff9b4f]"
-              onClick={() => selectPlan("fifty_percent_installment")}
+              disabled={plotBuySlotsClosed}
+              className="group min-h-[320px] rounded-2xl border-2 border-[#f58e43] bg-[#f58e43] p-8 text-left text-slate-950 transition hover:-translate-y-0.5 hover:bg-[#ff9b4f] disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => selectPlotBuyPlan("fifty_percent_installment")}
             >
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-900/70">Plan B</p>
               <h3 className="mt-3 text-3xl font-semibold">50% Plan</h3>
@@ -243,35 +293,47 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
             </button>
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {step === "form" ? (
         <section className="mx-auto w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              className="text-sm font-medium text-[#f58e43] hover:underline"
-              onClick={() => {
-                setStep("choose")
-              }}
-            >
-              ← Change plan
-            </button>
-            <p className="text-xs text-slate-500">
-              Selected: <strong className="text-[#0b1f44]">{selectedPlanLabel}</strong>
-            </p>
+            {listingIsInvestment ? (
+              <Link to={`/properties/${property.id}`} className="text-sm font-medium text-[#f58e43] hover:underline">
+                ← Back to listing
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="text-sm font-medium text-[#f58e43] hover:underline"
+                onClick={() => {
+                  setStep("choose")
+                  setBookingKind(null)
+                  setPlanType(null)
+                  setSelectedPlot(null)
+                }}
+              >
+                ← Change plan
+              </button>
+            )}
+            {!listingIsInvestment ? (
+              <p className="text-xs text-slate-500">
+                Selected: <strong className="text-[#0b1f44]">{planType != null ? planTypeLabel(planType) : "—"}</strong>
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-3">
-            {planType != null ? (
-              <div className={`mb-2 rounded-2xl border p-4 shadow-sm ${PLAN_THEME[planType].wrap}`}>
+            {plotPlan != null ? (
+              <div className={`mb-2 rounded-2xl border p-4 shadow-sm ${PLAN_THEME[plotPlan].wrap}`}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className={`text-sm font-semibold ${PLAN_THEME[planType].title}`}>
-                    {PLAN_INSTRUCTIONS[planType].title}
+                  <h3 className={`text-sm font-semibold ${PLAN_THEME[plotPlan].title}`}>
+                    {PLAN_INSTRUCTIONS[plotPlan].title}
                   </h3>
-         
                 </div>
                 <ul className="space-y-2 text-xs leading-relaxed text-slate-700">
-                  {PLAN_INSTRUCTIONS[planType].points.map((line, idx) => (
-                    <li key={`${planType}-${idx}`} className={`rounded-lg border px-3 py-2 ${PLAN_THEME[planType].item}`}>
+                  {PLAN_INSTRUCTIONS[plotPlan].points.map((line, idx) => (
+                    <li key={`${plotPlan}-${idx}`} className={`rounded-lg border px-3 py-2 ${PLAN_THEME[plotPlan].item}`}>
                       {renderInstructionText(line)}
                     </li>
                   ))}
@@ -321,7 +383,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
             </button>
           </div>
         </section>
-      )}
+      ) : null}
     </>
   )
 }

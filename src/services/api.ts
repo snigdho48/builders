@@ -13,6 +13,7 @@ import type {
   P2PBidSent,
   P2PListing,
   P2PListingWritePayload,
+  BookingPromoSettings,
   LandBookingCreatePayload,
   LandPlot,
   LandSaleMode,
@@ -297,6 +298,8 @@ function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
     property_sale_type: raw.property_sale_type === "installment" ? "installment" : "land_buy",
     investor: Number(raw.investor),
     investor_username: raw.investor_username != null ? String(raw.investor_username) : undefined,
+    booking_kind:
+      raw.booking_kind === "investment" ? "investment" : "plot_buy",
     plan_type: raw.plan_type as LandBooking["plan_type"],
     full_name: String(raw.full_name ?? ""),
     email: String(raw.email ?? ""),
@@ -326,7 +329,9 @@ function normalizeInstallmentLedger(raw: Record<string, unknown>): InstallmentLe
     booking_id: Number(raw.booking_id),
     property_title: String(raw.property_title ?? ""),
     plan_type:
-      raw.plan_type === "one_percent_installment" || raw.plan_type === "fifty_percent_installment"
+      raw.plan_type === "one_percent_installment" ||
+      raw.plan_type === "fifty_percent_installment" ||
+      raw.plan_type === "investment"
         ? raw.plan_type
         : "one_percent_installment",
     installment_no: Number(raw.installment_no ?? 0),
@@ -466,6 +471,11 @@ export async function getProperties(): Promise<Property[]> {
 export async function getProperty(id: number): Promise<Property> {
   const res = await request<Record<string, unknown>>(`/properties/${id}/`)
   return normalizeProperty(res.data as Record<string, unknown>)
+}
+
+export async function getBookingPromoSettings(): Promise<BookingPromoSettings> {
+  const res = await request<BookingPromoSettings>("/booking-promo-settings/", { skipAuthRefresh: true })
+  return res.data
 }
 
 export async function createProperty(body: PropertyUpsertPayload, token: string): Promise<Property> {

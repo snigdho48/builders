@@ -5,8 +5,13 @@ export function saleTypeLabel(sale: SaleType): string {
   return sale === "installment" ? "Installment (whole land)" : "Land buy (full payment)"
 }
 
-function isInstallmentChannel(property: Pick<Property, "property_channel" | "sale_type">): boolean {
+export function isInstallmentChannel(property: Pick<Property, "property_channel" | "sale_type">): boolean {
   return property.property_channel === "installment" || property.sale_type === "installment"
+}
+
+/** Installment / fractional listings use investment booking; plot-buy listings use 1% / 50% plans. */
+export function propertyUsesInvestmentBooking(property: Property): boolean {
+  return isInstallmentChannel(property) || property.land_sale_mode === "fractional_share"
 }
 
 /** Legacy builders label: Plot buy vs Installment */

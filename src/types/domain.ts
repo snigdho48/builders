@@ -76,7 +76,12 @@ export type Property = {
   updated_at?: string
 }
 
-export type LandBookingPlanType = "one_percent_installment" | "fifty_percent_installment"
+export type LandBookingKind = "plot_buy" | "investment"
+export type LandBookingPlanType =
+  | "one_percent_installment"
+  | "fifty_percent_installment"
+  | "investment"
+
 export type LandBookingStatus = "pending" | "accepted" | "rejected"
 
 export type LandBooking = {
@@ -86,6 +91,7 @@ export type LandBooking = {
   property_sale_type?: SaleType
   investor: number
   investor_username?: string
+  booking_kind: LandBookingKind
   plan_type: LandBookingPlanType
   full_name: string
   email: string
@@ -219,6 +225,7 @@ export type PropertyUpsertPayload = Partial<{
 
 export type LandBookingCreatePayload = {
   property: number
+  booking_kind: LandBookingKind
   plan_type: LandBookingPlanType
   full_name: string
   email: string
@@ -228,6 +235,12 @@ export type LandBookingCreatePayload = {
   selected_plot_code?: string
   selected_plot_area_sqft?: number
   selected_plot_price?: string
+}
+
+export type BookingPromoSettings = {
+  plot_buy_installment_slot_limit: number
+  plot_buy_installment_slots_used: number
+  plot_buy_installment_slots_available: number
 }
 
 export type PlotStatus = "available" | "booked" | "sold"

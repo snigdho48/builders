@@ -12,6 +12,7 @@ const publicLinks = [
   { to: "/", key: "nav.home", fallback: "Home" },
   { to: "/listings", key: "nav.listings", fallback: "Listings" },
   { to: "/p2p", key: "nav.p2p", fallback: "P2P" },
+  { to: "/legal", key: "nav.legal", fallback: "Legal" },
   { to: "/about", key: "nav.about", fallback: "About" },
   { to: "/contact", key: "nav.contact", fallback: "Contact" },
 ]
@@ -156,7 +157,7 @@ export function Navbar() {
               </span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-6 text-[13px] font-semibold text-slate-300 lg:flex" aria-label="Main">
+          <nav className="hidden items-center gap-6 text-[13px] ml-0 lg:-ml-50 font-semibold text-slate-300 lg:flex" aria-label="Main">
             {links.map((item) => (
               <NavLink
                 key={item.to}

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion"
 import { Link, useNavigate, useParams } from "react-router-dom"
@@ -23,7 +24,12 @@ import { getProperties, getProperty } from "@/services/api"
 import type { Property } from "@/types/domain"
 import { isPropertyBookmarked, togglePropertyBookmark } from "@/utils/property-bookmarks"
 import { formatBdtInteger } from "@/utils/currency"
-import { propertyPrimaryPriceLine, propertySaleChannelBadgeClass, propertySaleChannelLabel } from "@/utils/property-display"
+import {
+  propertyPrimaryPriceLine,
+  propertySaleChannelBadgeClass,
+  propertySaleChannelLabel,
+  propertyUsesInvestmentBooking,
+} from "@/utils/property-display"
 import { sanitizePropertyHtml } from "@/utils/html-sanitize"
 
 function formatRatingBadge(average: string | null | undefined, count: number): string | null {
@@ -818,8 +824,9 @@ export function PropertyDetailsPage() {
                               : "Not available for booking"}
                       </p>
                       <p className="mt-3 text-sm text-slate-600">
-                        Choose a 1% or 50% installment plan (or as offered) and submit your details. Staff will accept or
-                        reject your request.
+                        {propertyUsesInvestmentBooking(property)
+                          ? "Continue on the next screen to submit your details. Staff will accept or reject your request."
+                          : "On the next screen, pick the 1% or 50% plan (limited promo slots). Staff will accept or reject your request."}
                       </p>
                       <button
                         type="button"

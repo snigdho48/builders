@@ -20,6 +20,7 @@ const messages: Record<AppLanguage, Record<string, string>> = {
     "nav.p2p": "P2P",
     "nav.about": "About",
     "nav.contact": "Contact",
+    "nav.legal": "Legal",
     "nav.dashboard": "Dashboard",
     "nav.profile": "Profile",
     "nav.signIn": "Sign in",
@@ -53,6 +54,7 @@ const messages: Record<AppLanguage, Record<string, string>> = {
     "nav.p2p": "পিটুপি",
     "nav.about": "আমাদের সম্পর্কে",
     "nav.contact": "যোগাযোগ",
+    "nav.legal": "আইনি",
     "nav.dashboard": "ড্যাশবোর্ড",
     "nav.profile": "প্রোফাইল",
     "nav.signIn": "লগইন",
@@ -86,7 +88,7 @@ function readInitialLanguage(): AppLanguage {
   if (typeof window === "undefined") return "en"
   const raw = localStorage.getItem(LANGUAGE_KEY)
   if (raw === "en" || raw === "bn") return raw
-  return "bn"
+  return "en"
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {

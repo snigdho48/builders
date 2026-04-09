@@ -82,7 +82,7 @@ export function LandingPage() {
   )
 
   return (
-    <main className="bg-[#f6f7fb] text-slate-900 relative">
+    <main className="relative bg-[#f6f7fb] text-slate-900">
       <section className="home-hero border-b border-white/10">
         <div className="mx-auto max-w-full px-4 pt-18 pb-14 sm:px-6">
           <RevealOnView className="w-full" variant="fade-up">
@@ -114,7 +114,166 @@ export function LandingPage() {
           </RevealOnView>
         </div>
       </section>
+      <section className="mx-auto max-w-7xl px-4 py-18 sm:px-6">
+        <RevealOnView
+          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
+          variant="fade-up"
+        >
+          <div>
+            <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
+              Plot buy
+            </p>
+            <h2 className="text-[2rem] font-semibold">
+              Top properties for plot buy
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+              Whole land and per-block listings — best for upfront, full
+              ownership style buys (up to {LANE_CARD_LIMIT}).
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+            <Link
+              to="/plans"
+              className="inline-flex items-center justify-center rounded-xl bg-[#f58e43] px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-[#ff9b4f]"
+            >
+              See plans
+            </Link>
+            <Link
+              to="/listings"
+              className="text-center text-sm text-[#f58e43] transition hover:text-[#ff9b4f] sm:text-right"
+            >
+              View all listings
+            </Link>
+          </div>
+        </RevealOnView>
+        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {plotBuyTop.map((property) => (
+            <div key={`plot-${property.id}`} className="min-h-0 min-w-0">
+              <PropertyCard property={property} />
+            </div>
+          ))}
+        </div>
+        {plotBuyTop.length === 0 ? (
+          <p className="mt-6 text-center text-sm text-slate-500">
+            No plot-buy listings available yet.
+          </p>
+        ) : null}
+      </section>
 
+      <section className="mx-auto max-w-7xl px-4 pb-18 sm:px-6">
+        <RevealOnView
+          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
+          variant="fade-up"
+        >
+          <div>
+            <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
+              Installment
+            </p>
+            <h2 className="text-[2rem] font-semibold">
+              Top properties for installment plans
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+              Fractional and extended-payment friendly picks — ranked by rating
+              (up to {LANE_CARD_LIMIT}).
+            </p>
+          </div>
+          <Link
+            to="/listings"
+            className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]"
+          >
+            View all listings
+          </Link>
+        </RevealOnView>
+        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {installmentTop.map((property) => (
+            <div key={`inst-${property.id}`} className="min-h-0 min-w-0">
+              <PropertyCard property={property} />
+            </div>
+          ))}
+        </div>
+        {installmentTop.length === 0 ? (
+          <p className="mt-6 text-center text-sm text-slate-500">
+            No installment-friendly listings available yet.
+          </p>
+        ) : null}
+      </section>
+
+      <section className="mx-auto max-w-[1240px] overflow-hidden px-4 pb-18 sm:px-6">
+        <div className="partners-shell">
+          <RevealOnView className="mb-6 w-full" variant="fade-up">
+            <p className="text-xs tracking-[0.25em] text-[#f8ab71] uppercase">
+              Partners
+            </p>
+            <h2 className="text-[2rem] font-semibold text-[#f8fafc]">
+              Trusted by global partners
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-200/90">
+              Backed by brands and marketplaces that help us deliver secure,
+              transparent, and scalable real-estate investing.
+            </p>
+          </RevealOnView>
+          <div className="partner-slider rounded-2xl border border-white/15 bg-white/5 p-3 sm:p-4">
+            <div className="partner-track partner-track-a">
+              {marqueeLogosA.map((item, index) => (
+                <div
+                  key={`${item.name}-a-${index}`}
+                  className="partner-logo-pill"
+                >
+                  <img
+                    src={item.logo}
+                    alt={item.name}
+                    className="h-6 w-auto object-contain"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="partner-track partner-track-b mt-3 sm:mt-4">
+              {marqueeLogosB.map((item, index) => (
+                <div
+                  key={`${item.name}-b-${index}`}
+                  className="partner-logo-pill partner-logo-pill-soft"
+                >
+                  <img
+                    src={item.logo}
+                    alt={item.name}
+                    className="h-6 w-auto object-contain"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="mx-auto max-w-[1240px] px-4 pb-20 sm:px-6">
+        <RevealOnView className="mb-6 w-full" variant="fade-up">
+          <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
+            FAQ
+          </p>
+          <h2 className="text-[2rem] font-semibold">
+            Frequently asked questions
+          </h2>
+        </RevealOnView>
+        <RevealStagger className="grid gap-3">
+          {faqItems.map((item) => (
+            <details
+              key={item.question}
+              className="group rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_10px_26px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:shadow-[0_14px_30px_rgba(15,23,42,0.1)]"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-slate-900 marker:content-['']">
+                <span>{item.question}</span>
+                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold text-slate-500 transition group-open:rotate-45 group-open:border-[#f58e43] group-open:text-[#f58e43]">
+                  +
+                </span>
+              </summary>
+              <p className="group-open:animate-fade-in mt-3 border-t border-slate-100 pt-3 text-sm leading-7 text-slate-600">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </RevealStagger>
+      </section>
       <section className="bg-[#0b2348]">
         <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6">
           <RevealOnView className="w-full" variant="fade-up">
@@ -244,159 +403,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-18 sm:px-6">
-        <RevealOnView
-          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
-          variant="fade-up"
-        >
-          <div>
-            <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
-              Plot buy
-            </p>
-            <h2 className="text-[2rem] font-semibold">
-              Top properties for plot buy
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Whole land and per-block listings — best for upfront, full
-              ownership style buys (up to {LANE_CARD_LIMIT}).
-            </p>
-          </div>
-          <Link
-            to="/listings"
-            className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]"
-          >
-            View all listings
-          </Link>
-        </RevealOnView>
-        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {plotBuyTop.map((property) => (
-            <div key={`plot-${property.id}`} className="min-h-0 min-w-0">
-              <PropertyCard property={property} />
-            </div>
-          ))}
-        </div>
-        {plotBuyTop.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-slate-500">
-            No plot-buy listings available yet.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 pb-18 sm:px-6">
-        <RevealOnView
-          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
-          variant="fade-up"
-        >
-          <div>
-            <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
-              Installment
-            </p>
-            <h2 className="text-[2rem] font-semibold">
-              Top properties for installment plans
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Fractional and extended-payment friendly picks — ranked by rating
-              (up to {LANE_CARD_LIMIT}).
-            </p>
-          </div>
-          <Link
-            to="/listings"
-            className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]"
-          >
-            View all listings
-          </Link>
-        </RevealOnView>
-        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {installmentTop.map((property) => (
-            <div key={`inst-${property.id}`} className="min-h-0 min-w-0">
-              <PropertyCard property={property} />
-            </div>
-          ))}
-        </div>
-        {installmentTop.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-slate-500">
-            No installment-friendly listings available yet.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="mx-auto max-w-[1240px] overflow-hidden px-4 pb-18 sm:px-6">
-        <div className="partners-shell">
-          <RevealOnView className="mb-6 w-full" variant="fade-up">
-            <p className="text-xs tracking-[0.25em] text-[#f8ab71] uppercase">
-              Partners
-            </p>
-            <h2 className="text-[2rem] font-semibold text-[#f8fafc]">
-              Trusted by global partners
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-200/90">
-              Backed by brands and marketplaces that help us deliver secure,
-              transparent, and scalable real-estate investing.
-            </p>
-          </RevealOnView>
-          <div className="partner-slider rounded-2xl border border-white/15 bg-white/5 p-3 sm:p-4">
-            <div className="partner-track partner-track-a">
-              {marqueeLogosA.map((item, index) => (
-                <div
-                  key={`${item.name}-a-${index}`}
-                  className="partner-logo-pill"
-                >
-                  <img
-                    src={item.logo}
-                    alt={item.name}
-                    className="h-6 w-auto object-contain"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="partner-track partner-track-b mt-3 sm:mt-4">
-              {marqueeLogosB.map((item, index) => (
-                <div
-                  key={`${item.name}-b-${index}`}
-                  className="partner-logo-pill partner-logo-pill-soft"
-                >
-                  <img
-                    src={item.logo}
-                    alt={item.name}
-                    className="h-6 w-auto object-contain"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1240px] px-4 pb-20 sm:px-6">
-        <RevealOnView className="mb-6 w-full" variant="fade-up">
-          <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
-            FAQ
-          </p>
-          <h2 className="text-[2rem] font-semibold">
-            Frequently asked questions
-          </h2>
-        </RevealOnView>
-        <RevealStagger className="grid gap-3">
-          {faqItems.map((item) => (
-            <details
-              key={item.question}
-              className="group rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-[0_10px_26px_rgba(15,23,42,0.06)] transition hover:border-slate-300 hover:shadow-[0_14px_30px_rgba(15,23,42,0.1)]"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-slate-900 marker:content-['']">
-                <span>{item.question}</span>
-                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold text-slate-500 transition group-open:rotate-45 group-open:border-[#f58e43] group-open:text-[#f58e43]">
-                  +
-                </span>
-              </summary>
-              <p className="group-open:animate-fade-in mt-3 border-t border-slate-100 pt-3 text-sm leading-7 text-slate-600">
-                {item.answer}
-              </p>
-            </details>
-          ))}
-        </RevealStagger>
-      </section>
       {isVideoOpen
         ? createPortal(
             <div

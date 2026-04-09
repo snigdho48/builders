@@ -89,6 +89,16 @@ const ONE_PERCENT_SECTIONS: Section[] = [
   },
 ]
 
+const INVESTMENT_SECTIONS: Section[] = [
+  {
+    title: "Investment booking",
+    paragraphs: [
+      "This path is for investment-oriented enquiries. Payment terms, documentation, and timelines are agreed with our team separately from the limited 1% and 50% plot-buy promo.",
+      "Nothing in this screen substitutes for a signed investment or subscription agreement.",
+    ],
+  },
+]
+
 const FIFTY_PERCENT_SECTIONS: Section[] = [
   {
     title: "Plan B — 50% installment plan",
@@ -119,7 +129,12 @@ type LandBookingTermsPanelProps = {
 }
 
 export function LandBookingTermsPanel({ planType }: LandBookingTermsPanelProps) {
-  const planSections = planType === "one_percent_installment" ? ONE_PERCENT_SECTIONS : FIFTY_PERCENT_SECTIONS
+  const planSections =
+    planType === "one_percent_installment"
+      ? ONE_PERCENT_SECTIONS
+      : planType === "fifty_percent_installment"
+        ? FIFTY_PERCENT_SECTIONS
+        : INVESTMENT_SECTIONS
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/80">

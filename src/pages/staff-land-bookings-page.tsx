@@ -13,6 +13,12 @@ import type { InstallmentLedgerRow, LandBooking, LandPlot } from "@/types/domain
 const planLabel: Record<string, string> = {
   one_percent_installment: "1% installment",
   fifty_percent_installment: "50% installment",
+  investment: "Investment",
+}
+
+const kindLabel: Record<string, string> = {
+  plot_buy: "Plot buy",
+  investment: "Investment",
 }
 
 type StaffLandBookingsPageProps = {
@@ -139,7 +145,8 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
           (r.property_title ?? "").toLowerCase().includes(q) ||
           (r.investor_username ?? "").toLowerCase().includes(q) ||
           r.full_name.toLowerCase().includes(q) ||
-          r.email.toLowerCase().includes(q),
+          r.email.toLowerCase().includes(q) ||
+          (kindLabel[r.booking_kind] ?? r.booking_kind).toLowerCase().includes(q),
       )
     }
     return list
@@ -340,6 +347,7 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
                     { value: "all", label: language === "bn" ? "সব প্ল্যান" : "All plans" },
                     { value: "one_percent_installment", label: "1% installment" },
                     { value: "fifty_percent_installment", label: "50% installment" },
+                    { value: "investment", label: "Investment" },
                   ]}
                 />
               </div>
@@ -352,6 +360,7 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
                   <th className="px-4 py-3 align-middle whitespace-nowrap">ID</th>
                   <th className="px-4 py-3 align-middle">{language === "bn" ? "জমি" : "Land"}</th>
                   <th className="px-4 py-3 align-middle">{language === "bn" ? "বিনিয়োগকারী" : "Investor"}</th>
+                  <th className="px-4 py-3 align-middle">{language === "bn" ? "ধরন" : "Type"}</th>
                   <th className="px-4 py-3 align-middle">{language === "bn" ? "প্ল্যান" : "Plan"}</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "স্ট্যাটাস" : "Status"}</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">{language === "bn" ? "বুকিং তারিখ" : "Booked"}</th>
@@ -368,6 +377,7 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
                       </span>
                     </td>
                     <td className="px-4 py-3 align-middle text-slate-300">{r.investor_username ?? r.investor}</td>
+                    <td className="px-4 py-3 align-middle text-slate-300">{kindLabel[r.booking_kind] ?? r.booking_kind}</td>
                     <td className="px-4 py-3 align-middle text-slate-300">{planLabel[r.plan_type] ?? r.plan_type}</td>
                     <td className="px-4 py-3 align-middle capitalize text-slate-300">{r.status}</td>
                     <td className="px-4 py-3 align-middle whitespace-nowrap text-slate-400">
@@ -478,7 +488,12 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
               <span className="text-slate-500">{language === "bn" ? "বিনিয়োগকারী:" : "Investor:"}</span> {selected.investor_username}
             </p>
             <p>
-              <span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selected.plan_type]}
+              <span className="text-slate-500">{language === "bn" ? "ধরন:" : "Type:"}</span>{" "}
+              {kindLabel[selected.booking_kind] ?? selected.booking_kind}
+            </p>
+            <p>
+              <span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span>{" "}
+              {planLabel[selected.plan_type] ?? selected.plan_type}
             </p>
             {selected.selected_plot_code ? (
               <p>
