@@ -377,7 +377,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
               type="button"
               disabled={busy}
               onClick={() => void submit()}
-              className="w-full rounded-xl bg-[#0b1f44] py-3 font-semibold text-white disabled:opacity-50"
+              className="w-full rounded-xl bg-[#0b1f44] py-3 font-semibold !text-white disabled:opacity-50"
             >
               {busy ? "Submitting…" : "Submit booking"}
             </button>

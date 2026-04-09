@@ -30,10 +30,12 @@ function normalizeDevApiBase(url: string): string {
   if (!import.meta.env.DEV) {
     return url
   }
-  return url.replace(/^https:\/\/(127\.0\.0\.1|localhost)/i, "http://$1")
+  return url.replace(/^https:\/\/(127\.0\.0\.1|localhost)/i, "https://$1")
 }
 
-const API_BASE = normalizeDevApiBase(import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api")
+const API_BASE = normalizeDevApiBase(
+  import.meta.env.VITE_API_BASE_URL ?? "https://api.eurostar.land/api"
+)
 
 type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"

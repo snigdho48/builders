@@ -464,7 +464,7 @@ export function PropertyDetailsPage() {
 
                     <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3">
                       {ratingLabel ? (
-                        <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white">
+                        <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold !text-white">
                           {ratingLabel}
                         </span>
                       ) : null}
@@ -683,7 +683,7 @@ export function PropertyDetailsPage() {
                       <div className="mt-6 border-t border-slate-100 pt-5">
                         {ratingLabel ? (
                           <div className="flex flex-wrap items-center gap-3">
-                            <span className="rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white">
+                            <span className="rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold !text-white">
                               {ratingLabel}
                             </span>
                           </div>

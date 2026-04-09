@@ -14,10 +14,7 @@ const sections: DashboardNavSection[] = [
   {
     id: "p2p",
     title: "P2P market",
-    items: [
-      { to: "/dashboard/investor/p2p/listings", label: "My P2P listings" },
-      { to: "/dashboard/investor/p2p/offers", label: "Offers on my listings" },
-    ],
+    items: [{ to: "/dashboard/investor-p2p", label: "P2P market" }],
   },
   {
     id: "kyc",

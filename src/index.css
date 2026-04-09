@@ -201,17 +201,35 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     background:
       linear-gradient(rgba(10, 31, 62, 0.34), rgba(10, 31, 62, 0.55)),
       url("beautiful-landscape-with-small-village.webp")
         center/cover no-repeat;
-    min-height: min(650px, 88svh);
+    /* One visible screen below sticky header (not 100svh stacked under navbar) */
+    height: calc(100svh - 7.75rem);
+    min-height: calc(100svh - 7.75rem);
+    max-height: calc(100svh - 7.75rem);
   }
 
   @media (max-width: 640px) {
     .home-hero {
-      min-height: min(520px, 92svh);
+      height: calc(100svh - 9rem);
+      min-height: calc(100svh - 9rem);
+      max-height: calc(100svh - 9rem);
     }
+  }
+
+  .home-hero .hero-plan-swiper {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .home-hero .hero-plan-swiper .swiper-wrapper {
+    min-height: 0;
   }
 
   .home-hero > * {
@@ -1132,4 +1150,19 @@
     opacity: 1;
     transition-delay: 0ms !important;
   }
+}
+
+/* Floating WhatsApp — animated GIF only; no CSS keyframe motion */
+.whatsapp-float-shell {
+  pointer-events: none;
+  overflow: visible;
+}
+
+.whatsapp-float-shell .whatsapp-float {
+  pointer-events: auto;
+  transition: filter 0.2s ease;
+}
+
+.whatsapp-float:hover {
+  filter: brightness(1.07);
 }

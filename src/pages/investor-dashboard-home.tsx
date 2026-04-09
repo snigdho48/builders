@@ -42,6 +42,11 @@ export function InvestorDashboardHomePage() {
           Track requests on{" "}
           <Link to="/dashboard/investor/bookings" className="text-[#f58e43] hover:underline">My bookings</Link>.
           {" "}
+          <Link to="/dashboard/investor-p2p" className="font-semibold text-[#f58e43] hover:underline">
+            P2P market
+          </Link>{" "}
+          has your resale listings and offers in one place.
+          {" "}
           <Link to="/dashboard/investor/kyc" className="font-semibold text-[#f58e43] hover:underline">
             KYC & verification
           </Link>{" "}

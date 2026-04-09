@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "449125713089",
+    "project_id": "y-fi-de39a",
+    "storage_bucket": "y-fi-de39a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:449125713089:android:9743c17361a648ae854040",
+        "android_client_info": {
+          "package_name": "org.yfi.free_y_fi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "449125713089-mv567jbb0nk0799mn3m2fb91c72q1gf3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.yfi.free_y_fi",
+            "certificate_hash": "460ebb461761c733c0a519141fefee0672b47218"
+          }
+        },
+        {
+          "client_id": "449125713089-j34qch6e0a9rtsnve5k5jteehatga9a1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDNW8iEN6wQsnK5hJwVJxa_Y-HNf5pirM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "449125713089-j34qch6e0a9rtsnve5k5jteehatga9a1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "449125713089-ddnvq661nh0n14lka14efqt5ckgcdam8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.y-fi.freeYFi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

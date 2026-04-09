@@ -53,6 +53,8 @@ function formatRoleLabel(role: string | null): string {
 
 type DashboardShellProps = {
   sections: DashboardNavSection[]
+  /** Shown under the brand in the header so separate dashboards are visually distinct. */
+  workspaceLabel?: string
 }
 
 function useMediaMinMd() {
@@ -76,7 +78,7 @@ function readStoredIdentity(): { username: string; role: UserRole | null } {
   }
 }
 
-export function DashboardShell({ sections }: DashboardShellProps) {
+export function DashboardShell({ sections, workspaceLabel }: DashboardShellProps) {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -214,7 +216,7 @@ export function DashboardShell({ sections }: DashboardShellProps) {
 
         <button
           type="button"
-          aria-label="Back to home"
+          aria-label={workspaceLabel ? `Back to home — ${workspaceLabel}` : "Back to home"}
           onClick={goHome}
           className="flex min-w-0 max-w-[min(100%,220px)] flex-1 items-center gap-2 rounded-xl border border-transparent py-1 text-left transition-colors hover:border-slate-200 hover:bg-slate-50 sm:max-w-none sm:flex-none md:gap-2.5"
         >
@@ -223,13 +225,15 @@ export function DashboardShell({ sections }: DashboardShellProps) {
           </span>
           <span className="min-w-0 leading-tight">
             <span
-              className="block truncate text-base font-normal uppercase tracking-[0.06em] text-white sm:text-[1.05rem]"
+              className="block truncate text-base font-normal uppercase tracking-[0.06em]  sm:text-[1.05rem]"
               style={{ fontFamily: '"Libre Franklin", system-ui, sans-serif' }}
             >
               EUROSTAR
             </span>
-            <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[0.65rem]">
-              Back to home
+            <span
+              className={`block text-[0.6rem] font-semibold uppercase tracking-[0.14em] sm:text-[0.65rem] ${workspaceLabel ? "text-emerald-700" : "text-slate-500"}`}
+            >
+              {workspaceLabel ?? "Back to home"}
             </span>
           </span>
         </button>
@@ -278,7 +282,11 @@ export function DashboardShell({ sections }: DashboardShellProps) {
         ) : null}
 
         <motion.aside
-          className="fixed bottom-0 left-0 z-40 flex w-[260px] flex-col border-r border-slate-200 bg-white pl-[env(safe-area-inset-left,0px)] shadow-[8px_0_32px_rgba(15,23,42,0.08)] md:relative md:z-0 md:h-full md:min-h-0 md:pl-0 md:shadow-none"
+          className={
+            workspaceLabel
+              ? "fixed bottom-0 left-0 z-40 flex w-[260px] flex-col border-r border-emerald-200/70 bg-gradient-to-b from-emerald-50/95 to-white pl-[env(safe-area-inset-left,0px)] shadow-[8px_0_32px_rgba(6,78,59,0.08)] md:relative md:z-0 md:h-full md:min-h-0 md:pl-0 md:shadow-none"
+              : "fixed bottom-0 left-0 z-40 flex w-[260px] flex-col border-r border-slate-200 bg-white pl-[env(safe-area-inset-left,0px)] shadow-[8px_0_32px_rgba(15,23,42,0.08)] md:relative md:z-0 md:h-full md:min-h-0 md:pl-0 md:shadow-none"
+          }
           style={{ top: isWide ? undefined : topBelowHeader }}
           initial={prefersReducedMotion ? false : { x: -SIDEBAR_W, opacity: 0.96 }}
           animate={{ x: sidebarX, opacity: sidebarOpacity }}

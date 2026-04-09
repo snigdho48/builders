@@ -1,6 +1,4 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faWhatsapp } from "@fortawesome/free-brands-svg-icons"
 
 import { ConditionalFooter } from "@/components/layout/footer"
 import { Navbar } from "@/components/layout/navbar"
@@ -23,6 +21,8 @@ import { InvestorBookingsPage } from "@/pages/investor-bookings-page"
 import { InvestorDashboardHomePage } from "@/pages/investor-dashboard-home"
 import { InvestorDashboardLayout } from "@/pages/investor-dashboard-layout"
 import { InvestorKycPage } from "@/pages/investor-kyc-page"
+import { InvestorP2pHomePage } from "@/pages/investor-p2p-home-page"
+import { InvestorP2pShellLayout } from "@/pages/investor-p2p-shell-layout"
 import { InvestorP2pListingsPage } from "@/pages/investor-p2p-listings-page"
 import { InvestorP2pOffersPage } from "@/pages/investor-p2p-offers-page"
 import { LandingPage } from "@/pages/landing-page"
@@ -92,9 +92,43 @@ function AppShell() {
             <Route index element={<InvestorDashboardHomePage />} />
             <Route path="bookings" element={<InvestorBookingsPage />} />
             <Route path="kyc" element={<InvestorKycPage />} />
-            <Route path="p2p/listings" element={<InvestorP2pListingsPage />} />
-            <Route path="p2p/offers" element={<InvestorP2pOffersPage />} />
           </Route>
+          <Route
+            path="/dashboard/investor-p2p"
+            element={
+              <ProtectedRoute allowRoles={["investor"]}>
+                <InvestorP2pShellLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<InvestorP2pHomePage />} />
+            <Route path="listings" element={<InvestorP2pListingsPage />} />
+            <Route path="offers" element={<InvestorP2pOffersPage />} />
+          </Route>
+          <Route
+            path="/dashboard/investor/p2p/listings"
+            element={
+              <ProtectedRoute allowRoles={["investor"]}>
+                <Navigate to="/dashboard/investor-p2p/listings" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/investor/p2p/offers"
+            element={
+              <ProtectedRoute allowRoles={["investor"]}>
+                <Navigate to="/dashboard/investor-p2p/offers" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/investor/p2p"
+            element={
+              <ProtectedRoute allowRoles={["investor"]}>
+                <Navigate to="/dashboard/investor-p2p" replace />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard/admin"
             element={
@@ -131,15 +165,25 @@ function AppShell() {
           </Route>
         </Routes>
       </div>
-      <a
-        href="https://wa.me/8801312345003"
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Chat on WhatsApp"
-        className="fixed right-5 bottom-5 z-[2147483646] inline-flex h-13 w-13 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_12px_28px_rgba(37,211,102,0.45)] transition hover:scale-105"
-      >
-        <FontAwesomeIcon icon={faWhatsapp} className="text-[1.7rem]" />
-      </a>
+      <span className="whatsapp-float-shell fixed right-5 bottom-5 z-[2147483646] flexitems-center justify-center">
+        <a
+          href="https://wa.me/8801312345003"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Chat on WhatsApp"
+          className="whatsapp-float relative inline-flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
+        >
+          <img
+            src="/Whatsapp.gif"
+            alt=""
+            width={100}
+            height={100}
+            className="h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
+          />
+        </a>
+      </span>
       {!isDashboard ? <ConditionalFooter /> : null}
     </div>
   )

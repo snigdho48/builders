@@ -84,27 +84,27 @@ export function LandingPage() {
   return (
     <main className="relative bg-[#f6f7fb] text-slate-900">
       <section className="home-hero border-b border-white/10">
-        <div className="mx-auto max-w-full px-4 pt-18 pb-14 sm:px-6">
-          <RevealOnView className="w-full" variant="fade-up">
-            <div className="mx-auto max-w-full">
-              <div className="overflow-hidden">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-full flex-col justify-center px-4 py-4 sm:px-6 sm:py-5">
+          <RevealOnView className="flex min-h-0 w-full flex-1 flex-col" variant="fade-up">
+            <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col">
+              <div className="min-h-0 flex-1 overflow-hidden">
                 <Swiper
                   modules={[Autoplay, Pagination]}
                   slidesPerView={1}
                   loop
                   autoplay={{ delay: 3200, disableOnInteraction: false }}
                   pagination={{ clickable: true }}
-                  className="hero-plan-swiper"
+                  className="hero-plan-swiper w-full"
                 >
                   {heroSlides.map((src, idx) => (
                     <SwiperSlide
                       key={src}
-                      className="!flex min-h-[320px] items-center justify-center sm:min-h-[420px]"
+                      className="!flex h-full min-h-0 items-center justify-center"
                     >
                       <img
                         src={src}
                         alt={`Plan banner ${idx + 1}`}
-                        className="mx-auto block h-auto max-h-full w-full max-w-[50vw] object-center"
+                        className="mx-auto block h-auto  w-full max-w-[min(70vw,840px)] object-contain object-center"
                       />
                     </SwiperSlide>
                   ))}
@@ -114,33 +114,33 @@ export function LandingPage() {
           </RevealOnView>
         </div>
       </section>
-      <section className="mx-auto max-w-7xl px-4 py-18 sm:px-6">
+      <section className="mx-auto max-w-7xl px-4 pt-24 pb-10 sm:px-6 sm:pt-28">
         <RevealOnView
-          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
+          className="mb-10 flex w-full flex-wrap items-end justify-between gap-5"
           variant="fade-up"
         >
           <div>
             <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
               Plot buy
             </p>
-            <h2 className="text-[2rem] font-semibold">
+            <h2 className="mt-1 text-[2rem] font-semibold tracking-tight text-slate-900">
               Top properties for plot buy
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
               Whole land and per-block listings — best for upfront, full
               ownership style buys (up to {LANE_CARD_LIMIT}).
             </p>
           </div>
-          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+          <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
             <Link
               to="/plans"
-              className="inline-flex items-center justify-center rounded-xl bg-[#f58e43] px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-[#ff9b4f]"
+              className="btn-alive inline-flex min-h-[2.75rem] w-full items-center justify-center rounded-xl bg-[#f58e43] px-5 text-sm font-semibold text-slate-950 shadow-[0_8px_24px_rgba(245,142,67,0.28)] transition hover:bg-[#ff9b4f] sm:w-auto"
             >
               See plans
             </Link>
             <Link
               to="/listings"
-              className="text-center text-sm text-[#f58e43] transition hover:text-[#ff9b4f] sm:text-right"
+              className="inline-flex min-h-[2.75rem] w-full items-center justify-center rounded-xl border-2 border-[#0b2348] bg-white px-5 text-sm font-semibold text-[#0b2348] shadow-sm transition hover:border-[#f58e43] hover:bg-[#fff8f3] hover:text-[#b84a0f] sm:w-auto"
             >
               View all listings
             </Link>
@@ -160,29 +160,31 @@ export function LandingPage() {
         ) : null}
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-18 sm:px-6">
+      <section className="mx-auto max-w-7xl px-4 pt-24 pb-10 sm:px-6 sm:pt-28">
         <RevealOnView
-          className="mb-8 flex w-full flex-wrap items-end justify-between gap-4"
+          className="mb-10 flex w-full flex-wrap items-end justify-between gap-5"
           variant="fade-up"
         >
           <div>
             <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
               Installment
             </p>
-            <h2 className="text-[2rem] font-semibold">
+            <h2 className="mt-1 text-[2rem] font-semibold tracking-tight text-slate-900">
               Top properties for installment plans
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
               Fractional and extended-payment friendly picks — ranked by rating
               (up to {LANE_CARD_LIMIT}).
             </p>
           </div>
-          <Link
-            to="/listings"
-            className="text-sm text-[#f58e43] transition hover:text-[#ff9b4f]"
-          >
-            View all listings
-          </Link>
+          <div className="flex w-full shrink-0 sm:w-auto sm:justify-end">
+            <Link
+              to="/listings"
+              className="inline-flex min-h-[2.75rem] w-full items-center justify-center rounded-xl border-2 border-[#0b2348] bg-white px-5 text-sm font-semibold text-[#0b2348] shadow-sm transition hover:border-[#f58e43] hover:bg-[#fff8f3] hover:text-[#b84a0f] sm:w-auto"
+            >
+              View all listings
+            </Link>
+          </div>
         </RevealOnView>
         <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {installmentTop.map((property) => (
@@ -198,16 +200,16 @@ export function LandingPage() {
         ) : null}
       </section>
 
-      <section className="mx-auto max-w-[1240px] overflow-hidden px-4 pb-18 sm:px-6">
+      <section className="mx-auto max-w-[1240px] overflow-hidden px-4 pt-24 pb-16 sm:px-6 sm:pt-28">
         <div className="partners-shell">
-          <RevealOnView className="mb-6 w-full" variant="fade-up">
+          <RevealOnView className="mb-8 w-full" variant="fade-up">
             <p className="text-xs tracking-[0.25em] text-[#f8ab71] uppercase">
               Partners
             </p>
-            <h2 className="text-[2rem] font-semibold text-[#f8fafc]">
+            <h2 className="mt-1 text-[2rem] font-semibold tracking-tight text-[#f8fafc]">
               Trusted by global partners
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-200/90">
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-200/90">
               Backed by brands and marketplaces that help us deliver secure,
               transparent, and scalable real-estate investing.
             </p>
@@ -246,12 +248,12 @@ export function LandingPage() {
           </div>
         </div>
       </section>
-      <section className="mx-auto max-w-[1240px] px-4 pb-20 sm:px-6">
-        <RevealOnView className="mb-6 w-full" variant="fade-up">
+      <section className="mx-auto max-w-[1240px] px-4 pt-24 pb-24 sm:px-6 sm:pt-28">
+        <RevealOnView className="mb-8 w-full" variant="fade-up">
           <p className="text-xs tracking-[0.25em] text-[#f58e43] uppercase">
             FAQ
           </p>
-          <h2 className="text-[2rem] font-semibold">
+          <h2 className="mt-1 text-[2rem] font-semibold tracking-tight text-slate-900">
             Frequently asked questions
           </h2>
         </RevealOnView>
@@ -275,12 +277,12 @@ export function LandingPage() {
         </RevealStagger>
       </section>
       <section className="bg-[#0b2348]">
-        <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-[1240px] px-4 pt-24 pb-20 sm:px-6 sm:pt-28">
           <RevealOnView className="w-full" variant="fade-up">
             <p className="text-sm tracking-[0.22em] text-[#f58e43] uppercase">
               Our Achievement
             </p>
-            <h2 className="mt-2 text-3xl font-semibold text-[#f8fafc]">
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#f8fafc]">
               Our Awesome Success Story.
             </h2>
           </RevealOnView>
@@ -301,7 +303,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6">
+      <section className="mx-auto max-w-[1240px] px-4 pt-24 pb-20 sm:px-6 sm:pt-28">
         <div className="welcome-homirx">
           <RevealOnView className="welcome-homirx-left" variant="fade-up">
             <div className="about-one__single">
