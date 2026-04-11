@@ -37,6 +37,7 @@ import { RegisterPage } from "@/pages/register-page"
 import { StaffLandBookingsPage } from "@/pages/staff-land-bookings-page"
 import { StaffInstallmentTrackerPage } from "@/pages/staff-installment-tracker-page"
 import { ProtectedRoute } from "@/routes/protected-route"
+import { publicUrl } from "@/utils/public-url"
 
 function AppShell() {
   const { pathname } = useLocation()
@@ -165,7 +166,7 @@ function AppShell() {
           </Route>
         </Routes>
       </div>
-      <span className="whatsapp-float-shell fixed right-5 bottom-5 z-[2147483646] flexitems-center justify-center">
+      <span className="whatsapp-float-shell fixed right-5 bottom-5 z-[2147483646] flex h-[70px] w-[70px] items-center justify-center">
         <a
           href="https://wa.me/8801312345003"
           target="_blank"
@@ -174,7 +175,7 @@ function AppShell() {
           className="whatsapp-float relative inline-flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
         >
           <img
-            src="/Whatsapp.gif"
+            src={publicUrl("Whatsapp.gif")}
             alt=""
             width={100}
             height={100}

@@ -5,6 +5,7 @@ import { faBars, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import { useLanguage } from "@/i18n/language-context"
+import { publicUrl } from "@/utils/public-url"
 import { normalizeStoredRole } from "@/routes/protected-route"
 import type { UserRole } from "@/types/domain"
 
@@ -139,7 +140,7 @@ export function Navbar() {
           >
             <span className="inline-flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none sm:h-[52px] sm:w-[52px]">
               <img
-                src="/navlogo.jpg"
+                src={publicUrl("navlogo.jpg")}
                 alt="Eurostar"
                 className="h-full w-full object-cover"
                 loading="eager"
@@ -157,7 +158,7 @@ export function Navbar() {
               </span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-6 text-[13px] ml-0 lg:-ml-50 font-semibold text-slate-300 lg:flex" aria-label="Main">
+          <nav className="hidden items-center gap-6 text-[13px] w-full justify-center font-semibold text-slate-300 lg:flex" aria-label="Main">
             {links.map((item) => (
               <NavLink
                 key={item.to}

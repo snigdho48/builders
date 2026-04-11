@@ -14,9 +14,9 @@ export function propertyUsesInvestmentBooking(property: Property): boolean {
   return isInstallmentChannel(property) || property.land_sale_mode === "fractional_share"
 }
 
-/** Legacy builders label: Plot buy vs Installment */
+/** Channel label on cards and listings */
 export function propertySaleChannelLabel(property: Pick<Property, "property_channel" | "sale_type">): string {
-  return isInstallmentChannel(property) ? "Installment" : "Plot buy"
+  return isInstallmentChannel(property) ? "Installment" : "Buy property"
 }
 
 export function propertySaleChannelBadgeClass(property: Pick<Property, "property_channel" | "sale_type">): string {

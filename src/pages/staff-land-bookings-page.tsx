@@ -17,7 +17,7 @@ const planLabel: Record<string, string> = {
 }
 
 const kindLabel: Record<string, string> = {
-  plot_buy: "Plot buy",
+  plot_buy: "Buy property",
   investment: "Investment",
 }
 

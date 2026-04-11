@@ -6,7 +6,7 @@ export function ContactPage() {
           <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Contact</p>
           <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Talk to our investment advisors</h1>
           <p className="mt-3 text-slate-300">
-            Share your goals and we will help you choose plot buy or installment plans.
+            Share your goals and we will help you choose buy property or installment plans.
           </p>
           <div className="mt-8 space-y-3 text-slate-300">
             <p>Email: contact@example.com</p>

@@ -93,7 +93,7 @@ const INVESTMENT_SECTIONS: Section[] = [
   {
     title: "Investment booking",
     paragraphs: [
-      "This path is for investment-oriented enquiries. Payment terms, documentation, and timelines are agreed with our team separately from the limited 1% and 50% plot-buy promo.",
+      "This path is for investment-oriented enquiries. Payment terms, documentation, and timelines are agreed with our team separately from the limited 1% and 50% buy-property promo.",
       "Nothing in this screen substitutes for a signed investment or subscription agreement.",
     ],
   },

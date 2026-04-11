@@ -1,0 +1,49 @@
+import { FreeMode, Navigation } from "swiper/modules"
+import { Swiper, SwiperSlide } from "swiper/react"
+
+import { PropertyCarouselCard } from "@/components/property-carousel-card"
+import type { Property } from "@/types/domain"
+
+type PropertyLandingCarouselProps = {
+  properties: Property[]
+}
+
+export function PropertyLandingCarousel({ properties }: PropertyLandingCarouselProps) {
+  if (properties.length === 0) return null
+
+  const showNav = properties.length > 1
+
+  return (
+    <div className="property-landing-carousel-wrap relative">
+      <Swiper
+        modules={showNav ? [Navigation, FreeMode] : [FreeMode]}
+        navigation={showNav}
+        freeMode={{
+          enabled: true,
+          momentum: true,
+          momentumRatio: 0.85,
+          momentumVelocityRatio: 0.85,
+        }}
+        watchOverflow
+        centeredSlides
+        slidesPerView={1}
+        spaceBetween={14}
+        breakpoints={{
+          480: { slidesPerView: 1.12, spaceBetween: 14 },
+          640: { slidesPerView: 2.12, spaceBetween: 18, centeredSlides: false },
+          900: { slidesPerView: 2.65, spaceBetween: 18, centeredSlides: false },
+          1100: { slidesPerView: 3.35, spaceBetween: 20, centeredSlides: false },
+          1280: { slidesPerView: 4.15, spaceBetween: 20, centeredSlides: false },
+          1536: { slidesPerView: 4.45, spaceBetween: 20, centeredSlides: false },
+        }}
+        className="property-landing-swiper pb-1!"
+      >
+        {properties.map((property, index) => (
+          <SwiperSlide key={property.id} className="h-auto!">
+            <PropertyCarouselCard property={property} rank={index + 1} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  )
+}

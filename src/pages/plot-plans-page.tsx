@@ -4,10 +4,10 @@ export function PlotPlansPage() {
   return (
     <main className="bg-white py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(5rem,env(safe-area-inset-bottom,0px))] text-slate-900 sm:px-6">
       <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Plot buy</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Buy property</p>
         <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Payment plans: 1% and 50%</h1>
         <p className="mt-4 text-sm leading-7 text-slate-600">
-          These options apply to <strong className="text-slate-800">plot-buy</strong> listings. When you book, you
+          These options apply to <strong className="text-slate-800">buy-property</strong> listings. When you book, you
           choose one plan; staff review your request before acceptance. Exact amounts, dates, and registration steps
           are fixed in your signed sale or allotment agreement — this page is a plain-language overview.
         </p>
@@ -75,12 +75,12 @@ export function PlotPlansPage() {
         <section className="mt-10 border-t border-slate-200 pt-8 text-sm leading-7 text-slate-600">
           <h2 className="text-base font-semibold text-slate-900">Availability</h2>
           <p className="mt-2">
-            Plot-buy 1% and 50% plans may be offered within a <strong>limited number of active bookings</strong> at a
+            Buy-property 1% and 50% plans may be offered within a <strong>limited number of active bookings</strong> at a
             time (shown when you book). If slots are full, you can still explore other listing types or contact us.
           </p>
           <p className="mt-4">
             <Link to="/listings" className="font-semibold text-[#f58e43] hover:underline">
-              Browse plot-buy listings
+              Browse buy-property listings
             </Link>
             {" · "}
             <Link to="/contact" className="font-semibold text-[#f58e43] hover:underline">

@@ -255,7 +255,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
           <p className="text-sm text-slate-600">Select one plan to continue.</p>
           {promo ? (
             <p className="mt-2 text-xs text-slate-500">
-              Plot buy (1% / 50%) promo slots:{" "}
+              Buy property (1% / 50%) promo slots:{" "}
               <strong className="text-[#0b1f44]">
                 {promo.plot_buy_installment_slots_available} of {promo.plot_buy_installment_slot_limit} left
               </strong>

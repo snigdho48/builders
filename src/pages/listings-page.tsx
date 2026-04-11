@@ -238,9 +238,9 @@ export function ListingsPage() {
         {loading ? (
           <GridLoader count={pageSize >= 24 ? 6 : 9} />
         ) : (
-          <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {properties.map((property) => (
-              <div key={property.id} className="min-h-0 min-w-0">
+              <div key={property.id} className="min-w-0">
                 <PropertyCard property={property} />
               </div>
             ))}
