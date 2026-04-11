@@ -148,7 +148,7 @@ export function Navbar() {
             </span>
             <span className="min-w-0 leading-tight">
               <span
-                className="block text-[clamp(1.2rem,5.2vw+0.35rem,2.35rem)] font-normal uppercase tracking-[0.06em]"
+                className="block text-[clamp(1.1rem,4.2vw+0.35rem,1.95rem)] font-normal uppercase tracking-[0.06em]"
                 style={{ fontFamily: "\"Libre Franklin\", system-ui, sans-serif" }}
               >
                 EUROSTAR

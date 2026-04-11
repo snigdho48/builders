@@ -110,13 +110,17 @@ export function EverythingNeedSection() {
   return (
     <section className="white-box everything-need" aria-labelledby={headingId}>
       <div className="landing-inner">
-        <div className="title-box">
-          <strong id={headingId} className="title">
-            Everything you Need at One Place
-          </strong>
-        </div>
-
         <div className="white-body">
+          <header className="everything-need-header">
+            <p className="everything-need-kicker">Services</p>
+            <h2 id={headingId} className="everything-need-heading">
+              Everything You Need at One Place
+            </h2>
+            <p className="everything-need-lead">
+              Quick access to loans, interiors, agreements, marketing, and data — organized by who you are.
+            </p>
+          </header>
+
           <div className="service-box">
             <ul
               className="service-tabs tab-box scrollbar-hide"
@@ -177,7 +181,7 @@ export function EverythingNeedSection() {
                               }}
                             />
                           </figure>
-                          <strong>{item.label}</strong>
+                          <strong className="everything-need-item-label line-clamp-3">{item.label}</strong>
                         </a>
                       </li>
                     )

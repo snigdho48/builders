@@ -4,6 +4,8 @@ import { Autoplay, Pagination } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 
 import { EverythingNeedSection } from "@/components/everything-need-section"
+import { AppDownloadSection } from "@/components/app-download-section"
+import { ExclusiveOfferSection } from "@/components/exclusive-offer-section"
 import { RevealOnView, RevealStagger } from "@/components/motion/reveal-on-view"
 import { PropertyLandingCarousel } from "@/components/property-landing-carousel"
 import { getProperties } from "@/services/api"
@@ -282,6 +284,7 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+      <ExclusiveOfferSection />
       <section
         className="achievement-strip landing-section relative border-t border-slate-200/80 bg-gradient-to-b from-white via-[#f8fafc] to-[#eef2f9] text-slate-900"
         aria-labelledby="achievement-heading"
@@ -318,6 +321,7 @@ export function LandingPage() {
           </RevealStagger>
         </div>
       </section>
+      <AppDownloadSection />
 
     </main>
   )

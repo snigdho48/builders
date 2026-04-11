@@ -704,37 +704,77 @@
     }
   }
 
-  /* Landing — Square Yards “Everything you Need” (scoped) */
+  /* Landing — “Everything you need” (aligned card, grid services, brand tabs) */
   .everything-need {
-    padding-block: clamp(2.75rem, 5vw, 4.25rem);
+    padding-block: clamp(2.25rem, 4.5vw, 3.75rem);
     background: #f6f7fb;
   }
 
   @media (min-width: 640px) {
     .everything-need {
-      padding-block: clamp(3.25rem, 5.5vw, 4.75rem);
+      padding-block: clamp(2.75rem, 5vw, 4rem);
     }
   }
 
-  .everything-need .title-box {
-    margin-bottom: clamp(1.15rem, 2.5vw, 1.65rem);
-  }
-
-  .everything-need .title {
-    display: block;
-    font-size: clamp(1.35rem, 3.5vw, 1.85rem);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: #0f172a;
-    line-height: 1.2;
-  }
-
   .everything-need .white-body {
-    border-radius: 14px;
-    border: 1px solid rgb(226 232 240);
+    border-radius: 1rem;
+    border: 1px solid rgb(226 232 240 / 0.95);
     background: #fff;
-    box-shadow: 0 12px 36px rgb(15 23 42 / 6%);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 85%) inset,
+      0 16px 40px rgb(15 23 42 / 5.5%),
+      0 4px 12px rgb(15 23 42 / 4%);
     overflow: hidden;
+  }
+
+  @media (min-width: 640px) {
+    .everything-need .white-body {
+      border-radius: 1.25rem;
+    }
+  }
+
+  .everything-need-header {
+    padding: clamp(1.1rem, 3vw, 1.65rem) clamp(1rem, 3vw, 1.75rem) clamp(0.85rem, 2vw, 1.15rem);
+    border-bottom: 1px solid rgb(241 245 249);
+    text-align: left;
+  }
+
+  @media (min-width: 768px) {
+    .everything-need-header {
+      padding-inline: 1.75rem;
+    }
+  }
+
+  .everything-need-kicker {
+    margin: 0 0 0.35rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #f58e43;
+  }
+
+  .everything-need-heading {
+    margin: 0;
+    font-size: clamp(1.2rem, 3.8vw, 1.65rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.22;
+    color: #0b2348;
+  }
+
+  .everything-need-lead {
+    margin: 0.55rem 0 0;
+    max-width: 40rem;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: rgb(71 85 105);
+  }
+
+  @media (min-width: 640px) {
+    .everything-need-lead {
+      font-size: 0.875rem;
+    }
   }
 
   .everything-need .service-box {
@@ -743,17 +783,20 @@
   }
 
   .everything-need .service-tabs {
+    position: relative;
     display: flex;
     flex-wrap: nowrap;
-    align-items: flex-end;
-    gap: 0.45rem;
+    align-items: stretch;
+    gap: 0.35rem;
     margin: 0;
-    padding: 1rem 0.75rem 0;
+    padding: 0.65rem clamp(0.65rem, 2.5vw, 1.25rem) 0;
     list-style: none;
     overflow-x: auto;
     overflow-y: hidden;
-    border-bottom: 1px solid rgb(226 232 240);
-    background: #fff;
+    scroll-padding-inline: 1rem;
+    border-bottom: 1px solid rgb(241 245 249);
+    background: rgb(248 250 252 / 85%);
+    -webkit-overflow-scrolling: touch;
   }
 
   .everything-need .service-tabs.scrollbar-hide {
@@ -768,59 +811,74 @@
   .everything-need .service-tabs > li {
     list-style: none;
     flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
   }
 
   .everything-need .service-tab-trigger {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0;
+    min-height: 2.75rem;
     cursor: pointer;
-    border-radius: 10px 10px 0 0;
-    border: 1px solid rgb(212 212 216);
+    border-radius: 0.5rem 0.5rem 0 0;
+    border: 1px solid rgb(226 232 240);
     border-bottom: none;
-    padding: 0.72rem 1rem;
+    padding: 0.5rem 0.85rem;
     font-family: inherit;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    line-height: 1.25;
-    color: #0f172a;
-    background: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: rgb(51 65 85);
+    background: rgb(255 255 255 / 92%);
     white-space: nowrap;
     transition:
-      background-color 0.15s ease,
-      color 0.15s ease,
-      border-color 0.15s ease;
+      background-color 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  @media (min-width: 640px) {
+    .everything-need .service-tab-trigger {
+      font-size: 0.8125rem;
+      padding: 0.6rem 1rem;
+    }
   }
 
   @media (min-width: 768px) {
     .everything-need .service-tab-trigger {
       font-size: 0.875rem;
-      padding: 0.85rem 1.15rem;
+      padding: 0.65rem 1.15rem;
     }
   }
 
   .everything-need .service-tab-trigger:hover {
-    border-color: rgb(163 163 163);
-    background: rgb(250 250 250);
+    border-color: rgb(203 213 225);
+    background: #fff;
+    color: #0f172a;
   }
 
   .everything-need .service-tab-trigger:focus-visible {
     outline: 2px solid #f58e43;
-    outline-offset: 2px;
+    outline-offset: 1px;
   }
 
   .everything-need .service-tab-trigger.active {
     position: relative;
     z-index: 2;
-    border-color: #18181b;
-    background: #18181b;
-    color: #fff;
+    border-color: rgb(11 35 72);
+    background: #0b2348;
+    color: #f8fafc;
+    box-shadow: 0 -1px 0 rgb(11 35 72);
     margin-bottom: -1px;
-    padding-bottom: calc(0.72rem + 1px);
+    padding-bottom: calc(0.5rem + 1px);
   }
 
   @media (min-width: 768px) {
     .everything-need .service-tab-trigger.active {
-      padding-bottom: calc(0.85rem + 1px);
+      padding-bottom: calc(0.65rem + 1px);
     }
   }
 
@@ -828,12 +886,13 @@
     position: relative;
     z-index: 1;
     background: #fff;
-    padding: 2rem 0.85rem 2.25rem;
+    padding: clamp(1rem, 3vw, 1.5rem) clamp(0.75rem, 2.5vw, 1.5rem) clamp(1.15rem, 3vw, 1.65rem);
   }
 
-  @media (min-width: 640px) {
+  @media (min-width: 768px) {
     .everything-need .service-tab-body {
-      padding: 2.25rem 1.35rem 2.5rem;
+      padding-inline: 1.75rem;
+      padding-bottom: 1.75rem;
     }
   }
 
@@ -844,14 +903,23 @@
     list-style: none;
   }
 
+  /* Match desktop reference on mobile too: 3 columns × square tiles */
   .everything-need .service-tab-list.active {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    gap: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  @media (min-width: 480px) {
+    .everything-need .service-tab-list.active {
+      gap: 0.55rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .everything-need .service-tab-list.active {
+      gap: 0.75rem;
+    }
   }
 
   .everything-need .service-tab-list.active.scrollbar-hide {
@@ -864,38 +932,42 @@
   }
 
   .everything-need .service-tab-list > li {
-    flex: 1 1 0;
-    min-width: 5.5rem;
-    border-right: 1px solid rgb(235 236 239);
-  }
-
-  .everything-need .service-tab-list > li:last-child {
-    border-right: none;
+    margin: 0;
+    min-width: 0;
+    border: none;
   }
 
   .everything-need .service-tab-list .link {
     display: flex;
-    height: 100%;
-    min-height: 7.5rem;
+    aspect-ratio: 1;
+    min-height: 0;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: 0.65rem;
-    padding: 0.35rem 0.5rem;
+    justify-content: center;
+    gap: 0.35rem;
+    height: 100%;
+    padding: 0.35rem 0.3rem 0.45rem;
     text-align: center;
     text-decoration: none;
     color: inherit;
-    transition: opacity 0.15s ease;
+    border-radius: 0.65rem;
+    border: 1px solid rgb(241 245 249);
+    background: rgb(248 250 252 / 55%);
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
   }
 
   .everything-need .service-tab-list .link:hover {
-    opacity: 0.88;
+    border-color: rgb(226 232 240);
+    background: #fff;
+    box-shadow: 0 8px 22px rgb(15 23 42 / 6%);
   }
 
   .everything-need .service-tab-list .link:focus-visible {
     outline: 2px solid #f58e43;
-    outline-offset: 3px;
-    border-radius: 8px;
+    outline-offset: 2px;
   }
 
   .everything-need .service-tab-list figure {
@@ -908,25 +980,471 @@
 
   .everything-need .service-tab-list .img-responsive {
     display: block;
-    width: 79px;
-    height: 79px;
+    width: clamp(36px, 10.5vw, 72px);
+    height: clamp(36px, 10.5vw, 72px);
     max-width: 100%;
     object-fit: contain;
   }
 
-  .everything-need .service-tab-list .link strong {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    line-height: 1.35;
+  @media (min-width: 480px) {
+    .everything-need .service-tab-list .img-responsive {
+      width: clamp(44px, 12vw, 72px);
+      height: clamp(44px, 12vw, 72px);
+    }
+  }
+
+  .everything-need .service-tab-list .everything-need-item-label {
+    display: block;
+    width: 100%;
+    max-width: none;
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1.3;
     color: #0f172a;
-    max-width: 7.5rem;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 480px) {
+    .everything-need .service-tab-list .everything-need-item-label {
+      font-size: 0.6875rem;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .everything-need .service-tab-list .everything-need-item-label {
+      font-size: 0.75rem;
+    }
   }
 
   @media (min-width: 768px) {
-    .everything-need .service-tab-list .link strong {
-      font-size: 0.875rem;
-      max-width: 9rem;
+    .everything-need .service-tab-list .everything-need-item-label {
+      font-size: 0.8125rem;
     }
+  }
+
+  /* Exclusive offer — before Our Achievement */
+  @keyframes exclusive-offer-bounce {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    45% {
+      transform: scale(1.08);
+    }
+
+    60% {
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes exclusive-offer-shimmer {
+    0% {
+      background-position: 120% 50%;
+    }
+
+    100% {
+      background-position: -120% 50%;
+    }
+  }
+
+  @keyframes exclusive-offer-ring {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 0 rgb(245 142 67 / 45%),
+        0 0 24px rgb(245 142 67 / 25%);
+    }
+
+    50% {
+      box-shadow:
+        0 0 0 10px rgb(245 142 67 / 0%),
+        0 0 36px rgb(245 142 67 / 45%);
+    }
+  }
+
+  .exclusive-offer-wrap {
+    padding-top: clamp(1.75rem, 4vw, 2.75rem);
+    padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+    background: linear-gradient(180deg, #f6f7fb 0%, #eef1f8 100%);
+  }
+
+  .exclusive-offer-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(1rem, 3vw, 1.75rem);
+    padding: clamp(1.25rem, 3.5vw, 2rem) clamp(1.15rem, 3.5vw, 2.25rem);
+    border-radius: 1.15rem;
+    border: 1px solid rgb(245 142 67 / 38%);
+    background: linear-gradient(128deg, #0b2348 0%, #143c72 42%, #0d1f3d 100%);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 8%) inset,
+      0 22px 48px rgb(2 12 32 / 35%);
+  }
+
+  @media (min-width: 640px) {
+    .exclusive-offer-card {
+      border-radius: 1.35rem;
+    }
+  }
+
+  .exclusive-offer-visual {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .exclusive-offer-exclaim {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(2.75rem, 8vw, 3.5rem);
+    height: clamp(2.75rem, 8vw, 3.5rem);
+    border-radius: 9999px;
+    background: linear-gradient(145deg, #ffb36b 0%, #f58e43 45%, #e86f1a 100%);
+    color: #0b1020;
+    font-size: clamp(1.65rem, 5vw, 2.25rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .exclusive-offer-exclaim {
+      animation: exclusive-offer-bounce 2.4s ease-in-out infinite;
+    }
+  }
+
+  .exclusive-offer-fifty {
+    font-size: clamp(2.4rem, 11vw, 3.75rem);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    background: linear-gradient(
+      100deg,
+      #fff 0%,
+      #fff4e8 18%,
+      #fff 32%,
+      #ffe8cc 48%,
+      #fff 62%,
+      #f58e43 78%,
+      #fff 100%
+    );
+    background-size: 240% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .exclusive-offer-fifty {
+      animation: exclusive-offer-shimmer 4s ease-in-out infinite;
+    }
+  }
+
+  .exclusive-offer-copy {
+    flex: 1 1 16rem;
+    min-width: min(100%, 16rem);
+  }
+
+  .exclusive-offer-kicker {
+    margin: 0 0 0.35rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(251 191 36 / 95%);
+  }
+
+  .exclusive-offer-title {
+    margin: 0;
+    font-size: clamp(1.05rem, 3.2vw, 1.35rem);
+    font-weight: 700;
+    line-height: 1.28;
+    letter-spacing: -0.02em;
+    color: #f8fafc;
+  }
+
+  .exclusive-offer-detail {
+    margin: 0.55rem 0 0;
+    max-width: 36rem;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: rgb(203 213 225);
+  }
+
+  @media (min-width: 640px) {
+    .exclusive-offer-detail {
+      font-size: 0.875rem;
+    }
+  }
+
+  .exclusive-offer-cta {
+    display: inline-flex;
+    margin-top: 0.85rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid rgb(245 142 67 / 55%);
+    background: linear-gradient(180deg, rgb(245 142 67 / 22%) 0%, rgb(245 142 67 / 12%) 100%);
+    padding: 0.55rem 1.25rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #fff8f3;
+    text-decoration: none;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .exclusive-offer-cta:hover {
+    border-color: rgb(245 142 67 / 85%);
+    background: rgb(245 142 67 / 32%);
+    color: #fff;
+  }
+
+  .exclusive-offer-cta:focus-visible {
+    outline: 2px solid #f58e43;
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .exclusive-offer-card {
+      animation: exclusive-offer-ring 3.2s ease-out infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .exclusive-offer-exclaim,
+    .exclusive-offer-fifty,
+    .exclusive-offer-card {
+      animation: none;
+    }
+  }
+
+  /* App download — landing (reference layout, Square Yards assets) */
+  .app-download {
+    padding-top: clamp(1.75rem, 4vw, 2.75rem);
+    padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+    background: linear-gradient(180deg, #eef1f8 0%, #e8ecf4 100%);
+  }
+
+  .app-download-box {
+    display: flex;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    overflow: hidden;
+    border-radius: 1.15rem;
+    background: #fff;
+    padding: clamp(1.35rem, 3.5vw, 2.5rem) clamp(1.1rem, 3vw, 2.75rem);
+    box-shadow:
+      0 16px 48px rgb(15 23 42 / 7%),
+      0 2px 10px rgb(15 23 42 / 4%);
+  }
+
+  @media (min-width: 1024px) {
+    .app-download-box {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      border-radius: 1.35rem;
+      padding: clamp(2rem, 3.5vw, 3.25rem) clamp(1.75rem, 3vw, 3.25rem);
+    }
+  }
+
+  .app-download-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    .app-download-body {
+      flex: 0 1 26rem;
+      max-width: 26rem;
+    }
+  }
+
+  .app-download-title {
+    margin: 0;
+    font-size: clamp(1.45rem, 3.8vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.22;
+    color: #222;
+  }
+
+  .app-download-lead {
+    margin: 0.7rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.62;
+    color: #666;
+  }
+
+  .app-download-lead strong {
+    font-weight: 700;
+    color: #444;
+  }
+
+  .app-download-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 1.15rem;
+    border-radius: 0.65rem;
+    background: #333;
+    padding: 0.35rem;
+  }
+
+  @media (min-width: 480px) {
+    .app-download-input-box {
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0.35rem;
+    }
+  }
+
+  .app-download-mobile-input {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .app-download-field {
+    width: 100%;
+    border: 0;
+    border-radius: 0.45rem;
+    background: #fff;
+    padding: 0.62rem 0.8rem;
+    font-size: 0.875rem;
+    color: #111;
+  }
+
+  .app-download-field::placeholder {
+    color: #9ca3af;
+  }
+
+  .app-download-field:focus {
+    outline: 2px solid #f58e43;
+    outline-offset: 1px;
+  }
+
+  .app-download-send-btn {
+    cursor: pointer;
+    border: 0;
+    border-radius: 0.45rem;
+    background: #ffd200;
+    padding: 0.62rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+    transition: filter 0.15s ease;
+  }
+
+  .app-download-send-btn:hover {
+    filter: brightness(0.96);
+  }
+
+  .app-download-send-btn:focus-visible {
+    outline: 2px solid #f58e43;
+    outline-offset: 2px;
+  }
+
+  .app-download-feedback {
+    margin: 0.55rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: #15803d;
+  }
+
+  .app-download-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.65rem 1rem;
+    margin: 1.35rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .app-download-badge-img {
+    display: block;
+    height: auto;
+    max-width: 100%;
+  }
+
+  .app-download-qr-item {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+  }
+
+  @media (min-width: 640px) {
+    .app-download-qr-item {
+      flex: 1 1 auto;
+      min-width: min(100%, 17rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .app-download-qr-item {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+  }
+
+  .app-download-qr-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: min(200px, 52vw);
+  }
+
+  @media (min-width: 480px) {
+    .app-download-qr-img {
+      max-width: 220px;
+    }
+  }
+
+  .app-download-qr-caption {
+    margin: 0;
+    flex: 1;
+    max-width: 10.5rem;
+    font-size: 0.6875rem;
+    line-height: 1.38;
+    color: #666;
+  }
+
+  .app-download-figure {
+    margin: 0;
+    flex: 0 1 auto;
+    display: flex;
+    justify-content: center;
+    align-self: flex-end;
+  }
+
+  @media (min-width: 1024px) {
+    .app-download-figure {
+      justify-content: flex-end;
+      margin-right: -0.35rem;
+    }
+  }
+
+  .app-download-screen-img {
+    display: block;
+    width: min(100%, 558px);
+    height: auto;
+    max-width: 100%;
   }
 
   .glass-panel {
