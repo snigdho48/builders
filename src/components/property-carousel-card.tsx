@@ -18,16 +18,43 @@ type PropertyCarouselCardProps = {
   rank: number
 }
 
+/** Strip simple HTML from API fields like `<p>…</p>` for plain-text previews. */
+function htmlToPlainText(html: string): string {
+  const decoded = html
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+  return decoded
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+/** Primary API copy for the card blurb; visual length capped with `line-clamp-2` on the element. */
+function listingDescriptionPreview(property: Property): string {
+  const primary = htmlToPlainText(property.description ?? "")
+  if (primary) return primary
+  const secondary = htmlToPlainText(property.description_secondary ?? "")
+  if (secondary) return secondary
+  const review = property.review_sample_text?.trim()
+  if (review) return review
+  return "Premium listing in a prime location."
+}
+
 export function PropertyCarouselCard({ property, rank }: PropertyCarouselCardProps) {
   const img = property.top_view_image || "https://placehold.co/640x400/e2e8f0/64748b?text=Land"
+  const sqft = property.size_sqft ?? property.land_area_sqft ?? 1600
 
   return (
     <Link
       to={`/properties/${property.id}`}
-      className="property-focus-card-link group mx-auto block h-auto w-full max-w-[min(100%,312px)] min-w-0 cursor-pointer overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[#f58e43] focus-visible:ring-offset-2"
+      className="property-focus-card-link group mx-auto block h-auto w-full min-w-0 cursor-pointer overflow-visible outline-none focus-visible:ring-2 focus-visible:ring-[#f58e43] focus-visible:ring-offset-2 lg:max-w-none"
     >
-      <article className="property-focus-card flex min-h-0 w-full flex-col overflow-hidden">
-        <figure className="property-focus-card__figure m-0">
+      <article className="property-focus-card flex min-h-0 w-full flex-col overflow-visible">
+        <figure className="property-focus-card__figure property-focus-card__figure--rank m-0" data-rank={rank}>
           <div className="property-focus-card__img-wrap">
             <img
               src={img}
@@ -36,10 +63,10 @@ export function PropertyCarouselCard({ property, rank }: PropertyCarouselCardPro
               loading="lazy"
               decoding="async"
             />
+            <span className="property-focus-card__wish" aria-hidden>
+              ♡
+            </span>
           </div>
-          <span className="project-number" aria-hidden>
-            <span className="number">{rank}</span>
-          </span>
         </figure>
         <figcaption className="property-focus-card__caption m-0">
           <strong className="property-focus-card__title line-clamp-2 font-bold text-gray-900 max-sm:line-clamp-1">
@@ -48,8 +75,15 @@ export function PropertyCarouselCard({ property, rank }: PropertyCarouselCardPro
           <span className="property-focus-card__city line-clamp-2 text-gray-500 max-sm:line-clamp-1">
             {property.location_name}
           </span>
-          <div className="property-focus-card__price font-bold text-gray-900">
-            {priceCaption(property)}
+          <p className="property-focus-card__desc line-clamp-2 min-h-0 min-w-0 wrap-break-word">
+            {listingDescriptionPreview(property)}
+          </p>
+          <div className="property-focus-card__meta-row w-full" aria-hidden>
+            <span>{sqft.toLocaleString()} sqft</span>
+          </div>
+          <div className="property-focus-card__footer">
+            <span className="property-focus-card__price font-bold text-gray-900">{priceCaption(property)}</span>
+            <span className="property-focus-card__details-pill">Details</span>
           </div>
         </figcaption>
       </article>

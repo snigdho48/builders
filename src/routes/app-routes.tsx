@@ -16,6 +16,7 @@ import { AboutPage } from "@/pages/about-page"
 import { AuthPage } from "@/pages/auth-page"
 import { ContactPage } from "@/pages/contact-page"
 import { LegalPage } from "@/pages/legal-page"
+import { LegalTermsPage } from "@/pages/legal-terms-page"
 import { DashboardRouterPage } from "@/pages/dashboard-router-page"
 import { InvestorBookingsPage } from "@/pages/investor-bookings-page"
 import { InvestorDashboardHomePage } from "@/pages/investor-dashboard-home"
@@ -66,6 +67,7 @@ function AppShell() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/legal" element={<LegalPage />} />
+          <Route path="/legal/terms" element={<LegalTermsPage />} />
           <Route
             path="/profile"
             element={

@@ -14,11 +14,14 @@ export function publicUrl(path: string): string {
  */
 export function setPublicAssetCssVars(): void {
   if (typeof document === "undefined") return
-  const grad = "linear-gradient(rgba(10, 31, 62, 0.34), rgba(10, 31, 62, 0.55))"
-  const landscape = `url("${publicUrl("beautiful-landscape-with-small-village.webp")}")`
+  const lightWash =
+    "linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(246,247,251,0.2) 42%, transparent 68%)"
+  const grad =
+    "linear-gradient(to bottom, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.52) 55%, rgba(0, 0, 0, 0.58) 100%)"
+  const landscape = `url("${publicUrl("beautiful-landscape-with-small-village copy.webp")}")`
   document.documentElement.style.setProperty(
     "--home-hero-bg",
-    `${grad}, ${landscape} center / cover no-repeat`,
+    `${lightWash}, ${grad}, ${landscape} center / cover no-repeat`,
   )
   document.documentElement.style.setProperty(
     "--polygon-mask-url",

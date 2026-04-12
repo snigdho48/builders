@@ -221,14 +221,11 @@ export function DashboardShell({ sections, workspaceLabel }: DashboardShellProps
           onClick={goHome}
           className="flex min-w-0 max-w-[min(100%,220px)] flex-1 items-center gap-2 rounded-xl border border-transparent py-1 text-left transition-colors hover:border-slate-200 hover:bg-slate-50 sm:max-w-none sm:flex-none md:gap-2.5"
         >
-          <span className="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] sm:h-10 sm:w-10" aria-hidden>
+          <span className="inline-flex h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#16243E] sm:h-10 sm:w-10" aria-hidden>
             <img src={publicUrl("navlogo.jpg")} alt="" className="h-full w-full object-cover" />
           </span>
           <span className="min-w-0 leading-tight">
-            <span
-              className="block truncate text-base font-normal uppercase tracking-[0.06em]  sm:text-[1.05rem]"
-              style={{ fontFamily: '"Libre Franklin", system-ui, sans-serif' }}
-            >
+            <span className="block truncate text-base font-normal uppercase tracking-[0.06em] sm:text-[1.05rem]">
               EUROSTAR
             </span>
             <span

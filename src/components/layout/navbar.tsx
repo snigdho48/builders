@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faFacebookF, faInstagram, faPinterestP, faXTwitter } from "@fortawesome/free-brands-svg-icons"
-import { faBars, faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faBars, faMagnifyingGlass, faPhone, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import { useLanguage } from "@/i18n/language-context"
@@ -102,7 +102,7 @@ export function Navbar() {
     : publicLinks
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0a2245]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/5 bg-[#16243E]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur">
       <div className="border-b border-white/5">
         <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 py-2 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] text-xs text-slate-200 sm:gap-x-4 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
             {!isLoggedIn ? (
@@ -133,12 +133,13 @@ export function Navbar() {
         </div>
       </div>
       <div className="relative">
-        <div className="flex w-full min-w-0 items-center justify-between gap-2 py-3.5 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] sm:gap-3 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
+        {/* <lg: nav is display:none so only 2 grid items exist — use 2 columns so actions sit flush right. lg+: 3 equal outer tracks keep desktop links viewport-centered. */}
+        <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-3.5 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] sm:gap-3 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))] lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <Link
             to="/"
-            className="flex min-w-0 items-center gap-2 text-white transition-[filter] duration-300 hover:brightness-110 motion-reduce:transition-none sm:gap-3"
+            className="flex min-w-0 items-center justify-self-start gap-2 text-white transition-[filter] duration-300 hover:brightness-110 motion-reduce:transition-none sm:gap-3"
           >
-            <span className="inline-flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#071a36] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none sm:h-[52px] sm:w-[52px]">
+            <span className="inline-flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#f58e43] bg-[#16243E] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-[transform,box-shadow] duration-300 ease-out hover:scale-105 hover:shadow-[0_0_24px_rgb(245_142_67/35%)] motion-reduce:hover:scale-100 motion-reduce:hover:shadow-none sm:h-[52px] sm:w-[52px]">
               <img
                 src={publicUrl("navlogo.jpg")}
                 alt="Eurostar"
@@ -147,28 +148,28 @@ export function Navbar() {
               />
             </span>
             <span className="min-w-0 leading-tight">
-              <span
-                className="block text-[clamp(1.1rem,4.2vw+0.35rem,1.95rem)] font-normal uppercase tracking-[0.06em]"
-                style={{ fontFamily: "\"Libre Franklin\", system-ui, sans-serif" }}
-              >
+              <span className="block text-[clamp(1.1rem,4.2vw+0.35rem,1.95rem)] font-normal uppercase tracking-[0.06em] !text-xl">
                 EUROSTAR
               </span>
-              <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.03em] text-slate-200/95 sm:text-[0.82rem]">
+              <span className="block !text-[0.58rem] font-semibold uppercase tracking-[0.03em] text-slate-200/95 sm:!text-[0.82rem]">
               Group
               </span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-6 text-[13px] w-full justify-center font-semibold text-slate-300 lg:flex" aria-label="Main">
+          <nav
+            className="hidden min-w-0 items-center justify-center justify-self-center gap-4 text-[16px] font-semibold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.35)] xl:gap-6 lg:flex"
+            aria-label="Main"
+          >
             {links.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
                   [
-                    "relative py-1 transition-colors duration-200 after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-[#f58e43] after:transition-transform after:duration-300 after:ease-out motion-reduce:after:transition-none",
+                    "relative py-1 transition-colors duration-200 after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full  after:transition-transform after:duration-300 after:ease-out motion-reduce:after:transition-none",
                     isActive
                       ? "text-[#f58e43] after:scale-x-100"
-                      : "text-slate-300 hover:text-white hover:after:scale-x-75",
+                      : "text-white hover:text-[#f58e43] hover:after:scale-x-75",
                   ].join(" ")
                 }
               >
@@ -176,17 +177,15 @@ export function Navbar() {
               </NavLink>
             ))}
           </nav>
-          <div className="relative flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-slate-300 sm:gap-2.5">
-            <button
-              type="button"
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-nav-menu"
-              onClick={() => setMobileOpen((open) => !open)}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 lg:hidden"
+          <div className="relative flex w-auto min-w-0 shrink-0 items-center justify-end gap-1.5 justify-self-end text-[13px] font-medium text-slate-300 sm:gap-2.5 lg:w-full">
+            <Link
+              to="/contact"
+              title={t("nav.contactNow", "Contact now")}
+              aria-label={t("nav.contactNow", "Contact now")}
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
             >
-              <FontAwesomeIcon icon={mobileOpen ? faXmark : faBars} className="h-5 w-5" />
-            </button>
+              <FontAwesomeIcon icon={faPhone} className="h-[1.05rem] w-[1.05rem]" />
+            </Link>
             <button
               type="button"
               aria-label={searchOpen ? "Search listings" : "Open search"}
@@ -205,6 +204,16 @@ export function Navbar() {
               }}
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} />
+            </button>
+            <button
+              type="button"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-menu"
+              onClick={() => setMobileOpen((open) => !open)}
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 lg:hidden"
+            >
+              <FontAwesomeIcon icon={mobileOpen ? faXmark : faBars} className="h-5 w-5" />
             </button>
             {canShowAddProperties ? (
               <Link
@@ -228,7 +237,7 @@ export function Navbar() {
 
         {searchOpen ? (
           <div
-            className="border-t border-white/10 bg-[#071a36]/95 backdrop-blur-md"
+            className="border-t border-white/10 bg-[#16243E]/95 backdrop-blur-md"
             role="search"
             aria-label="Site search"
           >
@@ -270,7 +279,7 @@ export function Navbar() {
         {mobileOpen ? (
           <nav
             id="mobile-nav-menu"
-            className="absolute left-0 right-0 top-full border-t border-white/15 bg-[#071a36]/98 px-[max(0.75rem,env(safe-area-inset-left,0px))] py-4 pr-[max(0.75rem,env(safe-area-inset-right,0px))] shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-md lg:hidden"
+            className="absolute left-0 right-0 top-full border-t border-white/15 bg-[#16243E]/98 px-[max(0.75rem,env(safe-area-inset-left,0px))] py-4 pr-[max(0.75rem,env(safe-area-inset-right,0px))] shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-md lg:hidden"
             aria-label="Mobile"
           >
             <div className="flex flex-col gap-1">

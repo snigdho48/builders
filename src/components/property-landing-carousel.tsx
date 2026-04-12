@@ -1,4 +1,4 @@
-import { FreeMode, Navigation } from "swiper/modules"
+import { FreeMode } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 
 import { PropertyCarouselCard } from "@/components/property-carousel-card"
@@ -11,13 +11,10 @@ type PropertyLandingCarouselProps = {
 export function PropertyLandingCarousel({ properties }: PropertyLandingCarouselProps) {
   if (properties.length === 0) return null
 
-  const showNav = properties.length > 1
-
   return (
     <div className="property-landing-carousel-wrap relative">
       <Swiper
-        modules={showNav ? [Navigation, FreeMode] : [FreeMode]}
-        navigation={showNav}
+        modules={[FreeMode]}
         freeMode={{
           enabled: true,
           momentum: true,
@@ -25,16 +22,17 @@ export function PropertyLandingCarousel({ properties }: PropertyLandingCarouselP
           momentumVelocityRatio: 0.85,
         }}
         watchOverflow
-        centeredSlides
-        slidesPerView={1}
-        spaceBetween={14}
+        centeredSlides={false}
+        slidesPerView={1.28}
+        spaceBetween={12}
         breakpoints={{
-          480: { slidesPerView: 1.12, spaceBetween: 14 },
+          480: { slidesPerView: 1.24, spaceBetween: 14, centeredSlides: false },
           640: { slidesPerView: 2.12, spaceBetween: 18, centeredSlides: false },
-          900: { slidesPerView: 2.65, spaceBetween: 18, centeredSlides: false },
-          1100: { slidesPerView: 3.35, spaceBetween: 20, centeredSlides: false },
-          1280: { slidesPerView: 4.15, spaceBetween: 20, centeredSlides: false },
-          1536: { slidesPerView: 4.45, spaceBetween: 20, centeredSlides: false },
+          900: { slidesPerView: 2.5, spaceBetween: 18, centeredSlides: false },
+          /* Desktop: fewer slidesPerView = wider cards; max ~2.7 “columns” so never 4-up */
+          1024: { slidesPerView: 2.42, spaceBetween: 18, centeredSlides: false },
+          1280: { slidesPerView: 2.55, spaceBetween: 20, centeredSlides: false },
+          1536: { slidesPerView: 2.68, spaceBetween: 22, centeredSlides: false },
         }}
         className="property-landing-swiper pb-1!"
       >
