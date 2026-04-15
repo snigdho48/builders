@@ -180,7 +180,7 @@
   }
 }
 
-/* Manrope variable (200–800): base + weight helpers; `font-sans` / `--font-sans` cover app-wide text */
+/* Manrope variable (200–800): weight helpers; `font-sans` / `--font-sans` cover app-wide text */
 @layer utilities {
   .manrope-ui {
     font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;

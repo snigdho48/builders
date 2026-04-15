@@ -87,13 +87,13 @@ export function LandingPage() {
   return (
     <main className="landing-main relative bg-[#f6f7fb] text-slate-900">
       <section className="home-hero border-b border-slate-200/70">
-        <div className="landing-inner flex min-h-0 w-full flex-col justify-center py-8 sm:py-10 md:py-12">
+        <div className="landing-inner flex h-full min-h-0 w-full flex-col py-6 sm:py-8 md:py-10">
           <RevealOnView
-            className="flex min-h-0 w-full flex-1 flex-col"
+            className="flex min-h-0 w-full flex-1 flex-col items-center"
             variant="fade-up"
           >
             <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col">
-              <div className="min-h-0 flex-1 overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
                 <Swiper
                   modules={[Autoplay]}
                   slidesPerView={1}
@@ -116,10 +116,10 @@ export function LandingPage() {
                 </Swiper>
               </div>
             </div>
+            <EverythingNeedSection embeddedInHero />
           </RevealOnView>
         </div>
       </section>
-      <EverythingNeedSection />
       <section className="" aria-label="Featured properties">
         <div className="landing-inner">
           <div className="landing-surface--pad">
@@ -129,7 +129,7 @@ export function LandingPage() {
             >
               <div className="min-w-0 max-w-full">
                 <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
-                  Buy property
+                  Buy Plots
                 </p>
                 <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">
                   Top properties to buy
@@ -171,7 +171,7 @@ export function LandingPage() {
             >
               <div className="min-w-0 max-w-full">
                 <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
-                  Investment
+                  Buy Land share
                 </p>
                 <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">
                   Top properties for investment
