@@ -1,3 +1,5 @@
+import { faFileLines, faListUl } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Autoplay } from "swiper/modules"
@@ -53,6 +55,9 @@ const faqItems = [
 
 const LANE_CARD_LIMIT = 5
 
+const landingSectionCtaClass =
+  "landing-cta-pill btn-alive inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#E85A2A] px-5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(232,90,42,0.26)] transition hover:bg-[#ea7045] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E85A2A] sm:w-auto"
+
 export function LandingPage() {
   const [properties, setProperties] = useState<Property[]>([])
   const heroSlides = useMemo(
@@ -104,7 +109,7 @@ export function LandingPage() {
                       <img
                         src={src}
                         alt={`Plan banner ${idx + 1}`}
-                        className="mx-auto block h-auto w-full max-w-[min(70vw,840px)] object-contain object-center"
+                        className="mx-auto block h-auto w-full max-w-[min(75vw,850px)] object-contain object-center"
                       />
                     </SwiperSlide>
                   ))}
@@ -117,13 +122,13 @@ export function LandingPage() {
       <EverythingNeedSection />
       <section className="" aria-label="Featured properties">
         <div className="landing-inner">
-          <div className=" landing-surface--pad">
+          <div className="landing-surface--pad">
             <RevealOnView
-              className="mb-8 flex w-full flex-wrap items-end justify-between gap-6 sm:mb-10 lg:gap-8"
+              className="property-landing-carousel-wrap mb-8 grid w-full grid-cols-1 gap-6 sm:mb-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-8"
               variant="fade-up"
             >
-              <div className="max-w-[80vw] min-w-0">
-                <p className="text-xs font-medium tracking-[0.28em] text-[#f58e43] uppercase">
+              <div className="min-w-0 max-w-full">
+                <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
                   Buy property
                 </p>
                 <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">
@@ -134,22 +139,18 @@ export function LandingPage() {
                   ownership (up to {LANE_CARD_LIMIT}).
                 </p>
               </div>
-              <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-                <Link
-                  to="/plans"
-                  className="btn-alive inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#f58e43] px-5 text-sm font-semibold text-slate-950 shadow-[0_8px_24px_rgba(245,142,67,0.28)] transition hover:bg-[#ff9b4f] sm:w-auto"
-                >
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:justify-self-end">
+                <Link to="/plans" className={landingSectionCtaClass}>
+                  <FontAwesomeIcon icon={faFileLines} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
                   See plans
                 </Link>
-                <Link
-                  to="/listings"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border-2 border-[#0b2348] bg-white px-5 text-sm font-semibold text-[#0b2348] shadow-sm transition hover:border-[#f58e43] hover:bg-[#fff8f3] hover:text-[#b84a0f] sm:w-auto"
-                >
+                <Link to="/listings" className={landingSectionCtaClass}>
+                  <FontAwesomeIcon icon={faListUl} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
                   View all listings
                 </Link>
               </div>
             </RevealOnView>
-            <RevealOnView variant="fade-up">
+            <RevealOnView variant="fade-up" className="px-0">
               <PropertyLandingCarousel properties={plotBuyTop} />
             </RevealOnView>
             {plotBuyTop.length === 0 ? (
@@ -161,41 +162,34 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className=" bg-[#e9eef8]">
+      <section className="bg-[#e9eef8]">
         <div className="landing-inner">
-          <div className=" landing-surface--pad">
+          <div className="landing-surface--pad">
             <RevealOnView
-              className="mb-8 flex w-full flex-wrap items-end justify-between gap-6 sm:mb-10 lg:gap-8"
+              className="property-landing-carousel-wrap mb-8 grid w-full grid-cols-1 gap-6 sm:mb-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-8"
               variant="fade-up"
             >
-              <div className="max-w-[80vw] min-w-0">
-                <p className="text-xs font-medium tracking-[0.28em] text-[#f58e43] uppercase">
-                  Installment
+              <div className="min-w-0 max-w-full">
+                <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
+                  Investment
                 </p>
                 <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">
-                  Top properties for installment plans
+                  Top properties for investment
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-[0.9375rem]">
                   Fractional and extended-payment friendly picks — ranked by
                   rating (up to {LANE_CARD_LIMIT}).
                 </p>
               </div>
-              <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-                <Link
-                  to="/plans"
-                  className="btn-alive inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#f58e43] px-5 text-sm font-semibold text-slate-950 shadow-[0_8px_24px_rgba(245,142,67,0.28)] transition hover:bg-[#ff9b4f] sm:w-auto"
-                >
-                  See plans
-                </Link>
-                <Link
-                  to="/listings"
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border-2 border-[#0b2348] bg-white px-5 text-sm font-semibold text-[#0b2348] shadow-sm transition hover:border-[#f58e43] hover:bg-[#fff8f3] hover:text-[#b84a0f] sm:w-auto"
-                >
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:justify-self-end">
+          
+                <Link to="/listings" className={landingSectionCtaClass}>
+                  <FontAwesomeIcon icon={faListUl} className="h-[0.55rem] w-[0.55rem] shrink-0" aria-hidden />
                   View all listings
                 </Link>
               </div>
             </RevealOnView>
-            <RevealOnView variant="fade-up">
+            <RevealOnView variant="fade-up" className="px-0">
               <PropertyLandingCarousel properties={installmentTop} />
             </RevealOnView>
             {installmentTop.length === 0 ? (
@@ -207,12 +201,21 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className=" overflow-x-clip">
+      <section className="overflow-x-clip">
+        <RevealOnView className="w-full landing-inner mt-8 mb-4" variant="fade-up">
+          <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase sm:text-sm sm:tracking-[0.22em]">
+            Partners
+          </p>
+          <h2
+            id="achievement-heading"
+            className="mt-2 max-w-2xl text-[1.65rem] font-extrabold tracking-tight text-[#0b2348] sm:mt-3 sm:text-[2rem]"
+          >
+            Our Partners
+          </h2>
+        </RevealOnView>
         <div className="">
           <div className="partners-shell">
-
             <div className="mb-2">
-             
               <div className="partner-track partner-track-b mt-3 sm:mt-4">
                 {marqueeLogosB.map((item, index) => (
                   <div
@@ -236,7 +239,7 @@ export function LandingPage() {
         <div className="landing-inner">
           <div className="landing-surface landing-surface--pad">
             <RevealOnView className="mb-8 w-full sm:mb-10" variant="fade-up">
-              <p className="text-xs font-medium tracking-[0.28em] text-[#f58e43] uppercase">
+              <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
                 FAQ
               </p>
               <h2 className="mt-2 text-[1.65rem] font-bold tracking-tight text-slate-900 sm:text-[2rem]">
@@ -279,7 +282,7 @@ export function LandingPage() {
         />
         <div className="landing-inner relative">
           <RevealOnView className="w-full" variant="fade-up">
-            <p className="text-xs font-medium tracking-[0.28em] text-[#f58e43] uppercase sm:text-sm sm:tracking-[0.22em]">
+            <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase sm:text-sm sm:tracking-[0.22em]">
               Our Achievement
             </p>
             <h2
@@ -290,17 +293,17 @@ export function LandingPage() {
             </h2>
           </RevealOnView>
           <RevealStagger className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-3 sm:gap-5 lg:mt-12">
-            <div className="metric-card font-semibold border-l-[3px] border-l-[#f58e43] shadow-[0_10px_32px_rgba(15,23,42,0.08)]">
+            <div className="metric-card border-l-[3px] border-l-[#f58e43] font-semibold shadow-[0_10px_32px_rgba(15,23,42,0.08)]">
               <p>Featured Projects</p>
-              <strong className="text-[#0b2348] font-extrabold">20K</strong>
+              <strong className="font-extrabold text-[#0b2348]">20K</strong>
             </div>
-            <div className="metric-card font-semibold border-l-[3px] border-l-[#f58e43] shadow-[0_10px_32px_rgba(15,23,42,0.08)]">
+            <div className="metric-card border-l-[3px] border-l-[#f58e43] font-semibold shadow-[0_10px_32px_rgba(15,23,42,0.08)]">
               <p>Luxury Houses</p>
-              <strong className="text-[#0b2348] font-extrabold">100K</strong>
+              <strong className="font-extrabold text-[#0b2348]">100K</strong>
             </div>
-            <div className="metric-card font-semibold border-l-[3px] border-l-[#f58e43] shadow-[0_10px_32px_rgba(15,23,42,0.08)]">
+            <div className="metric-card border-l-[3px] border-l-[#f58e43] font-semibold shadow-[0_10px_32px_rgba(15,23,42,0.08)]">
               <p>Satisfied Clients</p>
-              <strong className="text-[#0b2348] font-extrabold">150.5K</strong>
+              <strong className="font-extrabold text-[#0b2348]">150.5K</strong>
             </div>
           </RevealStagger>
         </div>

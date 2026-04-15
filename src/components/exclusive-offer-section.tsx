@@ -116,7 +116,7 @@ export function ExclusiveOfferSection() {
       <div className="">
         <RevealOnView className="w-full" variant="fade-up">
           <div className="landing-inner">
-            <p className="mb-3 text-center text-xs font-semibold tracking-[0.2em] text-[#c2410c] uppercase sm:mb-4 sm:text-left">
+            <p className="mb-3 text-center text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase sm:mb-4 sm:text-left">
               Exclusive offers
             </p>
             <h2

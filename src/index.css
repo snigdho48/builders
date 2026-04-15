@@ -953,8 +953,9 @@
     max-width: var(--landing-max, 1240px);
     margin-left: auto;
     margin-right: auto;
-    padding-left: var(--landing-px);
-    padding-right: var(--landing-px);
+    /* Fallback when parent omits `.landing-main` (e.g. About) — invalid var() was dropping padding to 0 */
+    padding-left: max(var(--landing-px, clamp(1.25rem, 5vw, 2.5rem)), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--landing-px, clamp(1.25rem, 5vw, 2.5rem)), env(safe-area-inset-right, 0px));
   }
 
   .landing-section {
@@ -1035,9 +1036,9 @@
 
   .everything-need-kicker {
     margin: 0 0 0.35rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #f58e43;
   }
@@ -1631,23 +1632,11 @@
     opacity: 0.95;
   }
 
-  .legal-sy-featured-swiper .swiper-wrapper {
-    align-items: stretch;
-  }
-
-  .legal-sy-featured-swiper .swiper-slide.legal-sy-slide {
-    box-sizing: border-box;
-    display: flex;
-    height: auto;
-  }
-
-  .legal-sy-featured-swiper .swiper-pagination-bullet,
   .legal-sy-testimonial-swiper .swiper-pagination-bullet {
     background: rgb(148 163 184);
     opacity: 1;
   }
 
-  .legal-sy-featured-swiper .swiper-pagination-bullet-active,
   .legal-sy-testimonial-swiper .swiper-pagination-bullet-active {
     background: #f59e0b;
   }
@@ -1957,6 +1946,27 @@
     background-color: rgb(248 250 252) !important;
   }
 
+  /* About page: dark sections use real white / glass — do not apply legacy “force light” overrides here */
+  .light-content main.about-page .text-white,
+  .light-content main.about-page .text-slate-100,
+  .light-content main.about-page .text-slate-200 {
+    color: #ffffff !important;
+  }
+
+  .light-content main.about-page .bg-white\/10,
+  .light-content main.about-page .bg-white\/5 {
+    background-color: rgb(255 255 255 / 0.12) !important;
+  }
+
+  .light-content main.about-page .bg-slate-900\/35,
+  .light-content main.about-page .bg-slate-900\/50 {
+    background-color: rgb(15 23 42 / 0.45) !important;
+  }
+
+  /* Landing section CTAs: keep white on accent (global .light-content flips .text-white to slate). */
+  .light-content main.landing-main a.landing-cta-pill {
+    color: #ffffff !important;
+  }
 
   /* Table base light theme (scoped to page content only) */
   .light-content table thead tr {

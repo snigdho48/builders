@@ -24,15 +24,15 @@ const galleryImages = [
 const quickLinks: { label: string; to: string }[] = [
   { label: "Startup Business", to: "/listings" },
   { label: "Financial Advice", to: "/plans" },
-  { label: "Management", to: "/about" },
+  { label: "Management", to: "/contact" },
   { label: "Business Advice", to: "/legal" },
   { label: "Strategy Services", to: "/p2p" },
 ]
 
 const discoverLinks: { label: string; to: string }[] = [
   { label: "About", to: "/about" },
-  { label: "Our Team", to: "/about" },
-  { label: "Testimonials", to: "/" },
+  { label: "Our Team", to: "/about#team" },
+  { label: "Testimonials", to: "/about#testimonials" },
   { label: "Gallery", to: "/listings" },
   { label: "Contact", to: "/contact" },
 ]
@@ -253,7 +253,7 @@ export function Footer() {
         style={{ backgroundColor: "rgba(22, 36, 62, 0.92)" }}
       >
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 text-[16px] leading-[1.55] text-slate-400">
-          <p>© {new Date().getFullYear()} LandBlocks. All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} Eurostar Group. All Rights Reserved.</p>
           <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:justify-end">
             <li>
               <Link to="/legal/terms" className="transition-colors hover:text-white">
