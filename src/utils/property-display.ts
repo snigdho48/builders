@@ -54,3 +54,22 @@ export function propertySaleChannelBadgeClass(listing: CatalogListing): string {
 export function propertyPrimaryPriceLine(listing: Pick<CatalogListing, "land_price">): string {
   return formatBdtInteger(listing.land_price)
 }
+
+/** For land-share cards: show configured monthly share amount from payment tiers. */
+export function landShareCardPriceLine(listing: CatalogListing): string {
+  if (!isLandShareListing(listing)) {
+    return formatBdtInteger(listing.land_price)
+  }
+  const monthly = (listing.payment_options ?? [])
+    .filter((t) => t.billing_period === "monthly")
+    .map((t) => Number.parseFloat(t.amount))
+    .filter((n) => Number.isFinite(n) && n > 0)
+    .sort((a, b) => a - b)
+  if (monthly.length > 0) {
+    const unique = Array.from(new Set(monthly))
+    const visible = unique.slice(0, 3).map((n) => formatBdtInteger(String(n)))
+    const suffix = unique.length > 3 ? ` +${unique.length - 3} more` : ""
+    return `${visible.join(" • ")}${suffix}`
+  }
+  return formatBdtInteger(listing.land_price)
+}

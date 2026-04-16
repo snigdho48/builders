@@ -53,7 +53,7 @@ function AppShell() {
       className={
         isDashboard
           ? "flex h-dvh max-h-dvh min-h-0 min-w-0 flex-col overflow-hidden bg-white text-slate-900"
-          : "flex min-h-svh min-w-0 flex-col bg-white text-slate-900"
+          : "flex min-h-svh min-w-0 flex-col overflow-x-hidden bg-white text-slate-900"
       }
     >
       {!isDashboard ? <Navbar /> : null}
@@ -178,13 +178,13 @@ function AppShell() {
           </Route>
         </Routes>
       </div>
-      <span className="whatsapp-float-shell fixed right-5 bottom-5 z-[2147483646] flex h-[70px] w-[70px] items-center justify-center">
+      <span className="whatsapp-float-shell fixed right-3 bottom-3 z-[2147483646] flex h-[60px] w-[60px] items-center justify-center sm:right-5 sm:bottom-5 sm:h-[70px] sm:w-[70px]">
         <a
           href="https://wa.me/8801312345003"
           target="_blank"
           rel="noreferrer"
           aria-label="Chat on WhatsApp"
-          className="whatsapp-float relative inline-flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
+          className="whatsapp-float relative inline-flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] sm:h-[70px] sm:w-[70px]"
         >
           <img
             src={publicUrl("Whatsapp.gif")}

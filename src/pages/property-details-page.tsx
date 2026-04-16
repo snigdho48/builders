@@ -441,7 +441,7 @@ export function PropertyDetailsPage() {
                       <img
                         src={displayGallery[activeImage] || "https://placehold.co/1200x480/e2e8f0/64748b?text=Photo"}
                         alt={property.title}
-                        className="h-[480px] w-full rounded-2xl object-cover"
+                        className="h-[240px] w-full rounded-2xl object-cover sm:h-[340px] lg:h-[480px]"
                       />
                       {galleryImages.length > 1 ? (
                         <div className="mt-4 -mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
@@ -537,7 +537,7 @@ export function PropertyDetailsPage() {
                         </div>
                         <div className="flex justify-between border-b border-slate-100 py-2 pl-0 sm:pl-5 sm:col-span-2">
                           <dt className="text-slate-500">Money to invest</dt>
-                          <dd className="max-w-[70%] text-right font-semibold text-[#0b1f44]">
+                          <dd className="max-w-full text-right font-semibold text-[#0b1f44] sm:max-w-[70%]">
                             {minimumInvestLabel(property)}
                           </dd>
                         </div>
@@ -560,7 +560,7 @@ export function PropertyDetailsPage() {
                         ) : null}
                       </div>
                       <iframe
-                        className="h-[340px] w-full rounded-2xl"
+                        className="h-[220px] w-full rounded-2xl sm:h-[300px] lg:h-[340px]"
                         src={previewVideoUrl}
                         title="property-video"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -591,7 +591,7 @@ export function PropertyDetailsPage() {
                       <iframe
                         title="Google Maps Location"
                         src={googleMapEmbedUrl}
-                        className="h-[320px] w-full rounded-2xl border border-slate-200"
+                        className="h-[220px] w-full rounded-2xl border border-slate-200 sm:h-[280px] lg:h-[320px]"
                         loading="lazy"
                       />
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">

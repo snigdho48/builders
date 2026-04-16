@@ -59,8 +59,8 @@ export function P2pListPage() {
     <main className="min-h-svh bg-white px-4 py-12 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8">
-          <h1 className="text-3xl font-semibold text-white">P2P marketplace</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          <h1 className="text-3xl font-semibold text-[#0b1f44]">P2P marketplace</h1>
+          <p className="mt-2 max-w-2xl text-sm text-slate-600">
             {language === "bn"
               ? "সদস্যদের দেওয়া জমি/সম্পত্তির রিসেল লিস্টিং। কোনো লিস্টিং খুলে বিড দিন; আপনার প্রোফাইলের যোগাযোগ তথ্য ব্যবহার করে বিক্রেতা যোগাযোগ করবে।"
               : "Land and property resales listed by members. Open a listing to place a bid; the seller can reach out using the contact details you provide on your account."}
@@ -76,7 +76,7 @@ export function P2pListPage() {
               setSearch(e.target.value)
               setPage(1)
             }}
-            className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-[#f58e43]/50 focus:outline-none focus:ring-1 focus:ring-[#f58e43]/40 sm:max-w-md"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#f58e43]/50 focus:outline-none focus:ring-1 focus:ring-[#f58e43]/40 sm:max-w-md"
           />
         </div>
 
@@ -129,18 +129,18 @@ export function P2pListPage() {
               type="button"
               disabled={page <= 1 || loading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 disabled:opacity-40"
             >
               {language === "bn" ? "আগের" : "Previous"}
             </button>
-            <span className="flex items-center px-2 text-sm text-slate-400">
+            <span className="flex items-center px-2 text-sm text-slate-500">
               {language === "bn" ? `পৃষ্ঠা ${page} / ${totalPages}` : `Page ${page} / ${totalPages}`}
             </span>
             <button
               type="button"
               disabled={page >= totalPages || loading}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 disabled:opacity-40"
             >
               {language === "bn" ? "পরের" : "Next"}
             </button>

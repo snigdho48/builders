@@ -60,7 +60,7 @@ export function InvestorP2pOffersPage() {
         ) : rows.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-500">No bids yet on your listings.</p>
         ) : (
-          <table className="min-w-full border-collapse text-left text-sm">
+          <table className="min-w-[900px] w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <th className="px-3 py-2">Listing</th>
@@ -85,7 +85,7 @@ export function InvestorP2pOffersPage() {
                     <div>{r.buyer_phone || "—"}</div>
                   </td>
                   <td className="px-3 py-2 font-semibold text-[#f58e43]">{r.bid_price}</td>
-                  <td className="max-w-[200px] px-3 py-2 text-xs text-slate-500">{r.message || "—"}</td>
+                  <td className="max-w-[220px] px-3 py-2 text-xs text-slate-500 wrap-break-word">{r.message || "—"}</td>
                   <td className="px-3 py-2 capitalize text-slate-300">{r.status}</td>
                   <td className="px-3 py-2 text-right">
                     {r.status === "pending" ? (

@@ -1,7 +1,7 @@
 import { useId } from "react"
 import { Link } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChevronDown, faLocationCrosshairs } from "@fortawesome/free-solid-svg-icons"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
 
 const SY = "https://www.squareyards.com"
 
@@ -62,13 +62,13 @@ export function EverythingNeedSection({ embeddedInHero = false }: EverythingNeed
         <p id={headingId} className="sr-only">
           Quick services: buy plot, buy land share, legal services, and all listings
         </p>
-        <div className="everything-need-glass__shell overflow-hidden rounded-[1.35rem] border border-white/55 bg-white/28 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-[3px] sm:rounded-[1.5rem]">
+        <div className="everything-need-glass__shell overflow-hidden rounded-[1.35rem] border border-white/55 bg-zinc-700/35 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-[3px] sm:rounded-[1.5rem]">
           <div className="flex flex-col divide-y divide-slate-300/35 sm:flex-row sm:divide-x sm:divide-y-0">
             {SERVICE_CARDS.map((item) => (
               <Link
                 key={item.label}
                 to={item.href}
-                className="group flex min-h-17 flex-1 items-center gap-3 px-4 py-3.5 transition hover:bg-white/45 sm:min-h-18 sm:px-5 sm:py-4"
+                className="group flex min-h-17 flex-1 items-center gap-3 px-4 py-3.5 text-white! transition hover:bg-white/45 hover:text-[#0b2348]! sm:min-h-18 sm:px-5 sm:py-4"
               >
                 <figure className="shrink-0">
                   <img
@@ -87,14 +87,14 @@ export function EverythingNeedSection({ embeddedInHero = false }: EverythingNeed
                   />
                 </figure>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-black sm:text-[11px]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white! transition group-hover:text-[#0b2348]! sm:text-[11px]">
                     {item.kicker}
                   </p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-[0.8125rem] font-bold leading-snug text-[#0b2348] sm:text-[0.9375rem]">
+                  <p className="mt-0.5 flex items-center gap-1.5 text-[0.8125rem] font-bold leading-snug text-white! group-hover:text-[#0b2348]! sm:text-[0.9375rem]">
                     <span className="truncate capitalize">{item.label}</span>
                     <FontAwesomeIcon
                       icon={faChevronDown}
-                      className="text-[9px] shrink-0 text-slate-500 transition group-hover:text-[#0b2348] sm:text-[10px]"
+                      className="text-[9px] shrink-0 text-white! transition group-hover:text-[#0b2348]! sm:text-[10px]"
                       aria-hidden
                     />
                   </p>

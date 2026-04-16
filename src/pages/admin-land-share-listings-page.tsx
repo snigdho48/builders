@@ -10,7 +10,7 @@ import {
   listAgents,
   updateLandShareListing,
 } from "@/services/api"
-import type { AgentUser, LandShareBillingPeriod, LandShareListing, LandShareListingUpsertPayload, PropertyKind } from "@/types/domain"
+import type { AgentUser, LandShareListing, LandShareListingUpsertPayload, PropertyKind } from "@/types/domain"
 import { propertyPrimaryPriceLine } from "@/utils/property-display"
 
 function slugify(s: string) {
@@ -21,12 +21,6 @@ function slugify(s: string) {
     .replace(/[\s_]+/g, "-")
     .replace(/-+/g, "-")
 }
-
-const BILLING_OPTIONS: { value: LandShareBillingPeriod; label: string }[] = [
-  { value: "monthly", label: "Monthly" },
-  { value: "yearly", label: "Yearly" },
-  { value: "one_time", label: "One time" },
-]
 
 export function AdminLandShareListingsPage() {
   const { showToast } = useToast()
@@ -49,7 +43,7 @@ export function AdminLandShareListingsPage() {
     assigned_agent: "" as string,
     listing_active: true,
     status: "available" as LandShareListing["status"],
-    payment_rows: [] as Array<{ amount: string; billing_period: LandShareBillingPeriod; commitment_months: string }>,
+    payment_rows: [] as Array<{ amount: string }>,
   })
   const [saving, setSaving] = useState(false)
   const [tableSearch, setTableSearch] = useState("")
@@ -94,7 +88,7 @@ export function AdminLandShareListingsPage() {
       assigned_agent: "",
       listing_active: true,
       status: "available",
-      payment_rows: [{ amount: "", billing_period: "monthly", commitment_months: "" }],
+      payment_rows: [{ amount: "20000" }, { amount: "50000" }],
     })
     setModalOpen(true)
   }
@@ -119,10 +113,8 @@ export function AdminLandShareListingsPage() {
         (p.payment_options ?? []).length > 0
           ? p.payment_options.map((t) => ({
               amount: t.amount,
-              billing_period: t.billing_period,
-              commitment_months: t.commitment_months != null ? String(t.commitment_months) : "",
             }))
-          : [{ amount: "", billing_period: "monthly", commitment_months: "" }],
+          : [{ amount: "20000" }, { amount: "50000" }],
     })
     setModalOpen(true)
   }
@@ -138,14 +130,9 @@ export function AdminLandShareListingsPage() {
       .map((r) => {
         const amount = r.amount.trim()
         if (!amount) return null
-        const o: { amount: string; billing_period: LandShareBillingPeriod; commitment_months?: number } = {
+        const o: { amount: string; billing_period: "monthly" } = {
           amount,
-          billing_period: r.billing_period,
-        }
-        const cm = r.commitment_months.trim()
-        if (cm) {
-          const n = Math.floor(Number(cm))
-          if (Number.isFinite(n) && n > 0) o.commitment_months = n
+          billing_period: "monthly",
         }
         return o
       })
@@ -237,7 +224,7 @@ export function AdminLandShareListingsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold text-white">Land share listings</h2>
-          <p className="text-sm text-slate-400">Separate from plot/map listings. Configure payment tiers (e.g. monthly amounts).</p>
+          <p className="text-sm text-slate-400">Separate from plot/map listings. Set available monthly share amounts.</p>
         </div>
         <button
           type="button"
@@ -293,7 +280,7 @@ export function AdminLandShareListingsPage() {
 
           <div className="overflow-x-auto rounded-xl border border-white/10">
             <table className="min-w-[720px] w-full border-collapse text-left text-sm text-slate-200">
-              <thead className="border-b border-white/10 bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <thead className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
                   <th className="px-4 py-3 align-middle">Title</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">Tiers</th>
@@ -305,7 +292,7 @@ export function AdminLandShareListingsPage() {
               </thead>
               <tbody>
                 {filteredRows.map((p) => (
-                  <tr key={p.id} className="border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                  <tr key={p.id} className="border-b border-white/5 transition-colors hover:bg-white/2">
                     <td className="max-w-[min(280px,40vw)] px-4 py-3 align-middle font-medium text-white">
                       <span className="line-clamp-2" title={p.title}>
                         {p.title}
@@ -412,25 +399,39 @@ export function AdminLandShareListingsPage() {
           </label>
           <div className="sm:col-span-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-medium text-slate-600">Payment tiers (amount + billing period)</span>
-              <button
-                type="button"
-                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100"
-                onClick={() =>
-                  setForm((f) => ({
-                    ...f,
-                    payment_rows: [...f.payment_rows, { amount: "", billing_period: "monthly", commitment_months: "" }],
-                  }))
-                }
-              >
-                Add tier
-              </button>
+              <span className="text-xs font-medium text-slate-600">Available share amounts (monthly)</span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      payment_rows: [...f.payment_rows, { amount: "" }],
+                    }))
+                  }
+                >
+                  Add amount
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      payment_rows: [...f.payment_rows, { amount: "20000" }, { amount: "50000" }],
+                    }))
+                  }
+                >
+                  Add 20k + 50k
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               {form.payment_rows.map((row, i) => (
                 <div key={`tier-${i}`} className="flex flex-wrap items-end gap-2">
                   <label className="min-w-[100px] flex-1">
-                    <span className="text-[10px] text-slate-500">Amount (BDT)</span>
+                    <span className="text-[10px] text-slate-500">Amount per month (BDT)</span>
                     <input
                       className={dashboardModalFieldClassTight}
                       value={row.amount}
@@ -443,41 +444,9 @@ export function AdminLandShareListingsPage() {
                       }
                     />
                   </label>
-                  <label className="min-w-[120px]">
-                    <span className="text-[10px] text-slate-500">Billing</span>
-                    <select
-                      className={dashboardModalFieldClassTight}
-                      value={row.billing_period}
-                      onChange={(e) =>
-                        setForm((f) => {
-                          const next = [...f.payment_rows]
-                          next[i] = { ...next[i], billing_period: e.target.value as LandShareBillingPeriod }
-                          return { ...f, payment_rows: next }
-                        })
-                      }
-                    >
-                      {BILLING_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="w-24">
-                    <span className="text-[10px] text-slate-500">Commit (mo)</span>
-                    <input
-                      className={dashboardModalFieldClassTight}
-                      placeholder="opt"
-                      value={row.commitment_months}
-                      onChange={(e) =>
-                        setForm((f) => {
-                          const next = [...f.payment_rows]
-                          next[i] = { ...next[i], commitment_months: e.target.value }
-                          return { ...f, payment_rows: next }
-                        })
-                      }
-                    />
-                  </label>
+                  <span className="mb-0.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-medium text-slate-600">
+                    Monthly
+                  </span>
                   <button
                     type="button"
                     className="mb-0.5 rounded-md border border-rose-200 px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50"

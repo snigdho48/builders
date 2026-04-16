@@ -195,7 +195,12 @@ export function P2pDetailPage() {
 
             <section className="rounded-3xl border border-slate-200 bg-white p-8">
               <h4 className="mb-5 text-xl font-semibold text-[#0b1f44]">Location</h4>
-              <iframe title="P2P listing location" src={mapUrl} className="h-[320px] w-full rounded-2xl border border-slate-200" loading="lazy" />
+              <iframe
+                title="P2P listing location"
+                src={mapUrl}
+                className="h-[220px] w-full rounded-2xl border border-slate-200 sm:h-[280px] lg:h-[320px]"
+                loading="lazy"
+              />
               <div className="mt-4 flex items-center justify-between gap-3 text-sm">
                 <p className="text-slate-600">{listing.location_name}</p>
                 <a

@@ -212,7 +212,7 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
 
   useEffect(() => {
     let cancelled = false
-    if (!selected || !selected.selected_plot_code) {
+    if (!selected || !selected.selected_plot_code || selected.property == null) {
       setModalPlots([])
       return
     }

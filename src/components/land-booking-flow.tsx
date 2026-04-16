@@ -428,7 +428,7 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
               <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
                 <p className="text-sm font-semibold text-[#0b1f44]">Choose payment option</p>
                 <p className="mt-1 text-xs text-slate-600">
-                  Pick one of the amounts and billing periods configured for this listing.
+                  Pick one of the monthly share amounts configured for this listing.
                 </p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {paymentTiers.map((t, i) => (
@@ -496,7 +496,7 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
               type="button"
               disabled={busy}
               onClick={() => void submit()}
-              className="w-full rounded-xl bg-[#0b1f44] py-3 font-semibold !text-white disabled:opacity-50"
+              className="w-full rounded-xl bg-[#0b1f44] py-3 font-semibold text-white! disabled:opacity-50"
             >
               {busy ? "Submitting…" : "Submit booking"}
             </button>

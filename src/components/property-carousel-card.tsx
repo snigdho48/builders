@@ -2,9 +2,12 @@ import { Link } from "react-router-dom"
 
 import type { CatalogListing } from "@/types/domain"
 import { formatBdtInteger } from "@/utils/currency"
-import { listingDetailPath } from "@/utils/property-display"
+import { isLandShareListing, landShareCardPriceLine, listingDetailPath } from "@/utils/property-display"
 
 function priceCaption(listing: CatalogListing): string {
+  if (isLandShareListing(listing)) {
+    return `${landShareCardPriceLine(listing)} / month`
+  }
   const main = formatBdtInteger(listing.land_price)
   const whole = listing.whole_land_price ? formatBdtInteger(listing.whole_land_price) : null
   if (whole && whole !== main) {
@@ -48,6 +51,7 @@ function listingDescriptionPreview(listing: CatalogListing): string {
 export function PropertyCarouselCard({ listing, rank }: PropertyCarouselCardProps) {
   const img = listing.top_view_image || "https://placehold.co/640x400/e2e8f0/64748b?text=Land"
   const sqft = listing.size_sqft ?? listing.land_area_sqft ?? 1600
+  const landShare = isLandShareListing(listing)
 
   return (
     <Link
@@ -82,8 +86,10 @@ export function PropertyCarouselCard({ listing, rank }: PropertyCarouselCardProp
           <div className="property-focus-card__meta-row w-full" aria-hidden>
             <span>{sqft.toLocaleString()} sqft</span>
           </div>
-          <div className="property-focus-card__footer">
-            <span className="property-focus-card__price font-bold text-gray-900">{priceCaption(listing)}</span>
+          <div className={`property-focus-card__footer${landShare ? " property-focus-card__footer--wrap" : ""}`}>
+            <span className={`property-focus-card__price font-bold text-gray-900${landShare ? " property-focus-card__price--wrap" : ""}`}>
+              {priceCaption(listing)}
+            </span>
             <span className="property-focus-card__details-pill">Details</span>
           </div>
         </figcaption>

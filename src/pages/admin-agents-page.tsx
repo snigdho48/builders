@@ -272,9 +272,9 @@ export function AdminAgentsPage() {
             colClasses={["w-[14%]", "w-[16%]", "w-[18%]", "w-[12%]", "w-[8%]", "w-[8%]", "w-[8%]", "w-[16%]"]}
           />
         ) : (
-          <table className="min-w-full border-collapse text-left text-sm">
+          <table className="min-w-[980px] w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-white/10 bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <tr className="border-b border-white/10 bg-white/4 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <th className="px-4 py-3 align-middle">Username</th>
                 <th className="px-4 py-3 align-middle">Name</th>
                 <th className="px-4 py-3 align-middle">Email</th>
@@ -287,7 +287,7 @@ export function AdminAgentsPage() {
             </thead>
             <tbody>
               {paginatedAgents.map((item) => (
-                <tr key={item.id} className="group border-b border-white/10 transition-colors hover:bg-white/[0.02]">
+                <tr key={item.id} className="group border-b border-white/10 transition-colors hover:bg-white/2">
                   <td className="px-4 py-3 align-middle text-slate-200">{item.username}</td>
                   <td className="px-4 py-3 align-middle text-slate-200">
                     {[item.first_name, item.last_name].filter(Boolean).join(" ") || "-"}

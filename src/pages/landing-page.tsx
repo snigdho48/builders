@@ -114,7 +114,7 @@ export function LandingPage() {
   return (
     <main className="landing-main relative bg-[#f6f7fb] text-slate-900">
       <section className="home-hero border-b border-slate-200/70">
-        <div className="landing-inner flex h-full min-h-0 w-full flex-col py-6 sm:py-8 md:py-10">
+        <div className="landing-inner flex h-full min-h-0 w-full flex-col py-4 sm:py-8 md:py-10">
           <RevealOnView
             className="flex min-h-0 w-full flex-1 flex-col items-center"
             variant="fade-up"
@@ -141,7 +141,7 @@ export function LandingPage() {
                             ? `Plan promotion banner ${idx + 1}`
                             : "Land and listings"
                         }
-                        className="mx-auto block h-auto w-full max-w-[min(75vw,850px)] object-contain object-center"
+                        className="mx-auto block h-auto w-full max-w-full object-contain object-center sm:max-w-[min(75vw,850px)]"
                       />
                     </SwiperSlide>
                   ))}

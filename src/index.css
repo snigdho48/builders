@@ -351,9 +351,10 @@
 
   @media (max-width: 640px) {
     .home-hero {
-      height: clamp(16rem, 50svh, 22rem);
-      min-height: clamp(16rem, 50svh, 22rem);
-      max-height: clamp(16rem, 50svh, 22rem);
+      /* Between the old tiny cap (clipped art) and full viewport (felt too tall). */
+      height: clamp(25.5rem, 54svh, 31.5rem);
+      min-height: clamp(25.5rem, 54svh, 31.5rem);
+      max-height: clamp(25.5rem, 54svh, 31.5rem);
     }
   }
 
@@ -614,6 +615,17 @@
     flex-shrink: 0;
   }
 
+  .property-focus-card .property-focus-card__footer--wrap {
+    align-items: flex-start;
+  }
+
+  .property-focus-card .property-focus-card__price--wrap {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.25;
+  }
+
   @media (max-width: 639px) {
     .property-focus-card-link,
     .property-focus-card {
@@ -669,6 +681,28 @@
       min-height: 1.95rem;
       font-size: 0.82rem;
       padding-inline: 0.75rem;
+    }
+
+    .property-focus-card .property-focus-card__footer--wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      border-radius: 12px;
+      padding: 0.35rem 0.45rem;
+      gap: 0.35rem;
+    }
+
+    .property-focus-card .property-focus-card__price--wrap {
+      font-size: 0.84rem;
+      max-width: 100%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .property-focus-card .property-focus-card__footer--wrap .property-focus-card__details-pill {
+      width: 100%;
+      justify-content: center;
     }
   }
 

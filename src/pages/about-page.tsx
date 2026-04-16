@@ -3,7 +3,6 @@ import {
   faArrowRight,
   faCheck,
   faCompass,
-  faFilePdf,
   faQuoteLeft,
   faScaleBalanced,
   faSitemap,
@@ -18,14 +17,11 @@ import {
   aboutHeroPills,
   aboutStats,
   aboutStory,
-  ctaBand,
   disclosureRows,
   disclosuresHeading,
   focusAreas,
   founder,
   principles,
-  profilePdfFileName,
-  profilePdfHref,
 } from "@/content/about-mahfuz-from-profile"
 
 const PRINCIPLE_ICONS = [faCompass, faScaleBalanced, faSitemap, faWallet] as const
@@ -59,20 +55,6 @@ export function AboutPage() {
         />
 
         <div className="landing-inner relative z-[1] max-w-full">
-          <nav className="mb-8 text-xs font-medium text-slate-500 sm:mb-10 sm:text-sm" aria-label="Breadcrumb">
-            <ol className="flex flex-wrap items-center gap-2">
-              <li>
-                <Link to="/" className="text-slate-600 transition hover:text-[#0b1f44]">
-                  Home
-                </Link>
-              </li>
-              <li aria-hidden className="text-slate-300">
-                /
-              </li>
-              <li className="font-semibold text-[#f58e43]">About us</li>
-            </ol>
-          </nav>
-
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start lg:gap-14 xl:gap-16">
             <RevealOnView className="min-w-0" variant="fade-up">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f58e43] sm:text-sm">{aboutEyebrow}</p>
@@ -104,15 +86,6 @@ export function AboutPage() {
                   Talk with us
                   <FontAwesomeIcon icon={faArrowRight} className="text-xs opacity-90" aria-hidden />
                 </Link>
-                <a
-                  href={profilePdfHref}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[#f58e43] bg-white px-5 text-sm font-bold text-[#b84a0f] transition hover:bg-[#fff8f3]"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faFilePdf} className="text-sm" aria-hidden />
-                  {profilePdfFileName}
-                </a>
               </div>
             </RevealOnView>
 
@@ -131,7 +104,7 @@ export function AboutPage() {
                 </div>
               </div>
               <p className="mt-3 text-center text-xs text-slate-500 sm:text-left">
-                Prefer reading? The profile PDF opens in a new tab with the full document.
+                Watch the short overview to learn how the platform works.
               </p>
             </RevealOnView>
           </div>
@@ -233,15 +206,6 @@ export function AboutPage() {
                     ))}
                   </ul>
                   <div className="mt-8 flex flex-wrap justify-center gap-3 sm:justify-start">
-                    <a
-                      href={profilePdfHref}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#f58e43] px-5 text-sm font-bold text-[#0b1f44] transition hover:brightness-105"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <FontAwesomeIcon icon={faFilePdf} aria-hidden />
-                      Full PDF profile
-                    </a>
                     <Link
                       to="/contact?topic=founder"
                       className="inline-flex min-h-10 items-center rounded-full border border-slate-300 bg-white px-5 text-sm font-bold text-[#0b1f44] transition hover:bg-slate-50"
@@ -319,36 +283,6 @@ export function AboutPage() {
         </div>
       </section>
 
-      {/* PDF CTA band */}
-      <section className="relative overflow-hidden bg-[#0b1f44] py-12 text-white sm:py-14" aria-labelledby="cta-band-heading">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_0%,rgba(245,142,67,0.2),transparent_55%)]" aria-hidden />
-        <div className="landing-inner relative max-w-full">
-          <RevealOnView variant="fade-up" className="mx-auto max-w-3xl text-center">
-            <h2 id="cta-band-heading" className="text-2xl font-bold sm:text-3xl">
-              {ctaBand.heading}
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-white/85 sm:text-base">{ctaBand.body}</p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a
-                href={profilePdfHref}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#f58e43] px-6 text-sm font-bold text-[#0b1f44] transition hover:brightness-105"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FontAwesomeIcon icon={faFilePdf} aria-hidden />
-                {ctaBand.primaryLabel}
-              </a>
-              <Link
-                to={ctaBand.secondaryHref}
-                className="inline-flex min-h-11 items-center rounded-full border border-white/35 bg-white/10 px-6 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/15"
-              >
-                {ctaBand.secondaryLabel}
-              </Link>
-            </div>
-          </RevealOnView>
-        </div>
-      </section>
-
       {/* Disclosures */}
       <section className="border-t border-slate-100 bg-white py-12 sm:py-16" aria-labelledby="disclosures-heading">
         <div className="landing-inner max-w-full">
@@ -357,8 +291,7 @@ export function AboutPage() {
               {disclosuresHeading}
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Use this block for statutory IDs and registry lines once your counsel clears them for the site. Rows below
-              are placeholders you can replace with PDF-sourced facts.
+              Use this block for statutory IDs and registry lines once your counsel clears them for the site.
             </p>
           </RevealOnView>
           <RevealOnView variant="fade-up" delayMs={40} className="mt-8">

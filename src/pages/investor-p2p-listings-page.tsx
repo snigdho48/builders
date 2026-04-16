@@ -174,7 +174,7 @@ export function InvestorP2pListingsPage() {
             {language === "bn" ? "এখনও কোনো লিস্টিং নেই। P2P পেজে দেখাতে নতুন লিস্টিং যোগ করুন।" : "No listings yet. Add one to appear on the P2P page."}
           </p>
         ) : (
-          <table className="min-w-full border-collapse text-left text-sm">
+          <table className="min-w-[900px] w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <th className="px-3 py-2">{language === "bn" ? "শিরোনাম" : "Title"}</th>

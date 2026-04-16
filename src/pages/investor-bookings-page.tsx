@@ -139,7 +139,7 @@ export function InvestorBookingsPage() {
 
   useEffect(() => {
     let cancelled = false
-    if (!selectedBooking || !selectedBooking.selected_plot_code) {
+    if (!selectedBooking || !selectedBooking.selected_plot_code || selectedBooking.property == null) {
       setModalPlots([])
       return
     }
