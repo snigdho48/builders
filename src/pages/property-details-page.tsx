@@ -9,6 +9,7 @@ import {
   faBookmark,
   faCheck,
   faEnvelope,
+  faFileLines,
   faFlag,
   faLink,
   faLocationDot,
@@ -248,6 +249,42 @@ export function PropertyDetailsPage() {
     return raw
   }, [property?.video_url])
 
+  const plotDocuments = useMemo(() => {
+    if (!property) {
+      return [] as Array<{ name: string; href?: string; description?: string }>
+    }
+    const docs: Array<{ name: string; href?: string; description?: string }> = []
+    if (property.contact_website) {
+      docs.push({
+        name: "Official listing brief",
+        href: property.contact_website,
+        description: "Project-level listing details from the publisher.",
+      })
+    }
+    if (property.floor_plans.length) {
+      property.floor_plans.forEach((plan, idx) => {
+        if (plan.image_url) {
+          docs.push({
+            name: plan.title || `Plot document ${idx + 1}`,
+            href: plan.image_url,
+            description: plan.description || "Submitted document or map attachment.",
+          })
+        }
+      })
+    }
+    if (!docs.length) {
+      docs.push({
+        name: "Title deed verification packet",
+        description: "Available on request through our legal support desk.",
+      })
+      docs.push({
+        name: "Registration readiness checklist",
+        description: "Available on request through our legal support desk.",
+      })
+    }
+    return docs
+  }, [property])
+
   async function copyListingLink() {
     try {
       await navigator.clipboard.writeText(window.location.href)
@@ -467,9 +504,9 @@ export function PropertyDetailsPage() {
                       ) : null}
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3">
+                    <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3 lg:hidden">
                       {ratingLabel ? (
-                        <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold !text-white">
+                        <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
                           {ratingLabel}
                         </span>
                       ) : null}
@@ -488,7 +525,7 @@ export function PropertyDetailsPage() {
                       <h3 className="mb-3 text-2xl font-semibold text-[#0b1f44]">Description</h3>
                       {property.description?.trim() ? (
                         <div
-                          className="property-rich-text max-w-none leading-8 text-slate-600 [&_a]:break-words [&_a]:text-[#f58e43] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-[#0b1f44] [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#0b1f44] [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
+                          className="property-rich-text max-w-none leading-8 text-slate-600 [&_a]:wrap-break-word [&_a]:text-[#f58e43] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-[#0b1f44] [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#0b1f44] [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
                           dangerouslySetInnerHTML={{ __html: sanitizePropertyHtml(property.description) }}
                         />
                       ) : (
@@ -496,7 +533,7 @@ export function PropertyDetailsPage() {
                       )}
                       {property.description_secondary?.trim() ? (
                         <div
-                          className="property-rich-text mt-6 max-w-none border-t border-slate-100 pt-6 leading-8 text-slate-600 [&_a]:break-words [&_a]:text-[#f58e43] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-[#0b1f44] [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#0b1f44] [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
+                          className="property-rich-text mt-6 max-w-none border-t border-slate-100 pt-6 leading-8 text-slate-600 [&_a]:wrap-break-word [&_a]:text-[#f58e43] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-[#0b1f44] [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#0b1f44] [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
                           dangerouslySetInnerHTML={{ __html: sanitizePropertyHtml(property.description_secondary) }}
                         />
                       ) : null}
@@ -623,6 +660,36 @@ export function PropertyDetailsPage() {
                       </div>
                     </motion.section>
 
+                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
+                      <h4 className="mb-5 text-xl font-semibold text-[#0b1f44]">Plot documents</h4>
+                      <ul className="space-y-3">
+                        {plotDocuments.map((doc, idx) => (
+                          <li key={`${doc.name}-${idx}`} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-800">
+                                  <FontAwesomeIcon icon={faFileLines} className="mr-2 text-[#f58e43]" />
+                                  {doc.name}
+                                </p>
+                                {doc.description ? <p className="mt-1 text-sm text-slate-600">{doc.description}</p> : null}
+                              </div>
+                              {doc.href ? (
+                                <a
+                                  href={doc.href}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700"
+                                >
+                                  View
+                                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+                                </a>
+                              ) : null}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.section>
+
                     {/* {floorPlans.length ? (
                       <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
                         <h4 className="mb-5 text-xl font-semibold text-[#0b1f44]">Floor Plan</h4>
@@ -688,7 +755,7 @@ export function PropertyDetailsPage() {
                       <div className="mt-6 border-t border-slate-100 pt-5">
                         {ratingLabel ? (
                           <div className="flex flex-wrap items-center gap-3">
-                            <span className="rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold !text-white">
+                            <span className="rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
                               {ratingLabel}
                             </span>
                           </div>
@@ -760,8 +827,34 @@ export function PropertyDetailsPage() {
                     </motion.section>
                   </motion.div>
 
-                  <motion.aside className="space-y-7" variants={columnStaggerVariants}>
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6">
+                  <motion.aside className="flex flex-col gap-7" variants={columnStaggerVariants}>
+                    <motion.section
+                      variants={sectionVariants}
+                      className="hidden rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:order-2"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        {ratingLabel ? (
+                          <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
+                            {ratingLabel}
+                          </span>
+                        ) : null}
+                        <span
+                          className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
+                          title="Land size and price summary"
+                        >
+                          {offeringBadgeLabel(property)}
+                        </span>
+                        <span className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium text-[#c55f1a]">
+                          {property.location_name}
+                        </span>
+                      </div>
+                    </motion.section>
+
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 lg:order-3"
+                    >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Representative</p>
                       <div className="mt-4 flex gap-4">
                         <img
@@ -792,7 +885,10 @@ export function PropertyDetailsPage() {
                       </div>
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6">
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 lg:order-4"
+                    >
                       <h3 className="text-xl font-semibold text-[#0b1f44]">Request a query</h3>
                       <p className="mt-2 text-sm text-slate-600">
                         Send any question about this property, availability, or investing—we will get back to you.
@@ -814,7 +910,10 @@ export function PropertyDetailsPage() {
                       </div>
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6">
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 lg:order-5"
+                    >
                       <h3 className="mb-2 text-lg font-semibold text-[#0b1f44]">Book this land</h3>
                       <div className="mb-2 h-2 rounded-full bg-slate-200">
                         <div className="h-2 rounded-full bg-[#f58e43]" style={{ width: `${availabilityPercent}%` }} />

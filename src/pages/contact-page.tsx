@@ -1,8 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faClock, faEnvelope, faLocationDot, faPhone } from "@fortawesome/free-solid-svg-icons"
 
-const mapEmbedSrc =
-  "https://www.google.com/maps?q=6391+Elgin+St+Delaware&z=14&output=embed"
+import { siteContact } from "@/content/eurostar-company-copy"
+
+const mapEmbedSrc = `https://www.google.com/maps?q=${encodeURIComponent(siteContact.mapQuery)}&z=14&output=embed`
 
 export function ContactPage() {
   return (
@@ -23,8 +24,14 @@ export function ContactPage() {
             <div className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f58e43] text-white">
               <FontAwesomeIcon icon={faLocationDot} className="text-lg" />
             </div>
-            <h2 className="mt-3 text-base font-semibold text-[#0f172a]">Our address</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">6391 Elgin St, Delaware</p>
+            <h2 className="mt-3 text-base font-semibold text-[#0f172a]">{siteContact.addressTitle}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              {siteContact.addressLines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </p>
           </article>
           <article className="rounded-xl border border-slate-200/80 bg-white px-5 py-6 text-center shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
             <div className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f58e43] text-white">
@@ -32,8 +39,8 @@ export function ContactPage() {
             </div>
             <h2 className="mt-3 text-base font-semibold text-[#0f172a]">Email</h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              <a href="mailto:contact@example.com" className="text-[#0b2348] underline-offset-2 hover:underline">
-                contact@example.com
+              <a href={siteContact.emailHref} className="text-[#0b2348] underline-offset-2 hover:underline">
+                {siteContact.email}
               </a>
             </p>
           </article>
@@ -43,8 +50,8 @@ export function ContactPage() {
             </div>
             <h2 className="mt-3 text-base font-semibold text-[#0f172a]">Phone</h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              <a href="tel:+88012365499" className="text-[#0b2348] underline-offset-2 hover:underline">
-                +88 0123 654 99
+              <a href={siteContact.phoneHref} className="text-[#0b2348] underline-offset-2 hover:underline">
+                {siteContact.phoneDisplay}
               </a>
             </p>
           </article>
@@ -54,9 +61,12 @@ export function ContactPage() {
             </div>
             <h2 className="mt-3 text-base font-semibold text-[#0f172a]">Hours</h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Mon–Fri: 9:00–17:00
-              <br />
-              Sat: 9:00–13:00
+              {siteContact.hoursLines.map((line, i) => (
+                <span key={line}>
+                  {i > 0 ? <br /> : null}
+                  {line}
+                </span>
+              ))}
             </p>
           </article>
         </div>

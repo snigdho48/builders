@@ -3,7 +3,14 @@ import { Link } from "react-router-dom"
 
 import { LandPlotSelector, type PlotOption } from "@/components/land-plot-selector"
 import { useToast } from "@/components/ui/use-toast"
-import { createLandBooking, getBookingPromoSettings, getMe } from "@/services/api"
+import {
+  createLandBooking,
+  createRetailInvestor,
+  getBookingPromoSettings,
+  getMe,
+  listRetailInvestors,
+} from "@/services/api"
+import { normalizeStoredRole } from "@/routes/protected-route"
 import type {
   BookingPromoSettings,
   CatalogListing,
@@ -11,6 +18,7 @@ import type {
   LandBookingKind,
   LandBookingPlanType,
   Property,
+  RetailInvestor,
 } from "@/types/domain"
 import { formatBdtInteger } from "@/utils/currency"
 import { isLandShareListing, listingDetailPath, propertyUsesInvestmentBooking } from "@/utils/property-display"
@@ -23,6 +31,7 @@ type LandBookingFlowProps = {
   listing: CatalogListing
   /** Called after a successful API submit (e.g. navigate away). */
   onSuccess?: () => void
+  allowStaffBookingForInvestor?: boolean
 }
 
 function renderInstructionText(line: string) {
@@ -153,7 +162,11 @@ function billingPeriodLabel(p: string): string {
   return "per month"
 }
 
-export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
+export function LandBookingFlow({
+  listing,
+  onSuccess,
+  allowStaffBookingForInvestor = false,
+}: LandBookingFlowProps) {
   const plotProperty: Property | null = isLandShareListing(listing) ? null : listing
   const listingIsInvestment = isLandShareListing(listing) || (plotProperty != null && propertyUsesInvestmentBooking(plotProperty))
   const plotOptional = isLandShareListing(listing)
@@ -174,6 +187,19 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
   const [phone, setPhone] = useState("")
   const [contactNotes, setContactNotes] = useState("")
   const [referralCode, setReferralCode] = useState("")
+  const [currentRole, setCurrentRole] = useState(() =>
+    normalizeStoredRole(localStorage.getItem("userRole")),
+  )
+  const [investorSearch, setInvestorSearch] = useState("")
+  const [investorRows, setInvestorRows] = useState<RetailInvestor[]>([])
+  const [selectedInvestor, setSelectedInvestor] = useState<RetailInvestor | null>(null)
+  const [creatingInvestor, setCreatingInvestor] = useState(false)
+  const [createInvestorEmail, setCreateInvestorEmail] = useState("")
+  const [createInvestorPassword, setCreateInvestorPassword] = useState("")
+  const [createInvestorFirstName, setCreateInvestorFirstName] = useState("")
+  const [createInvestorLastName, setCreateInvestorLastName] = useState("")
+  const [createInvestorPhone, setCreateInvestorPhone] = useState("")
+  const [createInvestorBusy, setCreateInvestorBusy] = useState(false)
   const [selectedPlot, setSelectedPlot] = useState<PlotOption | null>(null)
   const [selectedTierIndex, setSelectedTierIndex] = useState<number | null>(null)
 
@@ -208,6 +234,7 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
       setPlanType(null)
     }
     const token = localStorage.getItem("accessToken")
+    setCurrentRole(normalizeStoredRole(localStorage.getItem("userRole")))
     if (!token) {
       return
     }
@@ -220,6 +247,82 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
       })
       .catch(() => {})
   }, [listing.id, listing.listing_kind, listingIsInvestment])
+
+  const isStaffBookingForInvestor =
+    allowStaffBookingForInvestor && (currentRole === "admin" || currentRole === "agent")
+
+  useEffect(() => {
+    if (!isStaffBookingForInvestor) return
+    const token = localStorage.getItem("accessToken")
+    if (!token) return
+    void listRetailInvestors(token)
+      .then(setInvestorRows)
+      .catch(() => setInvestorRows([]))
+  }, [isStaffBookingForInvestor])
+
+  const investorMatches = investorRows
+    .filter((inv) =>
+      investorSearch.trim()
+        ? inv.username.toLowerCase().includes(investorSearch.trim().toLowerCase())
+        : false,
+    )
+    .slice(0, 8)
+
+  function pickInvestor(inv: RetailInvestor) {
+    setSelectedInvestor(inv)
+    setInvestorSearch(inv.username)
+    const name = [inv.first_name, inv.last_name].filter(Boolean).join(" ").trim()
+    setFullName(name || inv.username)
+    setEmail(inv.email || "")
+    setPhone(inv.phone || "")
+    setCreatingInvestor(false)
+  }
+
+  async function handleCreateInvestor() {
+    const token = localStorage.getItem("accessToken")
+    const username = investorSearch.trim()
+    if (!token || !username || !createInvestorEmail.trim() || !createInvestorPassword.trim()) {
+      showToast("Username, email, and temporary password are required.", "error")
+      return
+    }
+    setCreateInvestorBusy(true)
+    try {
+      await createRetailInvestor(
+        {
+          username,
+          email: createInvestorEmail.trim(),
+          password: createInvestorPassword.trim(),
+          first_name: createInvestorFirstName.trim() || undefined,
+          last_name: createInvestorLastName.trim() || undefined,
+          phone: createInvestorPhone.trim() || undefined,
+          is_active: true,
+        },
+        token,
+      )
+      const rows = await listRetailInvestors(token)
+      setInvestorRows(rows)
+      const created =
+        rows.find((r) => r.username.toLowerCase() === username.toLowerCase()) ??
+        rows.find((r) => r.email.toLowerCase() === createInvestorEmail.trim().toLowerCase()) ??
+        null
+      if (!created) {
+        showToast("Investor created. Search and select to assign.", "success")
+      } else {
+        pickInvestor(created)
+        showToast("Investor created and assigned to this booking.", "success")
+      }
+      setCreateInvestorEmail("")
+      setCreateInvestorPassword("")
+      setCreateInvestorFirstName("")
+      setCreateInvestorLastName("")
+      setCreateInvestorPhone("")
+      setCreatingInvestor(false)
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Failed to create investor", "error")
+    } finally {
+      setCreateInvestorBusy(false)
+    }
+  }
 
   /** 1% / 50% plot-buy plans: admin must enable promo and slots must remain (API error → allow attempt). */
   const plotBuyInstallmentPlansOpen =
@@ -244,6 +347,10 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
       showToast("Name, email, and phone are required.", "error")
       return
     }
+    if (isStaffBookingForInvestor && !selectedInvestor) {
+      showToast("Select or create an investor before booking.", "error")
+      return
+    }
     if (!plotOptional && !selectedPlot) {
       showToast("Please select an available plot from the map.", "error")
       return
@@ -264,6 +371,9 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
         phone: phone.trim(),
         contact_notes: contactNotes.trim(),
         referral_code_used: referralCode.trim(),
+      }
+      if (isStaffBookingForInvestor && selectedInvestor) {
+        payload.investor = selectedInvestor.id
       }
       if (isLandShareListing(listing)) {
         payload.land_share_listing = listing.id
@@ -408,6 +518,99 @@ export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
           </div>
 
           <div className="space-y-3">
+            {isStaffBookingForInvestor ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
+                <p className="text-sm font-semibold text-[#0b1f44]">Investor assignment</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Type investor username to search. If not found, create and auto-assign.
+                </p>
+                <input
+                  className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                  value={investorSearch}
+                  onChange={(e) => {
+                    setInvestorSearch(e.target.value)
+                    setSelectedInvestor(null)
+                  }}
+                  placeholder="Investor username"
+                />
+                {investorMatches.length > 0 ? (
+                  <div className="mt-2 space-y-1">
+                    {investorMatches.map((inv) => (
+                      <button
+                        key={inv.id}
+                        type="button"
+                        onClick={() => pickInvestor(inv)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs hover:border-slate-300"
+                      >
+                        <span className="font-semibold text-[#0b1f44]">{inv.username}</span>
+                        <span className="ml-2 text-slate-500">{inv.email}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {selectedInvestor ? (
+                  <p className="mt-2 text-xs text-emerald-700">
+                    Assigned investor: {selectedInvestor.username} (#{selectedInvestor.id})
+                  </p>
+                ) : null}
+                {!selectedInvestor && investorSearch.trim() ? (
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-[#f58e43] hover:underline"
+                      onClick={() => setCreatingInvestor((v) => !v)}
+                    >
+                      {creatingInvestor ? "Cancel create investor" : `Create investor "${investorSearch.trim()}"`}
+                    </button>
+                  </div>
+                ) : null}
+                {creatingInvestor ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <input
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
+                      value={createInvestorEmail}
+                      onChange={(e) => setCreateInvestorEmail(e.target.value)}
+                      placeholder="Investor email"
+                      type="email"
+                    />
+                    <input
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
+                      value={createInvestorPassword}
+                      onChange={(e) => setCreateInvestorPassword(e.target.value)}
+                      placeholder="Temporary password"
+                      type="text"
+                    />
+                    <input
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                      value={createInvestorFirstName}
+                      onChange={(e) => setCreateInvestorFirstName(e.target.value)}
+                      placeholder="First name (optional)"
+                    />
+                    <input
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                      value={createInvestorLastName}
+                      onChange={(e) => setCreateInvestorLastName(e.target.value)}
+                      placeholder="Last name (optional)"
+                    />
+                    <input
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
+                      value={createInvestorPhone}
+                      onChange={(e) => setCreateInvestorPhone(e.target.value)}
+                      placeholder="Phone (optional)"
+                    />
+                    <button
+                      type="button"
+                      disabled={createInvestorBusy}
+                      onClick={() => void handleCreateInvestor()}
+                      className="rounded-lg bg-[#0b1f44] px-3 py-2.5 text-sm font-semibold text-white! disabled:opacity-60 sm:col-span-2"
+                    >
+                      {createInvestorBusy ? "Creating…" : "Create & assign investor"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             {plotPlan != null ? (
               <div className={`mb-2 rounded-2xl border p-4 shadow-sm ${PLAN_THEME[plotPlan].wrap}`}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

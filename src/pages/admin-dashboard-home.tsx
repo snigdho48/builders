@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
+import { DashboardFaqPanel } from "@/components/dashboard-faq-panel"
 import { useToast } from "@/components/ui/use-toast"
 import { getDashboard } from "@/services/api"
 import type { AdminDashboardData } from "@/types/domain"
@@ -164,6 +165,7 @@ export function AdminDashboardHomePage() {
           </div>
         </article>
       </div>
+      <DashboardFaqPanel />
     </section>
   )
 }

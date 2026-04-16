@@ -31,6 +31,7 @@ const quickLinks: { label: string; to: string }[] = [
 
 const discoverLinks: { label: string; to: string }[] = [
   { label: "About", to: "/about" },
+  { label: "FAQ", to: "/#faq" },
   { label: "Our Team", to: "/about#team" },
   { label: "Testimonials", to: "/about#testimonials" },
   { label: "Gallery", to: "/listings" },

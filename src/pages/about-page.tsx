@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
   faArrowRight,
@@ -12,24 +13,38 @@ import { Link } from "react-router-dom"
 
 import { RevealOnView } from "@/components/motion/reveal-on-view"
 import {
-  aboutEyebrow,
-  aboutHero,
-  aboutHeroPills,
-  aboutStats,
-  aboutStory,
   disclosureRows,
   disclosuresHeading,
   focusAreas,
   founder,
   principles,
 } from "@/content/about-mahfuz-from-profile"
+import { aboutMissionVisionValues, eurostarWhyChooseItems, getEurostarAboutPageCopy } from "@/content/eurostar-company-copy"
+import { useLanguage } from "@/i18n/language-context"
 
 const PRINCIPLE_ICONS = [faCompass, faScaleBalanced, faSitemap, faWallet] as const
 
 /** YouTube embed — replace with your own channel video if needed */
 const ABOUT_VIDEO_EMBED = "https://www.youtube.com/embed/QmfVLaBan5I?rel=0&modestbranding=1"
 
+const whyChooseSectionI18n = {
+  en: {
+    title: "Why choose Eurostar Group",
+    subtitle: "Key differentiators from our company overview—experience, structure, transparency, and NRB-focused legal support.",
+  },
+  bn: {
+    title: "কেন Eurostar Group বেছে নেবেন",
+    subtitle:
+      "অভিজ্ঞতা, কাঠামো, স্বচ্ছতা ও নবায়ন—একই ইকোসিস্টেমে প্লট সেলস, ফ্র্যাকশনাল ওনারশিপ ও সম্পূর্ণ লিগ্যাল সাপোর্ট।",
+  },
+} as const
+
 export function AboutPage() {
+  const { language } = useLanguage()
+  const about = useMemo(() => getEurostarAboutPageCopy(language), [language])
+  const whyHead = whyChooseSectionI18n[language === "bn" ? "bn" : "en"]
+  const missionVisionValues = aboutMissionVisionValues[language === "bn" ? "bn" : "en"]
+
   return (
     <main className="about-page min-w-0 overflow-x-hidden bg-white text-[#0b1f44]">
       {/* Hero */}
@@ -45,29 +60,26 @@ export function AboutPage() {
           }}
           aria-hidden
         />
+        <div className="pointer-events-none absolute -right-24 top-0 h-112 w-md rounded-full bg-[#f58e43]/15 blur-3xl md:right-0" aria-hidden />
         <div
-          className="pointer-events-none absolute -right-24 top-0 h-[28rem] w-[28rem] rounded-full bg-[#f58e43]/15 blur-3xl md:right-0"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -left-32 bottom-0 h-[22rem] w-[22rem] rounded-full bg-[#0b1f44]/[0.06] blur-3xl"
+          className="pointer-events-none absolute -left-32 bottom-0 h-88 w-88 rounded-full bg-[#0b1f44]/6 blur-3xl"
           aria-hidden
         />
 
-        <div className="landing-inner relative z-[1] max-w-full">
+        <div className="landing-inner relative z-1 max-w-full">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start lg:gap-14 xl:gap-16">
             <RevealOnView className="min-w-0" variant="fade-up">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f58e43] sm:text-sm">{aboutEyebrow}</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f58e43] sm:text-sm">{about.eyebrow}</p>
               <h1
                 id="about-hero-heading"
                 className="mt-3 text-[clamp(1.85rem,5.2vw,3rem)] font-extrabold leading-[1.1] tracking-tight text-[#0b1f44]"
               >
-                {aboutHero.title}
+                {about.hero.title}
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">{aboutHero.subtitle}</p>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">{about.hero.subtitle}</p>
 
               <ul className="mt-8 flex flex-wrap gap-2 sm:gap-2.5">
-                {aboutHeroPills.map((pill) => (
+                {about.pills.map((pill) => (
                   <li
                     key={pill}
                     className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#0b1f44] shadow-sm sm:text-sm"
@@ -120,10 +132,10 @@ export function AboutPage() {
                 id="about-story-heading"
                 className="text-[clamp(1.6rem,4vw,2.35rem)] font-bold leading-tight tracking-tight text-[#0b1f44]"
               >
-                {aboutStory.heading}
+                {about.story.heading}
               </h2>
               <div className="mt-6 space-y-4 text-base leading-relaxed text-slate-600 sm:text-[1.0625rem]">
-                {aboutStory.paragraphs.map((p, i) => (
+                {about.story.paragraphs.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
               </div>
@@ -138,22 +150,22 @@ export function AboutPage() {
 
             <div className="flex min-w-0 flex-col gap-6">
               <RevealOnView variant="fade-up" delayMs={60}>
-                <figure className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-[#0b1f44] to-[#152a55] p-6 text-white shadow-lg sm:rounded-3xl sm:p-8">
+                <figure className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-linear-to-br from-[#0b1f44] to-[#152a55] p-6 text-white shadow-lg sm:rounded-3xl sm:p-8">
                   <FontAwesomeIcon
                     icon={faQuoteLeft}
                     className="text-2xl text-[#f58e43]/90 sm:text-3xl"
                     aria-hidden
                   />
                   <blockquote className="mt-4 text-base font-medium leading-relaxed text-white/95 sm:text-lg">
-                    {aboutStory.spotlightQuote.text}
+                    {about.story.spotlightQuote.text}
                   </blockquote>
                   <figcaption className="mt-5 text-sm font-semibold text-[#f58e43]">
-                    — {aboutStory.spotlightQuote.attribution}
+                    — {about.story.spotlightQuote.attribution}
                   </figcaption>
                 </figure>
               </RevealOnView>
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {aboutStats.map((s) => (
+                {about.stats.map((s) => (
                   <RevealOnView key={s.value} variant="fade-up" delayMs={40}>
                     <article
                       className={`flex h-full flex-col justify-end rounded-2xl p-4 shadow-sm sm:rounded-3xl sm:p-5 ${s.toneClass}`}
@@ -165,6 +177,57 @@ export function AboutPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-14 sm:py-16 md:py-20" aria-labelledby="why-eurostar-heading">
+        <div className="landing-inner max-w-full">
+          <RevealOnView variant="fade-up">
+            <h2
+              id="why-eurostar-heading"
+              className="text-center text-[clamp(1.45rem,4vw,2rem)] font-bold text-[#0b1f44]"
+            >
+              {whyHead.title}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-slate-600 sm:text-base">{whyHead.subtitle}</p>
+          </RevealOnView>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {eurostarWhyChooseItems.map((item, i) => (
+              <RevealOnView key={item.title} variant="fade-up" delayMs={40 * i}>
+                <article className="h-full rounded-2xl border border-slate-200/90 bg-slate-50/40 p-6 shadow-sm sm:rounded-3xl sm:p-7">
+                  <h3 className="text-base font-bold text-[#0b1f44] sm:text-lg">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+                  {"subPoints" in item && item.subPoints ? (
+                    <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-600">
+                      {item.subPoints.map((pt) => (
+                        <li key={pt}>{pt}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </article>
+              </RevealOnView>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-slate-100 bg-[#f8fafc] py-14 sm:py-16 md:py-20" aria-labelledby="about-mvv-heading">
+        <div className="landing-inner max-w-full">
+          <RevealOnView variant="fade-up">
+            <h2 id="about-mvv-heading" className="text-center text-[clamp(1.45rem,4vw,2rem)] font-bold text-[#0b1f44]">
+              {language === "bn" ? "মিশন, ভিশন ও ভ্যালুস" : "Mission, Vision & Values"}
+            </h2>
+          </RevealOnView>
+          <div className="mt-10 grid gap-5 md:grid-cols-3 md:gap-6">
+            {missionVisionValues.map((item, i) => (
+              <RevealOnView key={item.title} variant="fade-up" delayMs={40 * i}>
+                <article className="h-full rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:rounded-3xl sm:p-7">
+                  <h3 className="text-lg font-bold text-[#0b1f44]">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-[0.95rem]">{item.body}</p>
+                </article>
+              </RevealOnView>
+            ))}
           </div>
         </div>
       </section>
@@ -236,7 +299,7 @@ export function AboutPage() {
             {principles.map((principle, i) => (
               <RevealOnView key={principle.title} variant="fade-up" delayMs={40 * i}>
                 <article className="group flex h-full flex-col rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm transition hover:border-[#f58e43]/40 hover:shadow-md sm:rounded-3xl sm:p-7">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0b1f44]/[0.06] text-[#0b1f44] transition group-hover:bg-[#f58e43]/15 group-hover:text-[#b84a0f]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0b1f44]/6 text-[#0b1f44] transition group-hover:bg-[#f58e43]/15 group-hover:text-[#b84a0f]">
                     <FontAwesomeIcon icon={PRINCIPLE_ICONS[i] ?? faCompass} className="text-lg" aria-hidden />
                   </div>
                   <h3 className="mt-4 text-lg font-bold text-[#0b1f44]">{principle.title}</h3>

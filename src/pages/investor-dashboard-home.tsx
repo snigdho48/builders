@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { DashboardFaqPanel } from "@/components/dashboard-faq-panel"
 import { InvestorKycPanel } from "@/components/investor-kyc-panel"
 import { useToast } from "@/components/ui/use-toast"
 import { getDashboard } from "@/services/api"
@@ -68,6 +69,7 @@ export function InvestorDashboardHomePage() {
           <strong>{data.my_rejected_bookings}</strong>
         </article>
       </div>
+      <DashboardFaqPanel />
     </section>
   )
 }

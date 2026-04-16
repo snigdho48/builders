@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { getEurostarServicesPageCopy } from "@/content/eurostar-services-content"
+import { useLanguage } from "@/i18n/language-context"
 import { getBookingPromoSettings } from "@/services/api"
 import type { BookingPromoSettings } from "@/types/domain"
 
 export function PlotPlansPage() {
+  const { language } = useLanguage()
   const [promo, setPromo] = useState<BookingPromoSettings | null>(null)
   const [ready, setReady] = useState(false)
 
@@ -18,16 +21,16 @@ export function PlotPlansPage() {
   const promoLive = Boolean(
     promo?.plot_buy_installment_promo_enabled && promo.plot_buy_installment_slots_available > 0,
   )
+  const copy = useMemo(() => getEurostarServicesPageCopy(language), [language])
+  const isBn = language === "bn"
 
   return (
     <main className="bg-white py-16 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pb-[max(5rem,env(safe-area-inset-bottom,0px))] text-slate-900 sm:px-6">
-      <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Buy plots</p>
-        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Payment plans: 1% and 50%</h1>
+      <div className="mx-auto max-w-4xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#f58e43]">{copy.intro.eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{copy.intro.title}</h1>
         <p className="mt-4 text-sm leading-7 text-slate-600">
-          These options apply only to <strong className="text-slate-800">buy-plot</strong> listings while the admin
-          keeps the promo on and slots are available. Land-share listings use a separate investment booking flow — not
-          these plans.
+          {copy.intro.subtitle}
         </p>
 
         {ready && !promoLive ? (
@@ -35,91 +38,106 @@ export function PlotPlansPage() {
             className="mt-6 rounded-2xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:px-5 sm:py-4"
             role="status"
           >
-            <strong className="font-semibold">Promo not active.</strong>{" "}
+            <strong className="font-semibold">{isBn ? "প্রোমো সক্রিয় নয়।" : "Promo not active."}</strong>{" "}
             <span className="text-amber-950/90">
-              The 1% / 50% buy-plot installment offer is turned off or all promo slots are in use. You can still browse
-              plots and contact us for other arrangements.
+              {isBn
+                ? "১% / ৫০% প্লট ইনস্টলমেন্ট অফার এখন বন্ধ আছে অথবা সব স্লট পূর্ণ। আপনি এখনও প্লট ব্রাউজ করতে পারবেন এবং বিকল্প পরিকল্পনার জন্য আমাদের সাথে যোগাযোগ করতে পারবেন।"
+                : "The 1% / 50% buy-plot installment offer is turned off or all promo slots are in use. You can still browse plots and contact us for other arrangements."}
             </span>
           </div>
         ) : null}
 
-        <section className="mt-12 rounded-2xl border border-[#0b1f44]/15 bg-gradient-to-br from-[#0b1f44]/5 via-white to-[#f58e43]/10 p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-[#0b1f44]">Plan A — 1% installment plan</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-700">
-            Designed for buyers who want to start with a smaller regular payment and build toward ownership over time.
-          </p>
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
-            <li>
-              You pay toward the agreed purchase price on a monthly schedule based on a{" "}
-              <strong>1% of parcel price</strong> style structure (as offered on the listing and confirmed at booking).
-            </li>
-            <li>
-              When your <strong>total paid reaches 50%</strong> of the agreed price (or the milestone defined in your
-              agreement), <strong>registration</strong> in your favour proceeds according to that contract.
-            </li>
-            <li>
-              <strong>Example:</strong> if the land price is ৳10,00,000, a 1%-style monthly installment is on the order
-              of ৳10,000 per month until the 50% threshold is met — then registration and remaining balance follow the
-              written schedule.
-            </li>
-            <li>
-              Registration fees, stamp duty, taxes, and any service charges are <strong>separate</strong> unless the
-              agreement states otherwise.
-            </li>
-            <li>
-              Missed installments may incur fees or affect your booking; cancellation rules are in the sale agreement.
-            </li>
-          </ul>
+        <section className="mt-12 rounded-2xl border border-[#0b1f44]/15 bg-linear-to-br from-[#0b1f44]/5 via-white to-[#f58e43]/10 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-[#0b1f44]">{copy.plotSalesOverview.title}</h2>
+          <div className="mt-3 space-y-3 text-sm leading-7 text-slate-700">
+            {copy.plotSalesOverview.paragraphs.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </div>
         </section>
 
-        <section className="mt-8 rounded-2xl border border-[#f58e43]/25 bg-gradient-to-br from-[#f58e43]/10 via-white to-[#0b1f44]/5 p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-[#7a3a12]">Plan B — 50% down payment + balance installments</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-700">
-            For buyers who prefer a large upfront payment so registration and title steps can align earlier in the
-            process, with the rest paid on a fixed schedule.
-          </p>
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
-            <li>
-              You pay <strong>50% of the agreed purchase price</strong> (or the first tranche specified in your
-              agreement) up front.
-            </li>
-            <li>
-              <strong>Registration</strong> is tied to receiving that threshold, as set out in your sale agreement
-              (often shortly after the 50% payment clears).
-            </li>
-            <li>
-              The <strong>remaining 50%</strong> is repaid in monthly installments — commonly structured in line with
-              a 1%-of-price-per-month style schedule on the outstanding balance until completion.
-            </li>
-            <li>
-              <strong>Example:</strong> ৳10,00,000 land → about ৳5,00,000 down, then registration per contract, then
-              roughly ৳10,000 per month on the balance until paid in full (exact figures and count of months are in your
-              agreement).
-            </li>
-            <li>
-              Late payment on the balance can trigger interest, acceleration, or termination as described in the signed
-              contract.
-            </li>
-          </ul>
+        <section className="mt-8 rounded-2xl border border-[#f58e43]/25 bg-linear-to-br from-[#f58e43]/10 via-white to-[#0b1f44]/5 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-[#7a3a12]">{copy.paymentPlans.heading}</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {copy.paymentPlans.plans.map((plan) => (
+              <article key={plan.title} className="rounded-xl border border-slate-200 bg-white/80 p-4">
+                <h3 className="text-sm font-semibold text-[#0b1f44]">{plan.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{plan.body}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mt-4 text-sm leading-7 text-slate-700">{copy.paymentPlans.closing}</p>
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-slate-200 bg-slate-50/60 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-[#0b1f44]">{copy.fractionalOverview.title}</h2>
+          <div className="mt-3 space-y-3 text-sm leading-7 text-slate-700">
+            {copy.fractionalOverview.paragraphs.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-[#0b1f44]">{copy.fractionalHowItWorks.title}</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-700">{copy.fractionalHowItWorks.intro}</p>
+          <div className="mt-6 space-y-4">
+            {copy.fractionalHowItWorks.steps.map((step) => (
+              <article key={step.title} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <h3 className="text-sm font-semibold text-[#0b1f44]">{step.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-700">{step.body}</p>
+                {step.bullets.length > 0 ? (
+                  <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-7 text-slate-700">
+                    {step.bullets.map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </article>
+            ))}
+          </div>
+          <p className="mt-4 text-sm leading-7 text-slate-700">{copy.fractionalHowItWorks.closing}</p>
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-[#0b1f44]">{copy.landShareBenefits.title}</h2>
+          <div className="mt-3 space-y-3 text-sm leading-7 text-slate-700">
+            {copy.landShareBenefits.paragraphs.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </div>
         </section>
 
         <section className="mt-10 border-t border-slate-200 pt-8 text-sm leading-7 text-slate-600">
-          <h2 className="text-base font-semibold text-slate-900">Availability</h2>
+          <h2 className="text-base font-semibold text-slate-900">{isBn ? "লিস্টিং ও যোগাযোগ" : "Listings & contact"}</h2>
           <p className="mt-2">
-            Buy-plot 1% and 50% plans may be offered within a <strong>limited number of active bookings</strong> at a
-            time (shown when you book). If slots are full or the admin disables the promo, use{" "}
+            {isBn ? (
+              <>
+                প্লট ওনারশিপ অথবা ফ্র্যাকশনাল বিনিয়োগ শুরু করতে নিচের লিংক ব্যবহার করুন। ১%/৫০% অফার কেবল{" "}
+                <strong className="text-slate-800">buy-plot</strong> লিস্টিংয়ে প্রযোজ্য।
+              </>
+            ) : (
+              <>
+                Use the links below to start either full-plot ownership or fractional investment. The 1% / 50% offer
+                applies only to <strong className="text-slate-800">buy-plot</strong> listings.
+              </>
+            )}{" "}
             <Link to="/listings/buy-land-share" className="font-semibold text-[#f58e43] hover:underline">
-              land share listings
+              {isBn ? "ল্যান্ড শেয়ার লিস্টিং" : "land share listings"}
             </Link>{" "}
-            or contact us.
+            {isBn ? "দেখুন বা আমাদের সাথে যোগাযোগ করুন।" : "or contact us."}
           </p>
           <p className="mt-4">
+            <Link to="/listings/buy-land-share" className="font-semibold text-[#f58e43] hover:underline">
+              {isBn ? "ল্যান্ড শেয়ার ব্রাউজ করুন" : "Browse land share listings"}
+            </Link>
+            {" · "}
             <Link to="/listings/buy-plots" className="font-semibold text-[#f58e43] hover:underline">
-              Browse buy-plot listings
+              {isBn ? "বাই-প্লট লিস্টিং দেখুন" : "Browse buy-plot listings"}
             </Link>
             {" · "}
             <Link to="/contact" className="font-semibold text-[#f58e43] hover:underline">
-              Contact
+              {isBn ? "যোগাযোগ" : "Contact"}
             </Link>
           </p>
         </section>

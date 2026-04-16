@@ -319,6 +319,8 @@ export type LandShareListingUpsertPayload = Partial<{
 }>
 
 export type LandBookingCreatePayload = {
+  /** For admin/agent booking on behalf of an investor. */
+  investor?: number
   /** Plot booking: set property id. Land-share investment: set `land_share_listing` and omit or null this. */
   property?: number | null
   land_share_listing?: number | null

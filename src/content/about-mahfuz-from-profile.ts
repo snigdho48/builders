@@ -1,61 +1,17 @@
 /**
- * About page copy aligned with `public/Profile OF MAHFUZ BIN YOUSUF-UPDATE.pdf`.
- * Place the PDF in `frontend/public/` with that exact name. Replace any section
- * below with text pulled from the document when you want verbatim profile details.
+ * About page data: company copy is sourced from `public/Eurostar Website.docx`
+ * via `eurostar-company-copy.ts`. Founder block remains for leadership context.
  */
+export {
+  aboutEyebrowEurostar as aboutEyebrow,
+  aboutHeroEurostar as aboutHero,
+  aboutHeroPillsEurostar as aboutHeroPills,
+  aboutStoryEurostar as aboutStory,
+  aboutStatsEurostar as aboutStats,
+} from "@/content/eurostar-company-copy"
+
 export const profilePdfFileName = "Profile OF MAHFUZ BIN YOUSUF-UPDATE.pdf"
 export const profilePdfHref = `/${encodeURIComponent(profilePdfFileName)}`
-
-export const aboutEyebrow = "About the founder & platform"
-
-export const aboutHero = {
-  title: "Land, clarity, and long-term trust—by design.",
-  subtitle:
-    "Eurostar Land is shaped around a simple idea: serious land decisions deserve transparent listings, disciplined processes, and legal context you can rely on. Mahfuz Bin Yousuf leads that vision—bridging investors, owners, and structured purchase paths without the usual noise.",
-}
-
-/** Short lines under the hero for quick scanning */
-export const aboutHeroPills = [
-  "Whole-parcel & land-share lanes",
-  "Plot maps with clear booking flows",
-  "Legal services built for property",
-] as const
-
-export const aboutStory = {
-  heading: "A profile built on execution, not hype",
-  paragraphs: [
-    "Mahfuz Bin Yousuf approaches real estate and land investment with a client-first mindset: fewer promises, more structure. That means honest framing of what a listing includes, what registration or installment paths involve, and where professional review still matters before money moves.",
-    "Whether you are comparing buy-plot promos, land-share tiers, or a full-parcel acquisition, the goal is the same—reduce ambiguity early so decisions hold up later. The platform reflects that philosophy in how listings are presented, how bookings are recorded, and how support routes stay visible.",
-    "This page summarises the leadership story behind the product. For the full professional profile—including credentials, affiliations, and detailed background as published—open the PDF linked below.",
-  ],
-  spotlightQuote: {
-    text: "Trust in land deals is earned in the details: documentation, timing, and plain language when it matters.",
-    attribution: "Mahfuz Bin Yousuf",
-  },
-}
-
-export const aboutStats = [
-  {
-    value: "Land-first",
-    label: "Listings centred on parcels, channels, and real map context",
-    toneClass: "bg-[#0b1f44] text-white",
-  },
-  {
-    value: "Structured buy paths",
-    label: "Buy plots, land share, and installment lanes where applicable",
-    toneClass: "bg-[#152a55] text-white",
-  },
-  {
-    value: "Legal desk",
-    label: "Property-focused legal services on demand",
-    toneClass: "bg-[#f58e43] text-[#0b1f44]",
-  },
-  {
-    value: "One journey",
-    label: "Discovery → booking → dashboards without hand-offs",
-    toneClass: "bg-slate-100 text-[#0b1f44] ring-1 ring-slate-200/90",
-  },
-] as const
 
 export const founder = {
   name: "Mahfuz Bin Yousuf",
@@ -119,7 +75,16 @@ export const ctaBand = {
 /** Optional compliance table — extend with real registration numbers from your jurisdiction. */
 export const disclosuresHeading = "Disclosures & registrations"
 export const disclosureRows = [
-  { jurisdiction: "Platform standards", detail: "Listing, booking, and review flows follow the rules published in-app and in staff tooling." },
-  { jurisdiction: "Statutory references", detail: "Add company registration, tax IDs, and licences here when counsel approves publication." },
-  { jurisdiction: "Document accuracy", detail: "Replace placeholder rows with data taken from your profile PDF or corporate registry." },
+  {
+    jurisdiction: "Platform standards",
+    detail: "Listing, booking, and review flows follow the rules published in-app and in staff tooling.",
+  },
+  {
+    jurisdiction: "Statutory references",
+    detail: "Add company registration, tax IDs, and licences here when counsel approves publication.",
+  },
+  {
+    jurisdiction: "Document accuracy",
+    detail: "Replace placeholder rows with data taken from your corporate registry or official brochure.",
+  },
 ] as const

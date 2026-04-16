@@ -399,7 +399,7 @@ export function LandShareDetailsPage() {
                       ) : null}
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3">
+                    <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3 lg:hidden">
                       {ratingLabel ? (
                         <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
                           {ratingLabel}
@@ -662,8 +662,34 @@ export function LandShareDetailsPage() {
                     </motion.section>
                   </motion.div>
 
-                  <motion.aside className="space-y-7" variants={columnStaggerVariants}>
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6">
+                  <motion.aside className="flex flex-col gap-7" variants={columnStaggerVariants}>
+                    <motion.section
+                      variants={sectionVariants}
+                      className="hidden rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:order-2"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        {ratingLabel ? (
+                          <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
+                            {ratingLabel}
+                          </span>
+                        ) : null}
+                        <span
+                          className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
+                          title="Land size and price summary"
+                        >
+                          {offeringBadgeLabel(listing)}
+                        </span>
+                        <span className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium text-[#c55f1a]">
+                          {listing.location_name}
+                        </span>
+                      </div>
+                    </motion.section>
+
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 lg:order-3"
+                    >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Representative</p>
                       <div className="mt-4 flex gap-4">
                         <img
@@ -694,7 +720,10 @@ export function LandShareDetailsPage() {
                       </div>
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6">
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 lg:order-4"
+                    >
                       <h3 className="text-xl font-semibold text-[#0b1f44]">Request a query</h3>
                       <p className="mt-2 text-sm text-slate-600">
                         Send any question about this listing, payment tiers, or investing—we will get back to you.
@@ -716,7 +745,10 @@ export function LandShareDetailsPage() {
                       </div>
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6">
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 lg:order-5"
+                    >
                       <h3 className="mb-2 text-lg font-semibold text-[#0b1f44]">Book this land</h3>
                       <div className="mb-2 h-2 rounded-full bg-slate-200">
                         <div className="h-2 rounded-full bg-[#f58e43]" style={{ width: `${availabilityPercent}%` }} />

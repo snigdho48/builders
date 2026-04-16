@@ -40,6 +40,7 @@ export function LandShareLandBookPage() {
   }, [numericId])
 
   const isInvestor = role === "investor"
+  const isStaff = role === "admin" || role === "agent"
   const listingBookable = listing != null && listing.status === "available" && listing.listing_active
 
   if (loading) {
@@ -98,7 +99,7 @@ export function LandShareLandBookPage() {
             ← Back to listing
           </Link>
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-slate-700">Sign in as an investor to complete your booking.</p>
+            <p className="text-slate-700">Sign in to complete your booking.</p>
             <Link
               to={`/auth?next=${encodeURIComponent(bookPath)}`}
               className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#f58e43] px-4 py-3 font-semibold text-slate-950 hover:bg-[#ff9b4f]"
@@ -111,7 +112,7 @@ export function LandShareLandBookPage() {
     )
   }
 
-  if (!isInvestor) {
+  if (!isInvestor && !isStaff) {
     return (
       <main className="min-h-[50vh] bg-[#f6f7fb] px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg space-y-4">
@@ -122,7 +123,7 @@ export function LandShareLandBookPage() {
             ← Back to listing
           </Link>
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <p className="text-slate-700">Only investor accounts can book. Switch to an investor account or register as one.</p>
+            <p className="text-slate-700">Only investor, admin, or agent accounts can book.</p>
             <Link to="/dashboard" className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline">
               Go to dashboard
             </Link>
@@ -142,7 +143,16 @@ export function LandShareLandBookPage() {
           <h1 className="mt-3 text-2xl font-semibold text-[#0b1f44]">Complete your booking</h1>
           <p className="mt-1 text-sm text-slate-600">{listing.title}</p>
         </div>
-        <LandBookingFlow listing={listing} onSuccess={() => navigate("/dashboard/investor/bookings", { replace: true })} />
+        <LandBookingFlow
+          listing={listing}
+          allowStaffBookingForInvestor={isStaff}
+          onSuccess={() =>
+            navigate(
+              isInvestor ? "/dashboard/investor/bookings" : role === "admin" ? "/dashboard/admin/bookings" : "/dashboard/agent/bookings",
+              { replace: true },
+            )
+          }
+        />
       </div>
     </main>
   )
