@@ -4,6 +4,7 @@ import { faFacebookF, faInstagram, faPinterestP, faXTwitter } from "@fortawesome
 import { faBars, faMagnifyingGlass, faPhone, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 
+import { GoogleTranslateWidget } from "@/i18n/google-translate-widget"
 import { useLanguage } from "@/i18n/language-context"
 import { publicUrl } from "@/utils/public-url"
 import { normalizeStoredRole } from "@/routes/protected-route"
@@ -108,32 +109,33 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-[#16243E]/96 pt-[env(safe-area-inset-top,0px)] backdrop-blur">
       <div className="border-b border-white/5">
-        <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 py-2 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] text-xs text-slate-200 sm:gap-x-4 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
-            {!isLoggedIn ? (
-              <>
-                <Link to="/auth" className="font-semibold text-white">
-                  {t("nav.signIn", "Sign in")}
-                </Link>
-                <span className="text-slate-300">{t("nav.or", "or")}</span>
-                <Link to="/register" className="font-semibold text-white">
-                  {t("nav.register", "Register")}
-                </Link>
-              </>
-            ) : (
-              <span className="font-semibold text-emerald-300">{t("nav.welcomeBack", "Welcome back")}</span>
-            )}
-            <span className="text-slate-400">
-              <FontAwesomeIcon icon={faFacebookF} />
-            </span>
-            <span className="text-slate-400">
-              <FontAwesomeIcon icon={faXTwitter} />
-            </span>
-            <span className="text-slate-400">
-              <FontAwesomeIcon icon={faInstagram} />
-            </span>
-            <span className="text-slate-400">
-              <FontAwesomeIcon icon={faPinterestP} />
-            </span>
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2 py-2 pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] text-xs text-slate-200 sm:gap-x-4 sm:pl-[max(1rem,env(safe-area-inset-left,0px))] sm:pr-[max(1rem,env(safe-area-inset-right,0px))]">
+          {!isLoggedIn ? (
+            <>
+              <Link to="/auth" className="font-semibold text-white">
+                {t("nav.signIn", "Sign in")}
+              </Link>
+              <span className="text-slate-300">{t("nav.or", "or")}</span>
+              <Link to="/register" className="font-semibold text-white">
+                {t("nav.register", "Register")}
+              </Link>
+            </>
+          ) : (
+            <span className="font-semibold text-emerald-300">{t("nav.welcomeBack", "Welcome back")}</span>
+          )}
+          <span className="text-slate-400">
+            <FontAwesomeIcon icon={faFacebookF} />
+          </span>
+          <span className="text-slate-400">
+            <FontAwesomeIcon icon={faXTwitter} />
+          </span>
+          <span className="text-slate-400">
+            <FontAwesomeIcon icon={faInstagram} />
+          </span>
+          <span className="text-slate-400">
+            <FontAwesomeIcon icon={faPinterestP} />
+          </span>
+          <GoogleTranslateWidget className="google-translate-widget--topbar shrink-0" />
         </div>
       </div>
       <div className="relative">
@@ -181,12 +183,12 @@ export function Navbar() {
               </NavLink>
             ))}
           </nav>
-          <div className="relative flex w-auto min-w-0 shrink-0 items-center justify-end gap-1.5 justify-self-end text-[13px] font-medium text-slate-300 sm:gap-2.5 lg:w-full">
+          <div className="relative flex w-auto min-w-0 shrink-0 items-center justify-end gap-1 justify-self-end text-[13px] font-medium text-slate-300 sm:gap-2 lg:w-full">
             <Link
               to="/contact"
               title={t("nav.contactNow", "Contact now")}
               aria-label={t("nav.contactNow", "Contact now")}
-              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:h-12 sm:w-12"
             >
               <FontAwesomeIcon icon={faPhone} className="h-[1.05rem] w-[1.05rem]" />
             </Link>
@@ -194,7 +196,7 @@ export function Navbar() {
               type="button"
               aria-label={searchOpen ? "Search listings" : "Open search"}
               aria-expanded={searchOpen}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:h-12 sm:w-12"
               onClick={() => {
                 if (searchOpen) {
                   submitNavSearch()
@@ -215,7 +217,7 @@ export function Navbar() {
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav-menu"
               onClick={() => setMobileOpen((open) => !open)}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 text-white transition-[transform,border-color,background-color] duration-200 hover:scale-105 hover:border-white/60 hover:bg-white/10 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:h-12 sm:w-12 lg:hidden"
             >
               <FontAwesomeIcon icon={mobileOpen ? faXmark : faBars} className="h-5 w-5" />
             </button>

@@ -17,8 +17,27 @@
     />
     <title>Eurostar</title>
   </head>
-  <body>
+  <body style="top: 0 !important;">
     <div id="root"></div>
+    <!-- Google Translate host (outside React so init matches official snippet and survives Strict Mode) -->
+    <div id="google_translate_element" aria-hidden="true"></div>
+    <script>
+      window.googleTranslateElementInit = function googleTranslateElementInit() {
+        try {
+          if (!window.google || !window.google.translate || !window.google.translate.TranslateElement) return
+          if (window.__eurostarTranslateElementMounted) return
+          // Keep reference so we can call nested `.restore()` when switching back to English (combo+cookie alone is unreliable).
+          window.__eurostarTranslateElement = new window.google.translate.TranslateElement(
+            { pageLanguage: "en", includedLanguages: "bn" },
+            "google_translate_element",
+          )
+          window.__eurostarTranslateElementMounted = true
+        } catch (e) {
+          console.error("Google Translate init failed", e)
+        }
+      }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
