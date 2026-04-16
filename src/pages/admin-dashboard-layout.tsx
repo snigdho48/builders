@@ -17,7 +17,10 @@ const sections: DashboardNavSection[] = [
   {
     id: "catalog",
     title: "Land",
-    items: [{ to: "/dashboard/admin/properties", label: "All listings" }],
+    items: [
+      { to: "/dashboard/admin/properties", label: "Plot listings" },
+      { to: "/dashboard/admin/land-share", label: "Land share" },
+    ],
   },
   {
     id: "bookings",

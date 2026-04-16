@@ -495,6 +495,19 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
               <span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span>{" "}
               {planLabel[selected.plan_type] ?? selected.plan_type}
             </p>
+            {selected.investment_option_amount ? (
+              <p>
+                <span className="text-slate-500">{language === "bn" ? "ল্যান্ড শেয়ার বিনিয়োগ:" : "Land share tier:"}</span>{" "}
+                {selected.investment_option_amount} BDT
+                {selected.investment_option_duration_years != null ? (
+                  <span>
+                    {" "}
+                    · {selected.investment_option_duration_years}{" "}
+                    {language === "bn" ? "বছর" : "years"}
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
             {selected.selected_plot_code ? (
               <p>
                 <span className="text-slate-500">{language === "bn" ? "প্লট আইডি:" : "Plot ID:"}</span>{" "}

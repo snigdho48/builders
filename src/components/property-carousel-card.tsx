@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom"
 
-import type { Property } from "@/types/domain"
+import type { CatalogListing } from "@/types/domain"
 import { formatBdtInteger } from "@/utils/currency"
+import { listingDetailPath } from "@/utils/property-display"
 
-function priceCaption(property: Property): string {
-  const main = formatBdtInteger(property.land_price)
-  const whole = property.whole_land_price ? formatBdtInteger(property.whole_land_price) : null
+function priceCaption(listing: CatalogListing): string {
+  const main = formatBdtInteger(listing.land_price)
+  const whole = listing.whole_land_price ? formatBdtInteger(listing.whole_land_price) : null
   if (whole && whole !== main) {
     return `${main} – ${whole}`
   }
@@ -13,7 +14,7 @@ function priceCaption(property: Property): string {
 }
 
 type PropertyCarouselCardProps = {
-  property: Property
+  listing: CatalogListing
   /** 1-based rank (Square Yards `.project-number .number`). */
   rank: number
 }
@@ -34,23 +35,23 @@ function htmlToPlainText(html: string): string {
 }
 
 /** Primary API copy for the card blurb; visual length capped with `line-clamp-2` on the element. */
-function listingDescriptionPreview(property: Property): string {
-  const primary = htmlToPlainText(property.description ?? "")
+function listingDescriptionPreview(listing: CatalogListing): string {
+  const primary = htmlToPlainText(listing.description ?? "")
   if (primary) return primary
-  const secondary = htmlToPlainText(property.description_secondary ?? "")
+  const secondary = htmlToPlainText(listing.description_secondary ?? "")
   if (secondary) return secondary
-  const review = property.review_sample_text?.trim()
+  const review = listing.review_sample_text?.trim()
   if (review) return review
   return "Premium listing in a prime location."
 }
 
-export function PropertyCarouselCard({ property, rank }: PropertyCarouselCardProps) {
-  const img = property.top_view_image || "https://placehold.co/640x400/e2e8f0/64748b?text=Land"
-  const sqft = property.size_sqft ?? property.land_area_sqft ?? 1600
+export function PropertyCarouselCard({ listing, rank }: PropertyCarouselCardProps) {
+  const img = listing.top_view_image || "https://placehold.co/640x400/e2e8f0/64748b?text=Land"
+  const sqft = listing.size_sqft ?? listing.land_area_sqft ?? 1600
 
   return (
     <Link
-      to={`/properties/${property.id}`}
+      to={listingDetailPath(listing)}
       className="property-focus-card-link group mx-auto block h-auto w-full min-w-0 cursor-pointer overflow-visible outline-none focus-visible:ring-2 focus-visible:ring-[#f58e43] focus-visible:ring-offset-2 lg:max-w-none"
     >
       <article className="property-focus-card flex min-h-0 w-full flex-col overflow-visible">
@@ -70,19 +71,19 @@ export function PropertyCarouselCard({ property, rank }: PropertyCarouselCardPro
         </figure>
         <figcaption className="property-focus-card__caption m-0">
           <strong className="property-focus-card__title line-clamp-2 font-bold text-gray-900 max-sm:line-clamp-1">
-            {property.title}
+            {listing.title}
           </strong>
           <span className="property-focus-card__city line-clamp-2 text-gray-500 max-sm:line-clamp-1">
-            {property.location_name}
+            {listing.location_name}
           </span>
           <p className="property-focus-card__desc line-clamp-2 min-h-0 min-w-0 wrap-break-word">
-            {listingDescriptionPreview(property)}
+            {listingDescriptionPreview(listing)}
           </p>
           <div className="property-focus-card__meta-row w-full" aria-hidden>
             <span>{sqft.toLocaleString()} sqft</span>
           </div>
           <div className="property-focus-card__footer">
-            <span className="property-focus-card__price font-bold text-gray-900">{priceCaption(property)}</span>
+            <span className="property-focus-card__price font-bold text-gray-900">{priceCaption(listing)}</span>
             <span className="property-focus-card__details-pill">Details</span>
           </div>
         </figcaption>

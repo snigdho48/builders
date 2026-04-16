@@ -11,7 +11,8 @@ import type { UserRole } from "@/types/domain"
 
 const publicLinks = [
   { to: "/", key: "nav.home", fallback: "Home" },
-  { to: "/listings", key: "nav.listings", fallback: "Listings" },
+  { to: "/listings/buy-plots", key: "nav.buyPlots", fallback: "Buy plots" },
+  { to: "/listings/buy-land-share", key: "nav.buyLandShare", fallback: "Land share" },
   { to: "/p2p", key: "nav.p2p", fallback: "P2P" },
   { to: "/legal", key: "nav.legal", fallback: "Legal" },
   { to: "/about", key: "nav.about", fallback: "About" },
@@ -93,10 +94,13 @@ export function Navbar() {
     window.location.href = "/auth"
   }
 
+  /** Admin/agent use the dedicated “Land dashboard” control instead of a second top-level Dashboard link. */
+  const showGenericDashboard = isLoggedIn && userRole !== "admin" && userRole !== "agent"
+
   const links = isLoggedIn
     ? [
         ...publicLinks,
-        { to: "/dashboard", key: "nav.dashboard", fallback: "Dashboard" },
+        ...(showGenericDashboard ? [{ to: "/dashboard", key: "nav.dashboard", fallback: "Dashboard" }] : []),
         { to: "/profile", key: "nav.profile", fallback: "Profile" },
       ]
     : publicLinks
@@ -195,7 +199,7 @@ export function Navbar() {
                 if (searchOpen) {
                   submitNavSearch()
                 } else {
-                  if (location.pathname === "/listings") {
+                  if (location.pathname.startsWith("/listings")) {
                     const q = new URLSearchParams(location.search).get("q") ?? ""
                     setSearchText(q)
                   }

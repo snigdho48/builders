@@ -17,12 +17,14 @@ import type {
   LandBookingCreatePayload,
   LandPlot,
   LandSaleMode,
+  LandShareListing,
+  LandShareListingUpsertPayload,
   MeResponse,
   Property,
   PropertyChannel,
   PropertyUpsertPayload,
+  LandSharePaymentOption,
   RetailInvestor,
-  ShareInvestmentOption,
   PlotStatus,
 } from "@/types/domain"
 
@@ -34,7 +36,8 @@ function normalizeDevApiBase(url: string): string {
 }
 
 const API_BASE = normalizeDevApiBase(
-  import.meta.env.VITE_API_BASE_URL ?? "https://api.eurostar.land/api"
+  // import.meta.env.VITE_API_BASE_URL ?? "https://api.eurostar.land/api"
+  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api"
 )
 
 type RequestOptions = {
@@ -201,18 +204,26 @@ function asFloorPlans(v: unknown): FloorPlanItem[] {
   return out
 }
 
-function asShareTiers(v: unknown): ShareInvestmentOption[] {
+function asPaymentOptions(v: unknown): LandSharePaymentOption[] {
   if (!Array.isArray(v)) return []
+  const allowed = new Set(["monthly", "yearly", "one_time"])
   return v
     .map((x) => {
       if (!x || typeof x !== "object") return null
       const o = x as Record<string, unknown>
-      return {
+      const raw = (o.billing_period != null ? String(o.billing_period) : "monthly").toLowerCase()
+      const billing_period = allowed.has(raw) ? (raw as LandSharePaymentOption["billing_period"]) : "monthly"
+      const row: LandSharePaymentOption = {
         amount: String(o.amount ?? "0"),
-        duration_years: Number(o.duration_years ?? 0),
+        billing_period,
       }
+      if (o.commitment_months != null && o.commitment_months !== "") {
+        const n = Number(o.commitment_months)
+        if (Number.isFinite(n) && n > 0) row.commitment_months = Math.floor(n)
+      }
+      return row
     })
-    .filter((x): x is ShareInvestmentOption => x != null)
+    .filter((x): x is LandSharePaymentOption => x != null)
 }
 
 function normalizePropertyKind(raw: unknown): Property["property_type"] {
@@ -221,7 +232,7 @@ function normalizePropertyKind(raw: unknown): Property["property_type"] {
 }
 
 function normalizeLandSaleMode(raw: unknown): LandSaleMode {
-  if (raw === "per_block" || raw === "whole_land" || raw === "fractional_share") return raw
+  if (raw === "per_block" || raw === "whole_land") return raw
   return "whole_land"
 }
 
@@ -235,6 +246,7 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
   const land_price = String(raw.land_price ?? "0")
   return {
     id: Number(raw.id),
+    listing_kind: "plot_listing",
     title: String(raw.title ?? ""),
     slug: String(raw.slug ?? ""),
     description: String(raw.description ?? ""),
@@ -278,7 +290,6 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
     review_sample_text: String(raw.review_sample_text ?? ""),
     status: (raw.status as Property["status"]) ?? "available",
     listing_active: raw.listing_active !== false,
-    share_investment_options: asShareTiers(raw.share_investment_options),
     representative: raw.representative != null ? Number(raw.representative) : null,
     representative_name: raw.representative_name != null ? String(raw.representative_name) : null,
     representative_email: raw.representative_email != null ? String(raw.representative_email) : null,
@@ -292,10 +303,65 @@ export function normalizeProperty(raw: Record<string, unknown>): Property {
   }
 }
 
+export function normalizeLandShareListing(raw: Record<string, unknown>): LandShareListing {
+  const land_price = String(raw.land_price ?? "0")
+  return {
+    id: Number(raw.id),
+    listing_kind: "land_share",
+    title: String(raw.title ?? ""),
+    slug: String(raw.slug ?? ""),
+    description: String(raw.description ?? ""),
+    description_secondary: String(raw.description_secondary ?? ""),
+    property_type: normalizePropertyKind(raw.property_type),
+    sale_type: "installment",
+    property_channel: "installment",
+    land_price,
+    whole_land_price: raw.whole_land_price != null ? String(raw.whole_land_price) : land_price,
+    payment_options: asPaymentOptions(raw.payment_options),
+    location_name: String(raw.location_name ?? ""),
+    latitude: raw.latitude != null ? String(raw.latitude) : null,
+    longitude: raw.longitude != null ? String(raw.longitude) : null,
+    video_url: String(raw.video_url ?? ""),
+    top_view_image: String(raw.top_view_image ?? ""),
+    gallery_images: asStringList(raw.gallery_images),
+    tags: asStringList(raw.tags),
+    amenities: asStringList(raw.amenities),
+    floor_plans: asFloorPlans(raw.floor_plans),
+    build_year: raw.build_year != null ? Number(raw.build_year) : null,
+    bedrooms: raw.bedrooms != null ? Number(raw.bedrooms) : null,
+    bathrooms: raw.bathrooms != null ? Number(raw.bathrooms) : null,
+    flat_label: String(raw.flat_label ?? ""),
+    size_sqft: raw.size_sqft != null ? Number(raw.size_sqft) : raw.land_area_sqft != null ? Number(raw.land_area_sqft) : null,
+    land_area_sqft: raw.land_area_sqft != null ? Number(raw.land_area_sqft) : null,
+    for_rent: raw.for_rent === true,
+    for_sale: raw.for_sale !== false,
+    contact_website: String(raw.contact_website ?? ""),
+    rating_average: raw.rating_average != null ? String(raw.rating_average) : null,
+    review_count: Number(raw.review_count ?? 0),
+    review_sample_author: String(raw.review_sample_author ?? ""),
+    review_sample_date: raw.review_sample_date != null ? String(raw.review_sample_date) : null,
+    review_sample_text: String(raw.review_sample_text ?? ""),
+    status: (raw.status as LandShareListing["status"]) ?? "available",
+    listing_active: raw.listing_active !== false,
+    assigned_agent: raw.assigned_agent != null ? Number(raw.assigned_agent) : null,
+    assigned_agent_name: raw.assigned_agent_name != null ? String(raw.assigned_agent_name) : null,
+    representative: raw.representative != null ? Number(raw.representative) : null,
+    representative_name: raw.representative_name != null ? String(raw.representative_name) : null,
+    representative_email: raw.representative_email != null ? String(raw.representative_email) : null,
+    representative_phone: raw.representative_phone != null ? String(raw.representative_phone) : null,
+    managed_by: raw.managed_by != null ? Number(raw.managed_by) : null,
+    managed_by_name: raw.managed_by_name != null ? String(raw.managed_by_name) : null,
+    created_at: raw.created_at != null ? String(raw.created_at) : undefined,
+    updated_at: raw.updated_at != null ? String(raw.updated_at) : undefined,
+  }
+}
+
 function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
   return {
     id: Number(raw.id),
-    property: Number(raw.property),
+    property: raw.property != null && raw.property !== "" ? Number(raw.property) : null,
+    land_share_listing:
+      raw.land_share_listing != null && raw.land_share_listing !== "" ? Number(raw.land_share_listing) : null,
     property_title: raw.property_title != null ? String(raw.property_title) : undefined,
     property_sale_type: raw.property_sale_type === "installment" ? "installment" : "land_buy",
     investor: Number(raw.investor),
@@ -311,6 +377,18 @@ function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
     selected_plot_code: raw.selected_plot_code != null ? String(raw.selected_plot_code) : undefined,
     selected_plot_area_sqft: raw.selected_plot_area_sqft != null ? Number(raw.selected_plot_area_sqft) : null,
     selected_plot_price: raw.selected_plot_price != null ? String(raw.selected_plot_price) : null,
+    investment_option_amount:
+      raw.investment_option_amount != null && raw.investment_option_amount !== ""
+        ? String(raw.investment_option_amount)
+        : null,
+    investment_option_duration_years:
+      raw.investment_option_duration_years != null && raw.investment_option_duration_years !== ""
+        ? Number(raw.investment_option_duration_years)
+        : null,
+    investment_option_billing_period:
+      raw.investment_option_billing_period != null && String(raw.investment_option_billing_period).trim() !== ""
+        ? String(raw.investment_option_billing_period).trim().toLowerCase()
+        : null,
     status: raw.status as LandBooking["status"],
     reviewed_by: raw.reviewed_by != null ? Number(raw.reviewed_by) : null,
     reviewed_by_username: raw.reviewed_by_username != null ? String(raw.reviewed_by_username) : undefined,
@@ -476,8 +554,14 @@ export async function getProperty(id: number): Promise<Property> {
 }
 
 export async function getBookingPromoSettings(): Promise<BookingPromoSettings> {
-  const res = await request<BookingPromoSettings>("/booking-promo-settings/", { skipAuthRefresh: true })
-  return res.data
+  const res = await request<Record<string, unknown>>("/booking-promo-settings/", { skipAuthRefresh: true })
+  const d = res.data ?? {}
+  return {
+    plot_buy_installment_promo_enabled: d.plot_buy_installment_promo_enabled !== false,
+    plot_buy_installment_slot_limit: Number(d.plot_buy_installment_slot_limit ?? 100),
+    plot_buy_installment_slots_used: Number(d.plot_buy_installment_slots_used ?? 0),
+    plot_buy_installment_slots_available: Number(d.plot_buy_installment_slots_available ?? 0),
+  }
 }
 
 export async function createProperty(body: PropertyUpsertPayload, token: string): Promise<Property> {
@@ -492,6 +576,68 @@ export async function updateProperty(id: number, body: PropertyUpsertPayload, to
 
 export async function deleteProperty(id: number, token: string): Promise<void> {
   await request(`/properties/${id}/`, { method: "DELETE", token })
+}
+
+type LandShareListParams = {
+  page?: number
+  pageSize?: number
+  status?: string
+  search?: string
+  location?: string
+  minPrice?: number
+  maxPrice?: number
+  includeInactive?: boolean
+  managedByMe?: boolean
+}
+
+export async function getLandShareListingsPaged(
+  params: LandShareListParams = {},
+): Promise<{ items: LandShareListing[]; pagination: ApiEnvelope<unknown>["pagination"] }> {
+  const q = new URLSearchParams()
+  if (params.page != null) q.set("page", String(params.page))
+  if (params.pageSize != null) q.set("page_size", String(params.pageSize))
+  if (params.status) q.set("status", params.status)
+  if (params.search) q.set("search", params.search)
+  if (params.location?.trim()) q.set("location", params.location.trim())
+  if (params.minPrice != null && Number.isFinite(params.minPrice) && params.minPrice >= 0) {
+    q.set("min_price", String(params.minPrice))
+  }
+  if (params.maxPrice != null && Number.isFinite(params.maxPrice) && params.maxPrice >= 0) {
+    q.set("max_price", String(params.maxPrice))
+  }
+  if (params.includeInactive) q.set("include_inactive", "1")
+  if (params.managedByMe) q.set("managed_by_me", "1")
+  const res = await request<unknown[]>(`/land-share-listings/?${q.toString()}`)
+  const rows = Array.isArray(res.data) ? res.data : []
+  return { items: rows.map((r) => normalizeLandShareListing(r as Record<string, unknown>)), pagination: res.pagination }
+}
+
+export async function getLandShareListings(): Promise<LandShareListing[]> {
+  const { items } = await getLandShareListingsPaged({ pageSize: 200 })
+  return items
+}
+
+export async function getLandShareListing(id: number): Promise<LandShareListing> {
+  const res = await request<Record<string, unknown>>(`/land-share-listings/${id}/`)
+  return normalizeLandShareListing(res.data as Record<string, unknown>)
+}
+
+export async function createLandShareListing(body: LandShareListingUpsertPayload, token: string): Promise<LandShareListing> {
+  const res = await request<Record<string, unknown>>("/land-share-listings/", { method: "POST", body, token })
+  return normalizeLandShareListing(res.data as Record<string, unknown>)
+}
+
+export async function updateLandShareListing(
+  id: number,
+  body: LandShareListingUpsertPayload,
+  token: string,
+): Promise<LandShareListing> {
+  const res = await request<Record<string, unknown>>(`/land-share-listings/${id}/`, { method: "PATCH", body, token })
+  return normalizeLandShareListing(res.data as Record<string, unknown>)
+}
+
+export async function deleteLandShareListing(id: number, token: string): Promise<void> {
+  await request(`/land-share-listings/${id}/`, { method: "DELETE", token })
 }
 
 export async function listLandBookings(token: string): Promise<LandBooking[]> {

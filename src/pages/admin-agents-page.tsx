@@ -403,7 +403,7 @@ export function AdminAgentsPage() {
             }
           />
         </div>
-        <label className="mt-4 flex items-center gap-2 text-sm text-slate-300">
+        <label className="mt-4 flex items-center gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={agentForm.is_active ?? true}

@@ -3,22 +3,19 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 
 import { LandBookingFlow } from "@/components/land-booking-flow"
 import { normalizeStoredRole } from "@/routes/protected-route"
-import { getProperty } from "@/services/api"
-import type { Property } from "@/types/domain"
+import { getLandShareListing } from "@/services/api"
+import type { LandShareListing } from "@/types/domain"
 
-/**
- * Reachable only via "Book now" on a property (not linked from the main nav).
- */
-export function PropertyLandBookPage() {
+export function LandShareLandBookPage() {
   const { id = "" } = useParams()
   const navigate = useNavigate()
-  const [property, setProperty] = useState<Property | null>(null)
+  const [listing, setListing] = useState<LandShareListing | null>(null)
   const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(() => localStorage.getItem("accessToken"))
   const [role, setRole] = useState(() => normalizeStoredRole(localStorage.getItem("userRole")))
 
   const numericId = Number(id)
-  const bookPath = `/properties/${id}/book`
+  const bookPath = `/land-share-listings/${id}/book`
 
   useEffect(() => {
     const sync = () => {
@@ -31,26 +28,19 @@ export function PropertyLandBookPage() {
 
   useEffect(() => {
     if (!Number.isFinite(numericId) || numericId <= 0) {
-      setProperty(null)
+      setListing(null)
       setLoading(false)
       return
     }
     setLoading(true)
-    getProperty(numericId)
-      .then((p) => {
-        setProperty(p)
-      })
-      .catch(() => {
-        setProperty(null)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+    getLandShareListing(numericId)
+      .then(setListing)
+      .catch(() => setListing(null))
+      .finally(() => setLoading(false))
   }, [numericId])
 
   const isInvestor = role === "investor"
-  const listingBookable =
-    property != null && property.status === "available" && property.listing_active
+  const listingBookable = listing != null && listing.status === "available" && listing.listing_active
 
   if (loading) {
     return (
@@ -60,13 +50,13 @@ export function PropertyLandBookPage() {
     )
   }
 
-  if (property === null) {
+  if (listing === null) {
     return (
       <main className="min-h-[50vh] bg-[#f6f7fb] px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-slate-700">This listing could not be loaded.</p>
-          <Link to="/listings/buy-plots" className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline">
-            Browse buy plots
+          <p className="text-slate-700">This land-share listing could not be loaded.</p>
+          <Link to="/listings/buy-land-share" className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline">
+            Browse land share
           </Link>
         </div>
       </main>
@@ -78,15 +68,15 @@ export function PropertyLandBookPage() {
       <main className="min-h-[50vh] bg-[#f6f7fb] px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg space-y-4">
           <Link
-            to={`/properties/${property.id}`}
+            to={`/land-share-listings/${listing.id}`}
             className="inline-block text-sm font-medium text-[#f58e43] hover:underline"
           >
-            ← Back to property
+            ← Back to listing
           </Link>
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <p className="text-slate-700">This land is not available for booking right now.</p>
+            <p className="text-slate-700">This listing is not available for booking right now.</p>
             <Link
-              to={`/properties/${property.id}`}
+              to={`/land-share-listings/${listing.id}`}
               className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline"
             >
               View listing
@@ -102,10 +92,10 @@ export function PropertyLandBookPage() {
       <main className="min-h-[50vh] bg-[#f6f7fb] px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg space-y-4">
           <Link
-            to={`/properties/${property.id}`}
+            to={`/land-share-listings/${listing.id}`}
             className="inline-block text-sm font-medium text-[#f58e43] hover:underline"
           >
-            ← Back to property
+            ← Back to listing
           </Link>
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <p className="text-slate-700">Sign in as an investor to complete your booking.</p>
@@ -126,17 +116,14 @@ export function PropertyLandBookPage() {
       <main className="min-h-[50vh] bg-[#f6f7fb] px-4 py-16 text-slate-900">
         <div className="mx-auto max-w-lg space-y-4">
           <Link
-            to={`/properties/${property.id}`}
+            to={`/land-share-listings/${listing.id}`}
             className="inline-block text-sm font-medium text-[#f58e43] hover:underline"
           >
-            ← Back to property
+            ← Back to listing
           </Link>
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <p className="text-slate-700">Only investor accounts can book land. Switch to an investor account or register as one.</p>
-            <Link
-              to="/dashboard"
-              className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline"
-            >
+            <p className="text-slate-700">Only investor accounts can book. Switch to an investor account or register as one.</p>
+            <Link to="/dashboard" className="mt-4 inline-block font-semibold text-[#f58e43] hover:underline">
               Go to dashboard
             </Link>
           </div>
@@ -149,19 +136,13 @@ export function PropertyLandBookPage() {
     <main className="min-h-[60vh] bg-[#f6f7fb] px-4 py-10 text-slate-900 sm:py-14">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div>
-          <Link
-            to={`/properties/${property.id}`}
-            className="text-sm font-medium text-[#f58e43] hover:underline"
-          >
-            ← Back to property
+          <Link to={`/land-share-listings/${listing.id}`} className="text-sm font-medium text-[#f58e43] hover:underline">
+            ← Back to listing
           </Link>
           <h1 className="mt-3 text-2xl font-semibold text-[#0b1f44]">Complete your booking</h1>
-          <p className="mt-1 text-sm text-slate-600">{property.title}</p>
+          <p className="mt-1 text-sm text-slate-600">{listing.title}</p>
         </div>
-        <LandBookingFlow
-          listing={property}
-          onSuccess={() => navigate("/dashboard/investor/bookings", { replace: true })}
-        />
+        <LandBookingFlow listing={listing} onSuccess={() => navigate("/dashboard/investor/bookings", { replace: true })} />
       </div>
     </main>
   )

@@ -332,6 +332,19 @@ export function InvestorBookingsPage() {
             <p><span className="text-slate-500">{language === "bn" ? "জমি:" : "Land:"}</span> {selectedBooking.property_title}</p>
             <p><span className="text-slate-500">{language === "bn" ? "ধরন:" : "Type:"}</span> {kindLabel[selectedBooking.booking_kind] ?? selectedBooking.booking_kind}</p>
             <p><span className="text-slate-500">{language === "bn" ? "প্ল্যান:" : "Plan:"}</span> {planLabel[selectedBooking.plan_type] ?? selectedBooking.plan_type}</p>
+            {selectedBooking.investment_option_amount ? (
+              <p>
+                <span className="text-slate-500">{language === "bn" ? "ল্যান্ড শেয়ার বিনিয়োগ:" : "Land share tier:"}</span>{" "}
+                {selectedBooking.investment_option_amount} BDT
+                {selectedBooking.investment_option_duration_years != null ? (
+                  <span>
+                    {" "}
+                    · {selectedBooking.investment_option_duration_years}{" "}
+                    {language === "bn" ? "বছর" : "years"}
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
             {selectedBooking.selected_plot_code ? (
               <p><span className="text-slate-500">{language === "bn" ? "প্লট আইডি:" : "Plot ID:"}</span> {selectedBooking.selected_plot_code}</p>
             ) : null}

@@ -1,18 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { DashboardModal, dashboardModalFieldClass } from "@/components/dashboard/dashboard-modal"
+import { DashboardModal, dashboardModalFieldClass, dashboardModalFieldClassTight } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { useToast } from "@/components/ui/use-toast"
-import { SALE_TYPE_FILTER_OPTIONS } from "@/constants/property-filters"
-import {
-  createProperty,
-  deleteProperty,
-  getPropertiesPaged,
-  listAgents,
-  updateProperty,
-} from "@/services/api"
-import type { AgentUser, Property, PropertyKind, PropertyUpsertPayload, SaleType } from "@/types/domain"
-import { propertyPrimaryPriceLine, saleTypeLabel } from "@/utils/property-display"
+import { getLandShareListingsPaged, updateLandShareListing } from "@/services/api"
+import type { LandShareBillingPeriod, LandShareListing, LandShareListingUpsertPayload, PropertyKind } from "@/types/domain"
+import { propertyPrimaryPriceLine } from "@/utils/property-display"
 
 function slugify(s: string) {
   return s
@@ -23,52 +16,48 @@ function slugify(s: string) {
     .replace(/-+/g, "-")
 }
 
-export function AdminPropertiesPage() {
+const BILLING_OPTIONS: { value: LandShareBillingPeriod; label: string }[] = [
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+  { value: "one_time", label: "One time" },
+]
+
+export function AgentDashboardLandSharePage() {
   const { showToast } = useToast()
-  const [rows, setRows] = useState<Property[]>([])
-  const [agents, setAgents] = useState<AgentUser[]>([])
+  const [rows, setRows] = useState<LandShareListing[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState<Property | null>(null)
+  const [editing, setEditing] = useState<LandShareListing | null>(null)
   const [form, setForm] = useState({
     title: "",
     slug: "",
     property_type: "land" as PropertyKind,
-    sale_type: "land_buy" as SaleType,
     land_price: "",
-    installment_years: "" as string,
     location_name: "",
     land_area_sqft: "",
     description: "",
     description_secondary: "",
     amenities_text: "",
-    build_year: "",
-    bedrooms: "",
-    bathrooms: "",
-    flat_label: "",
-    contact_website: "",
-    for_rent: false,
     top_view_image: "",
     assigned_agent: "" as string,
     listing_active: true,
+    status: "available" as LandShareListing["status"],
+    payment_rows: [] as Array<{ amount: string; billing_period: LandShareBillingPeriod; commitment_months: string }>,
   })
   const [saving, setSaving] = useState(false)
   const [tableSearch, setTableSearch] = useState("")
-  const [tableSaleType, setTableSaleType] = useState<"all" | SaleType>("all")
   const [tableActive, setTableActive] = useState<"all" | "yes" | "no">("all")
-  const [tableAgentId, setTableAgentId] = useState("")
-
   const load = useCallback(async () => {
     const token = localStorage.getItem("accessToken")
     if (!token) return
     setLoading(true)
     try {
-      const [{ items }, agentList] = await Promise.all([
-        getPropertiesPaged({ pageSize: 100, includeInactive: true }),
-        listAgents(token),
-      ])
+      const { items } = await getLandShareListingsPaged({
+        pageSize: 200,
+        includeInactive: true,
+        managedByMe: true,
+      })
       setRows(items)
-      setAgents(agentList)
     } catch {
       setRows([])
     } finally {
@@ -80,56 +69,30 @@ export function AdminPropertiesPage() {
     void load()
   }, [load])
 
-  function openCreate() {
-    setEditing(null)
-    setForm({
-      title: "",
-      slug: "",
-      property_type: "land",
-      sale_type: "land_buy",
-      land_price: "",
-      installment_years: "",
-      location_name: "",
-      land_area_sqft: "",
-      description: "",
-      description_secondary: "",
-      amenities_text: "",
-      build_year: "",
-      bedrooms: "",
-      bathrooms: "",
-      flat_label: "",
-      contact_website: "",
-      for_rent: false,
-      top_view_image: "",
-      assigned_agent: "",
-      listing_active: true,
-    })
-    setModalOpen(true)
-  }
-
-  function openEdit(p: Property) {
+  function openEdit(p: LandShareListing) {
     setEditing(p)
     setForm({
       title: p.title,
       slug: p.slug,
       property_type: p.property_type,
-      sale_type: p.sale_type,
       land_price: p.land_price,
-      installment_years: p.installment_years != null ? String(p.installment_years) : "",
       location_name: p.location_name,
       land_area_sqft: p.land_area_sqft != null ? String(p.land_area_sqft) : "",
       description: p.description,
       description_secondary: p.description_secondary,
       amenities_text: (p.amenities ?? []).join("\n"),
-      build_year: p.build_year != null ? String(p.build_year) : "",
-      bedrooms: p.bedrooms != null ? String(p.bedrooms) : "",
-      bathrooms: p.bathrooms != null ? String(p.bathrooms) : "",
-      flat_label: p.flat_label,
-      contact_website: p.contact_website,
-      for_rent: p.for_rent,
       top_view_image: p.top_view_image,
       assigned_agent: p.assigned_agent != null ? String(p.assigned_agent) : "",
       listing_active: p.listing_active,
+      status: p.status,
+      payment_rows:
+        (p.payment_options ?? []).length > 0
+          ? p.payment_options.map((t) => ({
+              amount: t.amount,
+              billing_period: t.billing_period,
+              commitment_months: t.commitment_months != null ? String(t.commitment_months) : "",
+            }))
+          : [{ amount: "", billing_period: "monthly", commitment_months: "" }],
     })
     setModalOpen(true)
   }
@@ -137,17 +100,30 @@ export function AdminPropertiesPage() {
   async function save() {
     const token = localStorage.getItem("accessToken")
     if (!token) return
-    if (!form.title.trim() || !form.location_name.trim() || !form.land_price.trim()) {
-      showToast("Title, location, and land price are required.", "error")
+    if (!editing) {
+      showToast("Nothing to save.", "error")
       return
     }
-    if (form.sale_type === "installment") {
-      const y = Number(form.installment_years)
-      if (!Number.isFinite(y) || y < 1) {
-        showToast("Installment listings need a positive term in years.", "error")
-        return
-      }
+    if (!form.title.trim() || !form.location_name.trim() || !form.land_price.trim()) {
+      showToast("Title, location, and reference price are required.", "error")
+      return
     }
+    const payment_options = form.payment_rows
+      .map((r) => {
+        const amount = r.amount.trim()
+        if (!amount) return null
+        const o: { amount: string; billing_period: LandShareBillingPeriod; commitment_months?: number } = {
+          amount,
+          billing_period: r.billing_period,
+        }
+        const cm = r.commitment_months.trim()
+        if (cm) {
+          const n = Math.floor(Number(cm))
+          if (Number.isFinite(n) && n > 0) o.commitment_months = n
+        }
+        return o
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null)
     setSaving(true)
     try {
       const slug = form.slug.trim() || slugify(form.title)
@@ -155,36 +131,23 @@ export function AdminPropertiesPage() {
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean)
-      const payload: PropertyUpsertPayload = {
+      const payload: LandShareListingUpsertPayload = {
         title: form.title.trim(),
         slug,
         property_type: form.property_type,
-        sale_type: form.sale_type,
         land_price: form.land_price.trim(),
-        installment_years:
-          form.sale_type === "installment" ? Math.max(1, Math.floor(Number(form.installment_years))) : null,
+        payment_options,
         location_name: form.location_name.trim(),
         land_area_sqft: form.land_area_sqft.trim() ? Math.max(0, Math.floor(Number(form.land_area_sqft))) : null,
         description: form.description,
         description_secondary: form.description_secondary,
         amenities,
-        build_year: form.build_year.trim() ? Math.max(0, Math.floor(Number(form.build_year))) : null,
-        bedrooms: form.bedrooms.trim() ? Math.max(0, Math.floor(Number(form.bedrooms))) : null,
-        bathrooms: form.bathrooms.trim() ? Math.max(0, Math.floor(Number(form.bathrooms))) : null,
-        flat_label: form.flat_label.trim(),
-        contact_website: form.contact_website.trim(),
-        for_rent: form.for_rent,
         top_view_image: form.top_view_image.trim(),
         listing_active: form.listing_active,
-        assigned_agent: form.assigned_agent ? Number(form.assigned_agent) : null,
+        status: form.status,
       }
-      if (editing) {
-        await updateProperty(editing.id, payload, token)
-        showToast("Listing updated.", "success")
-      } else {
-        await createProperty(payload, token)
-        showToast("Listing created.", "success")
-      }
+      await updateLandShareListing(editing.id, payload, token)
+      showToast("Land share listing updated.", "success")
       setModalOpen(false)
       await load()
     } catch (e) {
@@ -194,36 +157,12 @@ export function AdminPropertiesPage() {
     }
   }
 
-  async function remove(p: Property) {
-    if (!window.confirm(`Delete “${p.title}”?`)) return
-    const token = localStorage.getItem("accessToken")
-    if (!token) return
-    try {
-      await deleteProperty(p.id, token)
-      showToast("Deleted.", "success")
-      await load()
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : "Delete failed", "error")
-    }
-  }
-
-  const agentOptions = useMemo(
-    () => agents.map((a) => ({ value: String(a.id), label: `${a.username} (${a.email})` })),
-    [agents],
-  )
-
   const filteredRows = useMemo(() => {
     let list = rows
-    if (tableSaleType !== "all") {
-      list = list.filter((p) => p.sale_type === tableSaleType)
-    }
     if (tableActive === "yes") {
       list = list.filter((p) => p.listing_active)
     } else if (tableActive === "no") {
       list = list.filter((p) => !p.listing_active)
-    }
-    if (tableAgentId) {
-      list = list.filter((p) => String(p.assigned_agent ?? "") === tableAgentId)
     }
     const q = tableSearch.trim().toLowerCase()
     if (q) {
@@ -236,7 +175,7 @@ export function AdminPropertiesPage() {
       )
     }
     return list
-  }, [rows, tableSearch, tableSaleType, tableActive, tableAgentId])
+  }, [rows, tableSearch, tableActive])
 
   const tableSelectClass = "h-9 w-full text-xs leading-9"
 
@@ -244,16 +183,9 @@ export function AdminPropertiesPage() {
     <section className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-semibold text-white">Plot / map listings</h2>
-          <p className="text-sm text-slate-400">Create plot parcels and assign agents. Land-share tiered listings are under Land share.</p>
+          <h2 className="text-2xl font-semibold text-white">My land share listings</h2>
+          <p className="text-sm text-slate-400">Update payment tiers and copy for listings assigned to you. New land-share entries are created by admin.</p>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="rounded-full bg-[#f58e43] px-4 py-2 text-sm font-semibold text-slate-950"
-        >
-          Add land
-        </button>
       </div>
 
       {loading ? (
@@ -266,20 +198,8 @@ export function AdminPropertiesPage() {
               placeholder="Search title, location, agent, ID…"
               value={tableSearch}
               onChange={(e) => setTableSearch(e.target.value)}
-              aria-label="Search land listings"
+              aria-label="Search land share listings"
             />
-            <div className="dashboard-filter-group min-w-[150px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Sale type</span>
-              <div className="dashboard-filter-select-shell">
-                <CompactFormSelect
-                  ariaLabel="Filter by sale type"
-                  className={tableSelectClass}
-                  value={tableSaleType}
-                  onValueChange={(v) => setTableSaleType(v as "all" | SaleType)}
-                  options={SALE_TYPE_FILTER_OPTIONS}
-                />
-              </div>
-            </div>
             <div className="dashboard-filter-group min-w-[120px]">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Active</span>
               <div className="dashboard-filter-select-shell">
@@ -296,19 +216,6 @@ export function AdminPropertiesPage() {
                 />
               </div>
             </div>
-            <div className="dashboard-filter-group min-w-[180px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Agent</span>
-              <div className="dashboard-filter-select-shell">
-                <CompactFormSelect
-                  ariaLabel="Filter by assigned agent"
-                  className={tableSelectClass}
-                  emptyLabel="All agents"
-                  value={tableAgentId}
-                  onValueChange={setTableAgentId}
-                  options={agentOptions}
-                />
-              </div>
-            </div>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-white/10">
@@ -316,7 +223,7 @@ export function AdminPropertiesPage() {
               <thead className="border-b border-white/10 bg-white/[0.04] text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
                   <th className="px-4 py-3 align-middle">Title</th>
-                  <th className="px-4 py-3 align-middle">Sale</th>
+                  <th className="px-4 py-3 align-middle whitespace-nowrap">Tiers</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">Price</th>
                   <th className="px-4 py-3 align-middle">Agent</th>
                   <th className="px-4 py-3 align-middle whitespace-nowrap">Active</th>
@@ -331,7 +238,7 @@ export function AdminPropertiesPage() {
                         {p.title}
                       </span>
                     </td>
-                    <td className="px-4 py-3 align-middle text-slate-300">{saleTypeLabel(p.sale_type)}</td>
+                    <td className="px-4 py-3 align-middle tabular-nums text-slate-300">{p.payment_options?.length ?? 0}</td>
                     <td className="px-4 py-3 align-middle tabular-nums text-slate-200">{propertyPrimaryPriceLine(p)}</td>
                     <td className="px-4 py-3 align-middle text-slate-400">{p.assigned_agent_name ?? "—"}</td>
                     <td className="px-4 py-3 align-middle text-slate-300">{p.listing_active ? "Yes" : "No"}</td>
@@ -339,9 +246,6 @@ export function AdminPropertiesPage() {
                       <span className="inline-flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
                         <button type="button" className="font-medium text-[#f58e43] hover:underline" onClick={() => openEdit(p)}>
                           Edit
-                        </button>
-                        <button type="button" className="font-medium text-rose-400 hover:underline" onClick={() => void remove(p)}>
-                          Delete
                         </button>
                       </span>
                     </td>
@@ -352,7 +256,7 @@ export function AdminPropertiesPage() {
           </div>
           {filteredRows.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-500">
-              {rows.length === 0 ? "No listings yet." : "No listings match your filters."}
+              {rows.length === 0 ? "No land share listings yet." : "No listings match your filters."}
             </p>
           ) : null}
         </>
@@ -361,7 +265,7 @@ export function AdminPropertiesPage() {
       <DashboardModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit land listing" : "New land listing"}
+        title="Edit land share listing"
         wide
         footer={
           <div className="flex justify-end gap-2">
@@ -398,7 +302,7 @@ export function AdminPropertiesPage() {
             />
           </label>
           <label>
-            <span className="text-xs text-slate-500">Display property type</span>
+            <span className="text-xs text-slate-500">Display type</span>
             <select
               className={dashboardModalFieldClass}
               value={form.property_type}
@@ -411,40 +315,109 @@ export function AdminPropertiesPage() {
             </select>
           </label>
           <label>
-            <span className="text-xs text-slate-500">Sale type</span>
-            <select
-              className={dashboardModalFieldClass}
-              value={form.sale_type}
-              onChange={(e) => setForm((f) => ({ ...f, sale_type: e.target.value as SaleType }))}
-            >
-              <option value="land_buy">Land buy</option>
-              <option value="installment">Installment (whole parcel, map plots)</option>
-            </select>
-            <span className="mt-1 block text-[11px] text-slate-500">
-              Buy-land-share tiered listings are managed under <strong className="font-semibold text-slate-700">Land share</strong>{" "}
-              in the dashboard.
-            </span>
-          </label>
-          <label>
-            <span className="text-xs text-slate-500">Land price (BDT)</span>
+            <span className="text-xs text-slate-500">Reference price (BDT)</span>
             <input
               className={dashboardModalFieldClass}
               value={form.land_price}
               onChange={(e) => setForm((f) => ({ ...f, land_price: e.target.value }))}
             />
           </label>
-          {form.sale_type === "installment" ? (
-            <label>
-              <span className="text-xs text-slate-500">Installment years</span>
-              <input
-                type="number"
-                min={1}
-                className={dashboardModalFieldClass}
-                value={form.installment_years}
-                onChange={(e) => setForm((f) => ({ ...f, installment_years: e.target.value }))}
-              />
-            </label>
-          ) : null}
+          <label>
+            <span className="text-xs text-slate-500">Status</span>
+            <select
+              className={dashboardModalFieldClass}
+              value={form.status}
+              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as LandShareListing["status"] }))}
+            >
+              <option value="available">Available</option>
+              <option value="booked">Booked</option>
+              <option value="sold">Sold</option>
+            </select>
+          </label>
+          <div className="sm:col-span-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-medium text-slate-600">Payment tiers (amount + billing period)</span>
+              <button
+                type="button"
+                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100"
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    payment_rows: [...f.payment_rows, { amount: "", billing_period: "monthly", commitment_months: "" }],
+                  }))
+                }
+              >
+                Add tier
+              </button>
+            </div>
+            <div className="space-y-2">
+              {form.payment_rows.map((row, i) => (
+                <div key={`tier-${i}`} className="flex flex-wrap items-end gap-2">
+                  <label className="min-w-[100px] flex-1">
+                    <span className="text-[10px] text-slate-500">Amount (BDT)</span>
+                    <input
+                      className={dashboardModalFieldClassTight}
+                      value={row.amount}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.payment_rows]
+                          next[i] = { ...next[i], amount: e.target.value }
+                          return { ...f, payment_rows: next }
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="min-w-[120px]">
+                    <span className="text-[10px] text-slate-500">Billing</span>
+                    <select
+                      className={dashboardModalFieldClassTight}
+                      value={row.billing_period}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.payment_rows]
+                          next[i] = { ...next[i], billing_period: e.target.value as LandShareBillingPeriod }
+                          return { ...f, payment_rows: next }
+                        })
+                      }
+                    >
+                      {BILLING_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="w-24">
+                    <span className="text-[10px] text-slate-500">Commit (mo)</span>
+                    <input
+                      className={dashboardModalFieldClassTight}
+                      placeholder="opt"
+                      value={row.commitment_months}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = [...f.payment_rows]
+                          next[i] = { ...next[i], commitment_months: e.target.value }
+                          return { ...f, payment_rows: next }
+                        })
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="mb-0.5 rounded-md border border-rose-200 px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50"
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        payment_rows: f.payment_rows.filter((_, j) => j !== i),
+                      }))
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Location</span>
             <input
@@ -462,21 +435,10 @@ export function AdminPropertiesPage() {
               onChange={(e) => setForm((f) => ({ ...f, land_area_sqft: e.target.value }))}
             />
           </label>
-          <label>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 sm:col-span-2">
             <span className="text-xs text-slate-500">Assigned agent</span>
-            <select
-              className={dashboardModalFieldClass}
-              value={form.assigned_agent}
-              onChange={(e) => setForm((f) => ({ ...f, assigned_agent: e.target.value }))}
-            >
-              <option value="">— None —</option>
-              {agentOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <p className="mt-1 text-sm text-slate-800">{editing?.assigned_agent_name ?? "—"}</p>
+          </div>
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Image URL</span>
             <input
@@ -492,59 +454,6 @@ export function AdminPropertiesPage() {
               onChange={(e) => setForm((f) => ({ ...f, listing_active: e.target.checked }))}
             />
             <span className="text-sm text-slate-800">Public listing active</span>
-          </label>
-          <label className="flex items-center gap-2 sm:col-span-2">
-            <input
-              type="checkbox"
-              checked={form.for_rent}
-              onChange={(e) => setForm((f) => ({ ...f, for_rent: e.target.checked }))}
-            />
-            <span className="text-sm text-slate-800">For rent (display only)</span>
-          </label>
-          <label>
-            <span className="text-xs text-slate-500">Build year</span>
-            <input
-              type="number"
-              className={dashboardModalFieldClass}
-              value={form.build_year}
-              onChange={(e) => setForm((f) => ({ ...f, build_year: e.target.value }))}
-            />
-          </label>
-          <label>
-            <span className="text-xs text-slate-500">Bedrooms</span>
-            <input
-              type="number"
-              min={0}
-              className={dashboardModalFieldClass}
-              value={form.bedrooms}
-              onChange={(e) => setForm((f) => ({ ...f, bedrooms: e.target.value }))}
-            />
-          </label>
-          <label>
-            <span className="text-xs text-slate-500">Bathrooms</span>
-            <input
-              type="number"
-              min={0}
-              className={dashboardModalFieldClass}
-              value={form.bathrooms}
-              onChange={(e) => setForm((f) => ({ ...f, bathrooms: e.target.value }))}
-            />
-          </label>
-          <label className="sm:col-span-2">
-            <span className="text-xs text-slate-500">Flat label</span>
-            <input
-              className={dashboardModalFieldClass}
-              value={form.flat_label}
-              onChange={(e) => setForm((f) => ({ ...f, flat_label: e.target.value }))}
-            />
-          </label>
-          <label className="sm:col-span-2">
-            <span className="text-xs text-slate-500">Contact website</span>
-            <input
-              className={dashboardModalFieldClass}
-              value={form.contact_website}
-              onChange={(e) => setForm((f) => ({ ...f, contact_website: e.target.value }))}
-            />
           </label>
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Amenities (one per line)</span>

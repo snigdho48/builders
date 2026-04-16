@@ -36,8 +36,6 @@ type GridService = {
   icon: string
   description: string
   samplePdf: string
-  price: string
-  was: string
 }
 
 const LITIGATION: GridService[] = [
@@ -47,8 +45,6 @@ const LITIGATION: GridService[] = [
     description:
       "Recommended for buyers: an in-house expert reviews legal documents and analyses property and compliance issues.",
     samplePdf: "e62dfb12-cd9d-4f74-a945-9d49d9a8fa0c.pdf",
-    price: "FREE",
-    was: "₹ 2,500",
   },
   {
     title: "Legal Power of Attorney",
@@ -56,8 +52,6 @@ const LITIGATION: GridService[] = [
     description:
       "Authorises an attorney-in-charge to act on specific rights for a defined period or consideration; it does not fix payment-capacity gaps.",
     samplePdf: "dcb7c7e6-8985-4654-afad-53c2319d492b.pdf",
-    price: "₹ 5,500",
-    was: "₹ 9,000",
   },
   {
     title: "Lease Agreement",
@@ -65,8 +59,6 @@ const LITIGATION: GridService[] = [
     description:
       "A full lease contract between lessor and lessee covering essentials and letting the lessee rent the property for the agreed term.",
     samplePdf: "62f2ce78-4e1b-4bab-9e8c-8d45668e94b4.pdf",
-    price: "₹ 2,750",
-    was: "₹ 10,000",
   },
   {
     title: "Sale Agreement",
@@ -74,8 +66,6 @@ const LITIGATION: GridService[] = [
     description:
       "Sets out sale regulations and financial terms, typically executed by the developer or seller for the transaction.",
     samplePdf: "5b4eb2e3-26d3-45c2-b4e2-0709cedd803a.pdf",
-    price: "₹ 5,500",
-    was: "₹ 15,000",
   },
   {
     title: "Comprehensive Due Diligence",
@@ -83,8 +73,6 @@ const LITIGATION: GridService[] = [
     description:
       "Deep review of documents and compliance, title and mortgage checks, supporting valuations and end-to-end verification.",
     samplePdf: "3178dc8b-5471-43d4-b7fd-e88c11a3793e.pdf",
-    price: "₹ 11,000",
-    was: "₹ 20,000",
   },
   {
     title: "Property Complaints",
@@ -92,8 +80,6 @@ const LITIGATION: GridService[] = [
     description:
       "We assess your complaint and strategy, issue legal notices to developers or sellers for refund or settlement, and file in RERA, consumer forums, NCLT, or arbitration where fit.",
     samplePdf: "72f86024-ffa0-4538-807f-afafcd6f080d.pdf",
-    price: "₹ 27,500",
-    was: "₹ 75,000",
   },
   {
     title: "Title Search",
@@ -101,8 +87,6 @@ const LITIGATION: GridService[] = [
     description:
       "Maps property history and the present titleholder using public records so ownership and encumbrances are clear before you proceed.",
     samplePdf: "a8fec36f-885d-4b20-a8ce-f72d3c53f9d4.pdf",
-    price: "₹ 5,500",
-    was: "₹ 10,000",
   },
   {
     title: "Litigation Search",
@@ -110,8 +94,6 @@ const LITIGATION: GridService[] = [
     description:
       "Court-focused review of seller-related disputes, covering active, pending, and disposed matters that could affect the asset.",
     samplePdf: "7ec375eb-7978-46ed-a3b2-d5d7ec156696.pdf",
-    price: "₹ 1,650",
-    was: "₹ 3,000",
   },
 ]
 
@@ -122,8 +104,6 @@ const MONITORING: GridService[] = [
     description:
       "For under-construction projects: tracks progress and recent transactions and covers legal permissions plus litigation-related checks.",
     samplePdf: "a3f96fde-3d1d-4204-8247-aa7537ece709.pdf",
-    price: "₹ 5,500",
-    was: "₹ 10,000",
   },
 ]
 
@@ -188,13 +168,8 @@ function ServiceCardGrid({
         {item.title}
       </h3>
       <p className="mt-2.5 shrink-0 text-xs font-medium leading-relaxed text-neutral-600 sm:text-[0.8125rem]">{item.description}</p>
-      {/* Fills remaining vertical space so price + CTA align across cards in a row */}
       <div className="min-h-0 flex-1" aria-hidden />
-      <div className="shrink-0 space-y-2.5 border-t border-neutral-100 pt-3">
-        <div className="flex flex-wrap items-baseline justify-end gap-x-2 gap-y-0.5 text-right">
-          <span className="text-lg font-bold tabular-nums tracking-tight text-neutral-900 sm:text-xl">{item.price}</span>
-          <span className="text-xs font-medium text-neutral-400 line-through sm:text-sm">{item.was}</span>
-        </div>
+      <div className="shrink-0 border-t border-neutral-100 pt-3">
         <Link
           to={`/contact?topic=legal&service=${encodeURIComponent(item.title)}`}
           className="legal-sy-book flex h-9 w-full items-center justify-center rounded-md bg-[#ffd916] text-sm font-bold text-neutral-900 transition hover:brightness-[0.98] active:brightness-95"
@@ -247,7 +222,6 @@ export function LegalServicesForRealEstatePage() {
                 Cost-Efficient Services at your doorstep
               </li>
             </ul>
-            <p className="mt-6 text-lg font-semibold !text-white">Starting at BDT 1,499 only</p>
 
             <Link
               to="/contact?topic=legal"

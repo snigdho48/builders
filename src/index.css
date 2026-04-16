@@ -819,7 +819,7 @@
   }
 
   .dashboard-modal-scroll::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-white/14;
+    @apply rounded-full bg-slate-300/90;
   }
 
   .dashboard-modal-scroll::-webkit-scrollbar-track {

@@ -7,8 +7,13 @@ import { SALE_TYPE_FILTER_OPTIONS } from "@/constants/property-filters"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { GridLoader } from "@/components/ui/grid-loader"
 import { useLanguage } from "@/i18n/language-context"
-import { getPropertiesPaged } from "@/services/api"
-import type { Property, SaleType } from "@/types/domain"
+import { getLandShareListingsPaged, getPropertiesPaged } from "@/services/api"
+import type { CatalogListing, SaleType } from "@/types/domain"
+
+export type ListingsPageProps = {
+  /** Locks the page to buy-plot or land-share listings; hides the sale-type filter. */
+  presetSaleType?: Extract<SaleType, "land_buy" | "installment">
+}
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48] as const
 
@@ -39,15 +44,16 @@ function parseSaleTypeParam(raw: string | null): "all" | SaleType {
   return raw === "land_buy" || raw === "installment" ? raw : "all"
 }
 
-export function ListingsPage() {
+export function ListingsPage({ presetSaleType }: ListingsPageProps = {}) {
   const { t } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [properties, setProperties] = useState<Property[]>([])
+  const [items, setItems] = useState<CatalogListing[]>([])
   const [loading, setLoading] = useState(false)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState<number | null>(null)
 
-  const saleFilter = parseSaleTypeParam(searchParams.get("sale") ?? searchParams.get("channel"))
+  const saleFilter: "all" | SaleType =
+    presetSaleType ?? parseSaleTypeParam(searchParams.get("sale") ?? searchParams.get("channel"))
   const page = parsePositiveInt(searchParams.get("page"), 1)
   const rawPageSize = parsePositiveInt(searchParams.get("page_size"), 12)
   const pageSize = PAGE_SIZE_OPTIONS.includes(rawPageSize as (typeof PAGE_SIZE_OPTIONS)[number])
@@ -80,8 +86,9 @@ export function ListingsPage() {
   )
 
   const hasActiveFilters = useMemo(() => {
-    return query.trim() !== "" || locationFilter.trim() !== "" || saleFilter !== "all"
-  }, [query, locationFilter, saleFilter])
+    const saleCounts = !presetSaleType && saleFilter !== "all"
+    return query.trim() !== "" || locationFilter.trim() !== "" || saleCounts
+  }, [query, locationFilter, saleFilter, presetSaleType])
 
   const clearFilters = useCallback(() => {
     const next = new URLSearchParams()
@@ -92,19 +99,30 @@ export function ListingsPage() {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    getPropertiesPaged({
-      page,
-      pageSize,
-      saleType: saleFilter,
-      status: "available",
-      search: debouncedQuery.trim() ? debouncedQuery.trim() : undefined,
-      location: debouncedLocation.trim() ? debouncedLocation.trim() : undefined,
-    })
-      .then(({ items, pagination }) => {
+    const p = (async () => {
+      if (saleFilter === "installment") {
+        return getLandShareListingsPaged({
+          page,
+          pageSize,
+          status: "available",
+          search: debouncedQuery.trim() ? debouncedQuery.trim() : undefined,
+          location: debouncedLocation.trim() ? debouncedLocation.trim() : undefined,
+        })
+      }
+      return getPropertiesPaged({
+        page,
+        pageSize,
+        saleType: saleFilter,
+        status: "available",
+        search: debouncedQuery.trim() ? debouncedQuery.trim() : undefined,
+        location: debouncedLocation.trim() ? debouncedLocation.trim() : undefined,
+      })
+    })()
+    p.then(({ items: rows, pagination }) => {
         if (cancelled) return
-        setProperties(items)
+        setItems(rows)
         if (pagination?.total_pages) setTotalPages(Math.max(1, pagination.total_pages))
-        else setTotalPages(Math.max(1, Math.ceil(items.length / pageSize)))
+        else setTotalPages(Math.max(1, Math.ceil(rows.length / pageSize)))
         if (typeof pagination?.count === "number") setTotalCount(pagination.count)
         else setTotalCount(null)
       })
@@ -116,14 +134,43 @@ export function ListingsPage() {
     }
   }, [page, pageSize, saleFilter, debouncedQuery, debouncedLocation])
 
+  const pageTitle = useMemo(() => {
+    if (presetSaleType === "land_buy") {
+      return t("listings.titleBuyPlots", "Buy plots")
+    }
+    if (presetSaleType === "installment") {
+      return t("listings.titleLandShare", "Buy land share")
+    }
+    return t("listings.title", "Explore land listings")
+  }, [presetSaleType, t])
+
+  const pageSubtitle = useMemo(() => {
+    if (presetSaleType === "land_buy") {
+      return t(
+        "listings.subtitleBuyPlots",
+        "Whole-parcel and per-block plot listings. 1% and 50% plans apply only here when the admin promo is on.",
+      )
+    }
+    if (presetSaleType === "installment") {
+      return t(
+        "listings.subtitleLandShare",
+        "Fractional / land-share channel — investment-style booking (not the 1% / 50% plot promos).",
+      )
+    }
+    return t(
+      "listings.subtitle",
+      "Search plot listings (land buy and parcel installment). Choose Land share for tiered buy-land-share listings.",
+    )
+  }, [presetSaleType, t])
+
   const footerLabel = useMemo(() => {
     if (totalCount != null) {
-      return t("listings.showing", `Showing ${properties.length} of ${totalCount} listings`)
+      return t("listings.showing", `Showing ${items.length} of ${totalCount} listings`)
     }
     return t("listings.pageOf", "Page {page} / {totalPages}")
       .replace("{page}", String(page))
       .replace("{totalPages}", String(totalPages))
-  }, [properties.length, t, totalCount, page, totalPages])
+  }, [items.length, t, totalCount, page, totalPages])
 
   function patchSearchParams(mutate: (p: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams)
@@ -137,8 +184,8 @@ export function ListingsPage() {
         <RevealOnView className="mb-8 space-y-6" variant="fade-up">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.22em] text-emerald-300">Land</p>
-            <h1 className="text-2xl font-semibold sm:text-3xl">{t("listings.title", "Explore land listings")}</h1>
-            <p className="mt-2 text-sm text-slate-400">{t("listings.subtitle", "Search and filter whole-parcel land: direct buy or installment plans.")}</p>
+            <h1 className="text-2xl font-semibold sm:text-3xl">{pageTitle}</h1>
+            <p className="mt-2 text-sm text-slate-400">{pageSubtitle}</p>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-slate-900/35 p-4 shadow-lg sm:p-5">
@@ -183,24 +230,26 @@ export function ListingsPage() {
                 </div>
               </FilterField>
 
-              <FilterField label={t("listings.saleType", "Sale type")}>
-                <div className={FILTER_SHELL}>
-                  <CompactFormSelect
-                    className={SELECT_CLASS}
-                    ariaLabel="Sale type"
-                    value={saleFilter}
-                    onValueChange={(v) => {
-                      patchSearchParams((p) => {
-                        const next = parseSaleTypeParam(v)
-                        if (next === "all") p.delete("sale")
-                        else p.set("sale", next)
-                        p.delete("page")
-                      })
-                    }}
-                    options={SALE_TYPE_FILTER_OPTIONS}
-                  />
-                </div>
-              </FilterField>
+              {presetSaleType ? null : (
+                <FilterField label={t("listings.saleType", "Sale type")}>
+                  <div className={FILTER_SHELL}>
+                    <CompactFormSelect
+                      className={SELECT_CLASS}
+                      ariaLabel="Sale type"
+                      value={saleFilter}
+                      onValueChange={(v) => {
+                        patchSearchParams((p) => {
+                          const next = parseSaleTypeParam(v)
+                          if (next === "all") p.delete("sale")
+                          else p.set("sale", next)
+                          p.delete("page")
+                        })
+                      }}
+                      options={SALE_TYPE_FILTER_OPTIONS}
+                    />
+                  </div>
+                </FilterField>
+              )}
 
               <FilterField label={t("listings.perPage", "Per page")}>
                 <div className={FILTER_SHELL}>
@@ -239,15 +288,15 @@ export function ListingsPage() {
           <GridLoader count={pageSize >= 24 ? 6 : 9} />
         ) : (
           <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {properties.map((property) => (
-              <div key={property.id} className="min-w-0">
-                <PropertyCard property={property} />
+            {items.map((listing) => (
+              <div key={`${listing.listing_kind}-${listing.id}`} className="min-w-0">
+                <PropertyCard listing={listing} />
               </div>
             ))}
           </div>
         )}
 
-        {!loading && properties.length === 0 ? (
+        {!loading && items.length === 0 ? (
           <p className="mt-10 text-center text-sm text-slate-400">{t("listings.noMatch", "No listings match your filters.")}</p>
         ) : null}
 

@@ -2,14 +2,14 @@ import { FreeMode } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 
 import { PropertyCarouselCard } from "@/components/property-carousel-card"
-import type { Property } from "@/types/domain"
+import type { CatalogListing } from "@/types/domain"
 
 type PropertyLandingCarouselProps = {
-  properties: Property[]
+  listings: CatalogListing[]
 }
 
-export function PropertyLandingCarousel({ properties }: PropertyLandingCarouselProps) {
-  if (properties.length === 0) return null
+export function PropertyLandingCarousel({ listings }: PropertyLandingCarouselProps) {
+  if (listings.length === 0) return null
 
   return (
     <div className="property-landing-carousel-wrap relative">
@@ -36,9 +36,9 @@ export function PropertyLandingCarousel({ properties }: PropertyLandingCarouselP
         }}
         className="property-landing-swiper pb-1!"
       >
-        {properties.map((property, index) => (
-          <SwiperSlide key={property.id} className="h-auto!">
-            <PropertyCarouselCard property={property} rank={index + 1} />
+        {listings.map((listing, index) => (
+          <SwiperSlide key={`${listing.listing_kind}-${listing.id}`} className="h-auto!">
+            <PropertyCarouselCard listing={listing} rank={index + 1} />
           </SwiperSlide>
         ))}
       </Swiper>

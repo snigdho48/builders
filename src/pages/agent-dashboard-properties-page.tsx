@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { DashboardModal } from "@/components/dashboard/dashboard-modal"
+import { DashboardModal, dashboardModalFieldClass } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { useToast } from "@/components/ui/use-toast"
 import { SALE_TYPE_FILTER_OPTIONS } from "@/constants/property-filters"
@@ -251,18 +251,14 @@ export function AgentDashboardPropertiesPage() {
         wide
         footer={
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="rounded-lg border border-white/15 px-4 py-2 text-sm text-slate-300"
-            >
+            <button type="button" onClick={() => setModalOpen(false)} className="dashboard-modal-btn-secondary">
               Cancel
             </button>
             <button
               type="button"
               disabled={saving}
               onClick={() => void save()}
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
+              className="dashboard-modal-btn-primary disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -273,7 +269,7 @@ export function AgentDashboardPropertiesPage() {
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Title</span>
             <input
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             />
@@ -281,7 +277,7 @@ export function AgentDashboardPropertiesPage() {
           <label>
             <span className="text-xs text-slate-500">Display property type</span>
             <select
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.property_type}
               onChange={(e) => setForm((f) => ({ ...f, property_type: e.target.value as PropertyKind }))}
             >
@@ -294,18 +290,22 @@ export function AgentDashboardPropertiesPage() {
           <label>
             <span className="text-xs text-slate-500">Sale type</span>
             <select
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.sale_type}
               onChange={(e) => setForm((f) => ({ ...f, sale_type: e.target.value as SaleType }))}
             >
               <option value="land_buy">Land buy</option>
-              <option value="installment">Installment</option>
+              <option value="installment">Installment (whole parcel, map plots)</option>
             </select>
+            <span className="mt-1 block text-[11px] text-slate-500">
+              Tiered land-share listings: use <strong className="font-semibold text-slate-700">My land share</strong> in the
+              agent dashboard.
+            </span>
           </label>
           <label>
             <span className="text-xs text-slate-500">Land price</span>
             <input
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.land_price}
               onChange={(e) => setForm((f) => ({ ...f, land_price: e.target.value }))}
             />
@@ -316,7 +316,7 @@ export function AgentDashboardPropertiesPage() {
               <input
                 type="number"
                 min={1}
-                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+                className={dashboardModalFieldClass}
                 value={form.installment_years}
                 onChange={(e) => setForm((f) => ({ ...f, installment_years: e.target.value }))}
               />
@@ -325,7 +325,7 @@ export function AgentDashboardPropertiesPage() {
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Location</span>
             <input
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.location_name}
               onChange={(e) => setForm((f) => ({ ...f, location_name: e.target.value }))}
             />
@@ -334,7 +334,7 @@ export function AgentDashboardPropertiesPage() {
             <span className="text-xs text-slate-500">Land area (sqft)</span>
             <input
               type="number"
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.land_area_sqft}
               onChange={(e) => setForm((f) => ({ ...f, land_area_sqft: e.target.value }))}
             />
@@ -342,7 +342,7 @@ export function AgentDashboardPropertiesPage() {
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Image URL</span>
             <input
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.top_view_image}
               onChange={(e) => setForm((f) => ({ ...f, top_view_image: e.target.value }))}
             />
@@ -353,7 +353,7 @@ export function AgentDashboardPropertiesPage() {
               checked={form.listing_active}
               onChange={(e) => setForm((f) => ({ ...f, listing_active: e.target.checked }))}
             />
-            <span className="text-sm text-slate-300">Public listing active</span>
+            <span className="text-sm text-slate-800">Public listing active</span>
           </label>
           <label className="flex items-center gap-2 sm:col-span-2">
             <input
@@ -361,13 +361,13 @@ export function AgentDashboardPropertiesPage() {
               checked={form.for_rent}
               onChange={(e) => setForm((f) => ({ ...f, for_rent: e.target.checked }))}
             />
-            <span className="text-sm text-slate-300">For rent (display only)</span>
+            <span className="text-sm text-slate-800">For rent (display only)</span>
           </label>
           <label>
             <span className="text-xs text-slate-500">Build year</span>
             <input
               type="number"
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.build_year}
               onChange={(e) => setForm((f) => ({ ...f, build_year: e.target.value }))}
             />
@@ -377,7 +377,7 @@ export function AgentDashboardPropertiesPage() {
             <input
               type="number"
               min={0}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.bedrooms}
               onChange={(e) => setForm((f) => ({ ...f, bedrooms: e.target.value }))}
             />
@@ -387,7 +387,7 @@ export function AgentDashboardPropertiesPage() {
             <input
               type="number"
               min={0}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.bathrooms}
               onChange={(e) => setForm((f) => ({ ...f, bathrooms: e.target.value }))}
             />
@@ -395,7 +395,7 @@ export function AgentDashboardPropertiesPage() {
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Flat label</span>
             <input
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.flat_label}
               onChange={(e) => setForm((f) => ({ ...f, flat_label: e.target.value }))}
             />
@@ -403,7 +403,7 @@ export function AgentDashboardPropertiesPage() {
           <label className="sm:col-span-2">
             <span className="text-xs text-slate-500">Contact website</span>
             <input
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.contact_website}
               onChange={(e) => setForm((f) => ({ ...f, contact_website: e.target.value }))}
             />
@@ -412,7 +412,7 @@ export function AgentDashboardPropertiesPage() {
             <span className="text-xs text-slate-500">Amenities (one per line)</span>
             <textarea
               rows={3}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.amenities_text}
               onChange={(e) => setForm((f) => ({ ...f, amenities_text: e.target.value }))}
             />
@@ -421,7 +421,7 @@ export function AgentDashboardPropertiesPage() {
             <span className="text-xs text-slate-500">Description</span>
             <textarea
               rows={4}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
@@ -430,7 +430,7 @@ export function AgentDashboardPropertiesPage() {
             <span className="text-xs text-slate-500">Secondary description</span>
             <textarea
               rows={3}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white"
+              className={dashboardModalFieldClass}
               value={form.description_secondary}
               onChange={(e) => setForm((f) => ({ ...f, description_secondary: e.target.value }))}
             />

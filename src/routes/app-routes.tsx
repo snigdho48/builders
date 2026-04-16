@@ -7,9 +7,11 @@ import { AdminAgentsPage } from "@/pages/admin-agents-page"
 import { AdminDashboardHomePage } from "@/pages/admin-dashboard-home"
 import { AdminDashboardLayout } from "@/pages/admin-dashboard-layout"
 import { AdminInvestorsPage } from "@/pages/admin-investors-page"
+import { AdminLandShareListingsPage } from "@/pages/admin-land-share-listings-page"
 import { AdminPropertiesPage } from "@/pages/admin-properties-page"
 import { AgentDashboardHomePage } from "@/pages/agent-dashboard-home"
 import { AgentDashboardLayout } from "@/pages/agent-dashboard-layout"
+import { AgentDashboardLandSharePage } from "@/pages/agent-dashboard-land-share-page"
 import { AgentDashboardPropertiesPage } from "@/pages/agent-dashboard-properties-page"
 import { AgentInvestorsPage } from "@/pages/agent-investors-page"
 import { AuthPage } from "@/pages/auth-page"
@@ -32,6 +34,8 @@ import { P2pDetailPage } from "@/pages/p2p-detail-page"
 import { PlotPlansPage } from "@/pages/plot-plans-page"
 import { P2pListPage } from "@/pages/p2p-list-page"
 import { ProfilePage } from "@/pages/profile-page"
+import { LandShareDetailsPage } from "@/pages/land-share-details-page"
+import { LandShareLandBookPage } from "@/pages/land-share-land-book-page"
 import { PropertyDetailsPage } from "@/pages/property-details-page"
 import { PropertyLandBookPage } from "@/pages/property-land-book-page"
 import { RegisterPage } from "@/pages/register-page"
@@ -58,10 +62,14 @@ function AppShell() {
           <Route element={<PageTransitionLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/plans" element={<PlotPlansPage />} />
+          <Route path="/listings/buy-plots" element={<ListingsPage presetSaleType="land_buy" />} />
+          <Route path="/listings/buy-land-share" element={<ListingsPage presetSaleType="installment" />} />
           <Route path="/listings" element={<ListingsPage />} />
           <Route path="/properties" element={<ListingsPage />} />
           <Route path="/properties/:id/book" element={<PropertyLandBookPage />} />
           <Route path="/properties/:id" element={<PropertyDetailsPage />} />
+          <Route path="/land-share-listings/:id/book" element={<LandShareLandBookPage />} />
+          <Route path="/land-share-listings/:id" element={<LandShareDetailsPage />} />
           <Route path="/p2p" element={<P2pListPage />} />
           <Route path="/p2p/:id" element={<P2pDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -144,6 +152,7 @@ function AppShell() {
             <Route path="investors" element={<AdminInvestorsPage />} />
             <Route path="agents" element={<AdminAgentsPage />} />
             <Route path="properties" element={<AdminPropertiesPage />} />
+            <Route path="land-share" element={<AdminLandShareListingsPage />} />
             <Route path="bookings" element={<StaffLandBookingsPage mode="bookings" />} />
             <Route path="installments" element={<StaffInstallmentTrackerPage />} />
           </Route>
@@ -157,6 +166,7 @@ function AppShell() {
           >
             <Route index element={<AgentDashboardHomePage />} />
             <Route path="properties" element={<AgentDashboardPropertiesPage />} />
+            <Route path="land-share" element={<AgentDashboardLandSharePage />} />
             <Route path="bookings" element={<StaffLandBookingsPage mode="bookings" />} />
             <Route path="installments" element={<StaffInstallmentTrackerPage />} />
             <Route path="investors" element={<AgentInvestorsPage />} />

@@ -5,6 +5,14 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
 import { cn } from "@/lib/utils"
 
+/** Inputs, selects, and textareas inside the light `DashboardModal` body. */
+export const dashboardModalFieldClass =
+  "mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[#f58e43]/80 focus:outline-none focus:ring-2 focus:ring-[#f58e43]/20"
+
+/** Compact grid rows (e.g. payment tier lines) inside `DashboardModal`. */
+export const dashboardModalFieldClassTight =
+  "mt-0.5 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[#f58e43]/80 focus:outline-none focus:ring-2 focus:ring-[#f58e43]/20"
+
 type DashboardModalProps = {
   open: boolean
   title: string

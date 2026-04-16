@@ -4,7 +4,19 @@ export type UserRole = "admin" | "investor" | "agent"
 
 export type PropertyKind = "apartment" | "villa" | "commercial" | "land"
 export type PropertyChannel = "plot_buy" | "installment"
-export type LandSaleMode = "per_block" | "whole_land" | "fractional_share"
+/** Plot/map listings only (whole land or per-block); land-share uses `LandShareListing`. */
+export type LandSaleMode = "per_block" | "whole_land"
+
+export type ListingKindPlot = "plot_listing"
+export type ListingKindLandShare = "land_share"
+
+export type LandShareBillingPeriod = "monthly" | "yearly" | "one_time"
+
+export type LandSharePaymentOption = {
+  amount: string
+  billing_period: LandShareBillingPeriod
+  commitment_months?: number
+}
 
 export type FloorPlanItem = {
   title: string
@@ -12,14 +24,10 @@ export type FloorPlanItem = {
   description?: string
 }
 
-export type ShareInvestmentOption = {
-  amount: string
-  duration_years: number
-}
-
 /** API shape matches legacy builders detail page + land booking platform. */
 export type Property = {
   id: number
+  listing_kind: ListingKindPlot
   title: string
   slug: string
   description: string
@@ -63,7 +71,6 @@ export type Property = {
   review_sample_text: string
   status: PropertyStatus
   listing_active: boolean
-  share_investment_options: ShareInvestmentOption[]
   representative: number | null
   representative_name: string | null
   representative_email: string | null
@@ -76,6 +83,60 @@ export type Property = {
   updated_at?: string
 }
 
+/** Buy land share — payment tiers (e.g. monthly amounts) set by staff; no plot map. */
+export type LandShareListing = {
+  id: number
+  listing_kind: ListingKindLandShare
+  title: string
+  slug: string
+  description: string
+  description_secondary: string
+  property_type: PropertyKind
+  sale_type: "installment"
+  property_channel: "installment"
+  land_price: string
+  whole_land_price: string | null
+  payment_options: LandSharePaymentOption[]
+  location_name: string
+  latitude: string | null
+  longitude: string | null
+  video_url: string
+  top_view_image: string
+  gallery_images: string[]
+  tags: string[]
+  amenities: string[]
+  floor_plans: FloorPlanItem[]
+  build_year: number | null
+  bedrooms: number | null
+  bathrooms: number | null
+  flat_label: string
+  size_sqft: number | null
+  land_area_sqft: number | null
+  for_rent: boolean
+  for_sale: boolean
+  contact_website: string
+  rating_average: string | null
+  review_count: number
+  review_sample_author: string
+  review_sample_date: string | null
+  review_sample_text: string
+  status: PropertyStatus
+  listing_active: boolean
+  assigned_agent: number | null
+  assigned_agent_name: string | null
+  representative: number | null
+  representative_name: string | null
+  representative_email: string | null
+  representative_phone: string | null
+  managed_by: number | null
+  managed_by_name: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+/** Public catalog card routes: plot listing or land-share listing. */
+export type CatalogListing = Property | LandShareListing
+
 export type LandBookingKind = "plot_buy" | "investment"
 export type LandBookingPlanType =
   | "one_percent_installment"
@@ -86,7 +147,8 @@ export type LandBookingStatus = "pending" | "accepted" | "rejected"
 
 export type LandBooking = {
   id: number
-  property: number
+  property: number | null
+  land_share_listing?: number | null
   property_title?: string
   property_sale_type?: SaleType
   investor: number
@@ -101,6 +163,9 @@ export type LandBooking = {
   selected_plot_code?: string
   selected_plot_area_sqft?: number | null
   selected_plot_price?: string | null
+  investment_option_amount?: string | null
+  investment_option_duration_years?: number | null
+  investment_option_billing_period?: string | null
   status: LandBookingStatus
   reviewed_by: number | null
   reviewed_by_username?: string | null
@@ -223,8 +288,40 @@ export type PropertyUpsertPayload = Partial<{
   assigned_agent: number | null
 }>
 
+export type LandShareListingUpsertPayload = Partial<{
+  title: string
+  slug: string
+  description: string
+  description_secondary: string
+  property_type: PropertyKind
+  land_price: string
+  payment_options: LandSharePaymentOption[]
+  location_name: string
+  latitude: string | null
+  longitude: string | null
+  video_url: string
+  top_view_image: string
+  gallery_images: string[]
+  tags: string[]
+  amenities: string[]
+  floor_plans: FloorPlanItem[]
+  build_year: number | null
+  bedrooms: number | null
+  bathrooms: number | null
+  flat_label: string
+  land_area_sqft: number | null
+  for_rent: boolean
+  for_sale: boolean
+  contact_website: string
+  status: PropertyStatus
+  listing_active: boolean
+  assigned_agent: number | null
+}>
+
 export type LandBookingCreatePayload = {
-  property: number
+  /** Plot booking: set property id. Land-share investment: set `land_share_listing` and omit or null this. */
+  property?: number | null
+  land_share_listing?: number | null
   booking_kind: LandBookingKind
   plan_type: LandBookingPlanType
   full_name: string
@@ -235,9 +332,15 @@ export type LandBookingCreatePayload = {
   selected_plot_code?: string
   selected_plot_area_sqft?: number
   selected_plot_price?: string
+  investment_option_amount?: string
+  investment_option_duration_years?: number
+  /** Required when the land-share listing defines payment tiers. */
+  investment_option_billing_period?: string | null
 }
 
 export type BookingPromoSettings = {
+  /** Admin toggle: when false, 1%/50% plot-buy promos are off site-wide. */
+  plot_buy_installment_promo_enabled: boolean
   plot_buy_installment_slot_limit: number
   plot_buy_installment_slots_used: number
   plot_buy_installment_slots_available: number

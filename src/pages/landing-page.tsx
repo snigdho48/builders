@@ -9,9 +9,9 @@ import { EverythingNeedSection } from "@/components/everything-need-section"
 import { ExclusiveOfferSection } from "@/components/exclusive-offer-section"
 import { RevealOnView, RevealStagger } from "@/components/motion/reveal-on-view"
 import { PropertyLandingCarousel } from "@/components/property-landing-carousel"
-import { getProperties } from "@/services/api"
-import type { Property } from "@/types/domain"
-import { pickInstallmentTop, pickPlotBuyTop } from "@/utils/property-lanes"
+import { getBookingPromoSettings, getLandShareListings, getProperties } from "@/services/api"
+import type { BookingPromoSettings, LandShareListing, Property } from "@/types/domain"
+import { pickLandShareTop, pickPlotBuyTop } from "@/utils/property-lanes"
 import { publicUrl } from "@/utils/public-url"
 
 const partnerLogos = [
@@ -60,14 +60,36 @@ const landingSectionCtaClass =
 
 export function LandingPage() {
   const [properties, setProperties] = useState<Property[]>([])
-  const heroSlides = useMemo(
-    () => [publicUrl("1%-intereste-jomir-malik.png"), publicUrl("50%-registration.png")],
-    [],
-  )
+  const [landShareListings, setLandShareListings] = useState<LandShareListing[]>([])
+  const [bookingPromo, setBookingPromo] = useState<BookingPromoSettings | null>(null)
 
   useEffect(() => {
-    getProperties().then(setProperties)
+    void Promise.all([getProperties(), getLandShareListings()]).then(([props, shares]) => {
+      setProperties(props)
+      setLandShareListings(shares)
+    })
   }, [])
+
+  useEffect(() => {
+    void getBookingPromoSettings()
+      .then(setBookingPromo)
+      .catch(() => setBookingPromo(null))
+  }, [])
+
+  /** 1% / 50% hero art only while admin promo is on; neutral slide otherwise. */
+  const plotBuyPromoHeroOn =
+    bookingPromo == null ? true : Boolean(bookingPromo.plot_buy_installment_promo_enabled)
+
+  const heroSlides = useMemo(() => {
+    const promoSlides = [
+      publicUrl("1%-intereste-jomir-malik.png"),
+      publicUrl("50%-registration.png"),
+    ]
+    const neutralSlide = [publicUrl("beautiful-landscape-with-small-village copy.webp")]
+    return plotBuyPromoHeroOn ? promoSlides : neutralSlide
+  }, [plotBuyPromoHeroOn])
+
+  const showExclusivePlotPromos = Boolean(bookingPromo?.plot_buy_installment_promo_enabled)
 
   const available = useMemo(
     () => properties.filter((p) => p.status === "available"),
@@ -79,9 +101,14 @@ export function LandingPage() {
     [available]
   )
 
+  const landShareAvailable = useMemo(
+    () => landShareListings.filter((p) => p.status === "available"),
+    [landShareListings],
+  )
+
   const installmentTop = useMemo(
-    () => pickInstallmentTop(available, plotBuyTop, LANE_CARD_LIMIT),
-    [available, plotBuyTop]
+    () => pickLandShareTop(landShareAvailable, LANE_CARD_LIMIT),
+    [landShareAvailable],
   )
 
   return (
@@ -95,9 +122,10 @@ export function LandingPage() {
             <div className="mx-auto flex min-h-0 w-full max-w-full flex-1 flex-col">
               <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
                 <Swiper
+                  key={plotBuyPromoHeroOn ? "hero-promo-slides" : "hero-neutral-slide"}
                   modules={[Autoplay]}
                   slidesPerView={1}
-                  loop
+                  loop={heroSlides.length > 1}
                   autoplay={{ delay: 3200, disableOnInteraction: false }}
                   className="hero-plan-swiper w-full"
                 >
@@ -108,7 +136,11 @@ export function LandingPage() {
                     >
                       <img
                         src={src}
-                        alt={`Plan banner ${idx + 1}`}
+                        alt={
+                          plotBuyPromoHeroOn
+                            ? `Plan promotion banner ${idx + 1}`
+                            : "Land and listings"
+                        }
                         className="mx-auto block h-auto w-full max-w-[min(75vw,850px)] object-contain object-center"
                       />
                     </SwiperSlide>
@@ -144,14 +176,14 @@ export function LandingPage() {
                   <FontAwesomeIcon icon={faFileLines} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
                   See plans
                 </Link>
-                <Link to="/listings" className={landingSectionCtaClass}>
+                <Link to="/listings/buy-plots" className={landingSectionCtaClass}>
                   <FontAwesomeIcon icon={faListUl} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
-                  View all listings
+                  View buy plots
                 </Link>
               </div>
             </RevealOnView>
             <RevealOnView variant="fade-up" className="px-0">
-              <PropertyLandingCarousel properties={plotBuyTop} />
+              <PropertyLandingCarousel listings={plotBuyTop} />
             </RevealOnView>
             {plotBuyTop.length === 0 ? (
               <p className="mt-8 text-center text-sm text-slate-500">
@@ -182,15 +214,14 @@ export function LandingPage() {
                 </p>
               </div>
               <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:justify-self-end">
-          
-                <Link to="/listings" className={landingSectionCtaClass}>
-                  <FontAwesomeIcon icon={faListUl} className="h-[0.55rem] w-[0.55rem] shrink-0" aria-hidden />
-                  View all listings
+                <Link to="/listings/buy-land-share" className={landingSectionCtaClass}>
+                  <FontAwesomeIcon icon={faListUl} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
+                  View land share
                 </Link>
               </div>
             </RevealOnView>
             <RevealOnView variant="fade-up" className="px-0">
-              <PropertyLandingCarousel properties={installmentTop} />
+              <PropertyLandingCarousel listings={installmentTop} />
             </RevealOnView>
             {installmentTop.length === 0 ? (
               <p className="mt-8 text-center text-sm text-slate-500">
@@ -271,7 +302,7 @@ export function LandingPage() {
           </div>
         </div>
       </section>
-      <ExclusiveOfferSection />
+      {showExclusivePlotPromos ? <ExclusiveOfferSection /> : null}
       <section
         className="achievement-strip landing-section relative border-t border-slate-200/80 bg-gradient-to-b from-white via-[#f8fafc] to-[#eef2f9] text-slate-900"
         aria-labelledby="achievement-heading"

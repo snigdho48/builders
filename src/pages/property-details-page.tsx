@@ -20,8 +20,8 @@ import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons"
 
 import { useToast } from "@/components/ui/use-toast"
 import { normalizeStoredRole } from "@/routes/protected-route"
-import { getProperties, getProperty } from "@/services/api"
-import type { Property } from "@/types/domain"
+import { getBookingPromoSettings, getProperties, getProperty } from "@/services/api"
+import type { BookingPromoSettings, Property } from "@/types/domain"
 import { isPropertyBookmarked, togglePropertyBookmark } from "@/utils/property-bookmarks"
 import { formatBdtInteger } from "@/utils/currency"
 import {
@@ -91,6 +91,7 @@ export function PropertyDetailsPage() {
   const [sessionActive, setSessionActive] = useState(() => Boolean(localStorage.getItem("accessToken")))
   const [shareOpen, setShareOpen] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
+  const [plotBuyPromo, setPlotBuyPromo] = useState<BookingPromoSettings | null>(null)
   const shareWrapRef = useRef<HTMLDivElement>(null)
   const { showToast } = useToast()
   const reduceMotion = useReducedMotion()
@@ -128,6 +129,17 @@ export function PropertyDetailsPage() {
       .catch(() => setProperty(null))
     getProperties().then((items) => setRelated(items.filter((item) => String(item.id) !== id)))
   }, [id])
+
+  useEffect(() => {
+    void getBookingPromoSettings()
+      .then(setPlotBuyPromo)
+      .catch(() => setPlotBuyPromo(null))
+  }, [])
+
+  const plotBuyInstallmentPromoLive = Boolean(
+    plotBuyPromo?.plot_buy_installment_promo_enabled && plotBuyPromo.plot_buy_installment_slots_available > 0,
+  )
+  const plotBuyPromoKnownOff = plotBuyPromo != null && !plotBuyInstallmentPromoLive
 
   useEffect(() => {
     setActiveImage(0)
@@ -169,13 +181,6 @@ export function PropertyDetailsPage() {
   const availabilityPercent = useMemo(() => {
     if (!property) {
       return 0
-    }
-    if (property.land_sale_mode === "fractional_share") {
-      const total = property.total_shares ?? 0
-      if (total === 0) {
-        return 0
-      }
-      return Math.round(((property.available_shares ?? 0) / total) * 100)
     }
     if (property.total_blocks > 0) {
       return Math.round((property.available_blocks / property.total_blocks) * 100)
@@ -815,18 +820,18 @@ export function PropertyDetailsPage() {
                         <div className="h-2 rounded-full bg-[#f58e43]" style={{ width: `${availabilityPercent}%` }} />
                       </div>
                       <p className="text-sm text-slate-500">
-                        {property.land_sale_mode === "fractional_share"
-                          ? `${availabilityPercent}% shares available`
-                          : property.total_blocks > 0
-                            ? `${availabilityPercent}% blocks available`
-                            : property.status === "available" && property.listing_active
-                              ? "Land parcel available for booking"
-                              : "Not available for booking"}
+                        {property.total_blocks > 0
+                          ? `${availabilityPercent}% blocks available`
+                          : property.status === "available" && property.listing_active
+                            ? "Land parcel available for booking"
+                            : "Not available for booking"}
                       </p>
                       <p className="mt-3 text-sm text-slate-600">
                         {propertyUsesInvestmentBooking(property)
                           ? "Continue on the next screen to submit your details. Staff will accept or reject your request."
-                          : "On the next screen, pick the 1% or 50% plan (limited promo slots). Staff will accept or reject your request."}
+                          : plotBuyPromoKnownOff
+                            ? "The 1% and 50% buy-plot promos are not active right now (admin setting or full slots). Open booking to see next steps, or contact us from this listing."
+                            : "On the next screen, pick the 1% or 50% plan when the promo is on (limited slots). Staff will accept or reject your request."}
                       </p>
                       <button
                         type="button"

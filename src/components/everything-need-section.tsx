@@ -20,14 +20,14 @@ type ServiceItem = {
 
 const SERVICE_CARDS: ServiceItem[] = [
   {
-    href: "/listings",
+    href: "/listings/buy-plots",
     icon: "sell-or-rent-property.png",
     alt: "Buy plot",
     kicker: "Explore",
     label: "Buy plot",
   },
   {
-    href: "/plans",
+    href: "/listings/buy-land-share",
     icon: "rent-receipts.png",
     alt: "Buy land share",
     kicker: "Plans",
@@ -60,7 +60,7 @@ export function EverythingNeedSection({ embeddedInHero = false }: EverythingNeed
         aria-labelledby={headingId}
       >
         <p id={headingId} className="sr-only">
-          Quick services: buy plot, buy land share, legal services, and listings hub
+          Quick services: buy plot, buy land share, legal services, and all listings
         </p>
         <div className="everything-need-glass__shell overflow-hidden rounded-[1.35rem] border border-white/55 bg-white/28 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-[3px] sm:rounded-[1.5rem]">
           <div className="flex flex-col divide-y divide-slate-300/35 sm:flex-row sm:divide-x sm:divide-y-0">
@@ -112,7 +112,7 @@ export function EverythingNeedSection({ embeddedInHero = false }: EverythingNeed
                   aria-hidden
                 />
                 <span className="truncate text-[0.8125rem] font-bold text-[#0b2348] sm:text-[0.9375rem]">
-                  Listings hub
+                  All listings
                 </span>
               </Link>
             </div> */}

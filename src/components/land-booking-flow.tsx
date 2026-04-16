@@ -4,15 +4,23 @@ import { Link } from "react-router-dom"
 import { LandPlotSelector, type PlotOption } from "@/components/land-plot-selector"
 import { useToast } from "@/components/ui/use-toast"
 import { createLandBooking, getBookingPromoSettings, getMe } from "@/services/api"
-import type { BookingPromoSettings, LandBookingKind, LandBookingPlanType, Property } from "@/types/domain"
-import { propertyUsesInvestmentBooking } from "@/utils/property-display"
+import type {
+  BookingPromoSettings,
+  CatalogListing,
+  LandBookingCreatePayload,
+  LandBookingKind,
+  LandBookingPlanType,
+  Property,
+} from "@/types/domain"
+import { formatBdtInteger } from "@/utils/currency"
+import { isLandShareListing, listingDetailPath, propertyUsesInvestmentBooking } from "@/utils/property-display"
 
 type PlotInstallmentPlan = "one_percent_installment" | "fifty_percent_installment"
 
 type Step = "choose" | "form"
 
 type LandBookingFlowProps = {
-  property: Property
+  listing: CatalogListing
   /** Called after a successful API submit (e.g. navigate away). */
   onSuccess?: () => void
 }
@@ -139,8 +147,17 @@ function planTypeLabel(pt: LandBookingPlanType): string {
   return "Investment"
 }
 
-export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
-  const listingIsInvestment = propertyUsesInvestmentBooking(property)
+function billingPeriodLabel(p: string): string {
+  if (p === "yearly") return "per year"
+  if (p === "one_time") return "one time"
+  return "per month"
+}
+
+export function LandBookingFlow({ listing, onSuccess }: LandBookingFlowProps) {
+  const plotProperty: Property | null = isLandShareListing(listing) ? null : listing
+  const listingIsInvestment = isLandShareListing(listing) || (plotProperty != null && propertyUsesInvestmentBooking(plotProperty))
+  const plotOptional = isLandShareListing(listing)
+  const paymentTiers = isLandShareListing(listing) ? listing.payment_options : []
   const { showToast } = useToast()
   const [step, setStep] = useState<Step>(() => (listingIsInvestment ? "form" : "choose"))
   const [bookingKind, setBookingKind] = useState<LandBookingKind | null>(() =>
@@ -150,6 +167,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
     listingIsInvestment ? "investment" : null,
   )
   const [promo, setPromo] = useState<BookingPromoSettings | null>(null)
+  const [promoReady, setPromoReady] = useState(false)
   const [busy, setBusy] = useState(false)
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -157,21 +175,30 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
   const [contactNotes, setContactNotes] = useState("")
   const [referralCode, setReferralCode] = useState("")
   const [selectedPlot, setSelectedPlot] = useState<PlotOption | null>(null)
+  const [selectedTierIndex, setSelectedTierIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (listingIsInvestment) {
       setPromo(null)
+      setPromoReady(true)
       return
     }
+    setPromoReady(false)
     void getBookingPromoSettings()
-      .then(setPromo)
-      .catch(() => setPromo(null))
+      .then((p) => {
+        setPromo(p)
+        setPromoReady(true)
+      })
+      .catch(() => {
+        setPromo(null)
+        setPromoReady(true)
+      })
   }, [listingIsInvestment])
 
   useEffect(() => {
-    const inv = propertyUsesInvestmentBooking(property)
     setSelectedPlot(null)
-    if (inv) {
+    setSelectedTierIndex(null)
+    if (listingIsInvestment) {
       setStep("form")
       setBookingKind("investment")
       setPlanType("investment")
@@ -192,12 +219,15 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
         setPhone(m.phone || "")
       })
       .catch(() => {})
-  }, [property.id, property.property_channel, property.sale_type, property.land_sale_mode])
+  }, [listing.id, listing.listing_kind, listingIsInvestment])
 
-  const plotBuySlotsClosed = promo != null && promo.plot_buy_installment_slots_available <= 0
+  /** 1% / 50% plot-buy plans: admin must enable promo and slots must remain (API error → allow attempt). */
+  const plotBuyInstallmentPlansOpen =
+    promo == null ||
+    (promo.plot_buy_installment_promo_enabled && promo.plot_buy_installment_slots_available > 0)
 
   function selectPlotBuyPlan(pt: PlotInstallmentPlan) {
-    if (plotBuySlotsClosed) return
+    if (!plotBuyInstallmentPlansOpen) return
     setBookingKind("plot_buy")
     setPlanType(pt)
     setSelectedPlot(null)
@@ -214,28 +244,45 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
       showToast("Name, email, and phone are required.", "error")
       return
     }
-    if (!selectedPlot) {
+    if (!plotOptional && !selectedPlot) {
       showToast("Please select an available plot from the map.", "error")
       return
     }
+    if (listingIsInvestment && paymentTiers.length > 0) {
+      if (selectedTierIndex == null || !paymentTiers[selectedTierIndex]) {
+        showToast("Please choose one of the payment options for this listing.", "error")
+        return
+      }
+    }
     setBusy(true)
     try {
-      await createLandBooking(
-        {
-          property: property.id,
-          booking_kind: bookingKind,
-          plan_type: planType,
-          full_name: fullName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          contact_notes: contactNotes.trim(),
-          referral_code_used: referralCode.trim(),
-          selected_plot_code: selectedPlot.plot_id,
-          selected_plot_area_sqft: selectedPlot.area_sqft,
-          selected_plot_price: String(selectedPlot.price),
-        },
-        token,
-      )
+      const payload: LandBookingCreatePayload = {
+        booking_kind: bookingKind,
+        plan_type: planType,
+        full_name: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        contact_notes: contactNotes.trim(),
+        referral_code_used: referralCode.trim(),
+      }
+      if (isLandShareListing(listing)) {
+        payload.land_share_listing = listing.id
+      } else {
+        payload.property = listing.id
+      }
+      if (!plotOptional && selectedPlot) {
+        payload.selected_plot_code = selectedPlot.plot_id
+        payload.selected_plot_area_sqft = selectedPlot.area_sqft
+        payload.selected_plot_price = String(selectedPlot.price)
+      } else if (plotOptional) {
+        payload.selected_plot_code = ""
+      }
+      if (listingIsInvestment && paymentTiers.length > 0 && selectedTierIndex != null) {
+        const tier = paymentTiers[selectedTierIndex]
+        payload.investment_option_amount = tier.amount
+        payload.investment_option_billing_period = tier.billing_period
+      }
+      await createLandBooking(payload, token)
       showToast("Booking submitted. Track status in your dashboard.", "success")
       onSuccess?.()
     } catch (e) {
@@ -250,22 +297,58 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
 
   return (
     <>
-      {step === "choose" ? (
+      {step === "choose" && !promoReady ? (
+        <section className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-sm text-slate-600">Checking buy-plot plan availability…</p>
+        </section>
+      ) : null}
+
+      {step === "choose" && promoReady && !plotBuyInstallmentPlansOpen ? (
+        <section className="rounded-3xl border border-amber-200 bg-amber-50/80 p-6 shadow-sm sm:p-8">
+          <h3 className="text-lg font-semibold text-[#0b1f44]">1% and 50% plans are not available</h3>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            Buy-plot installment promos are controlled by the admin. They may be turned off or all promo slots may be
+            in use. Land-share listings use a different booking path — browse those separately, or reach out for
+            buy-plot options.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              to="/listings/buy-plots"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0b1f44] px-5 text-sm font-semibold text-white hover:bg-[#152a55]"
+            >
+              Buy plots listings
+            </Link>
+            <Link
+              to="/listings/buy-land-share"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              Land share listings
+            </Link>
+            <Link
+              to="/contact"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#f58e43] bg-white px-5 text-sm font-semibold text-[#b84a0f] hover:bg-[#fff8f3]"
+            >
+              Contact us
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      {step === "choose" && promoReady && plotBuyInstallmentPlansOpen ? (
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-sm text-slate-600">Select one plan to continue.</p>
           {promo ? (
             <p className="mt-2 text-xs text-slate-500">
-              Buy property (1% / 50%) promo slots:{" "}
+              Buy plots (1% / 50%) promo slots:{" "}
               <strong className="text-[#0b1f44]">
                 {promo.plot_buy_installment_slots_available} of {promo.plot_buy_installment_slot_limit} left
               </strong>
-              {plotBuySlotsClosed ? <span className="text-amber-700"> — full; try again later or contact support.</span> : null}
             </p>
           ) : null}
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <button
               type="button"
-              disabled={plotBuySlotsClosed}
+              disabled={!plotBuyInstallmentPlansOpen}
               className="group min-h-[320px] rounded-2xl border-2 border-[#0b1f44] bg-white p-8 text-left transition hover:-translate-y-0.5 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => selectPlotBuyPlan("one_percent_installment")}
             >
@@ -280,7 +363,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
             </button>
             <button
               type="button"
-              disabled={plotBuySlotsClosed}
+              disabled={!plotBuyInstallmentPlansOpen}
               className="group min-h-[320px] rounded-2xl border-2 border-[#f58e43] bg-[#f58e43] p-8 text-left text-slate-950 transition hover:-translate-y-0.5 hover:bg-[#ff9b4f] disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => selectPlotBuyPlan("fifty_percent_installment")}
             >
@@ -299,7 +382,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
         <section className="mx-auto w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-5 flex items-center justify-between gap-3">
             {listingIsInvestment ? (
-              <Link to={`/properties/${property.id}`} className="text-sm font-medium text-[#f58e43] hover:underline">
+              <Link to={listingDetailPath(listing)} className="text-sm font-medium text-[#f58e43] hover:underline">
                 ← Back to listing
               </Link>
             ) : (
@@ -311,6 +394,7 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
                   setBookingKind(null)
                   setPlanType(null)
                   setSelectedPlot(null)
+                  setSelectedTierIndex(null)
                 }}
               >
                 ← Change plan
@@ -340,7 +424,42 @@ export function LandBookingFlow({ property, onSuccess }: LandBookingFlowProps) {
                 </ul>
               </div>
             ) : null}
-            <LandPlotSelector property={property} value={selectedPlot} onChange={setSelectedPlot} />
+            {listingIsInvestment && paymentTiers.length > 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
+                <p className="text-sm font-semibold text-[#0b1f44]">Choose payment option</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Pick one of the amounts and billing periods configured for this listing.
+                </p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {paymentTiers.map((t, i) => (
+                    <button
+                      key={`${t.amount}-${t.billing_period}-${i}`}
+                      type="button"
+                      onClick={() => setSelectedTierIndex(i)}
+                      className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
+                        selectedTierIndex === i
+                          ? "border-[#0b1f44] bg-white ring-2 ring-[#0b1f44]/15"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="font-semibold text-[#f58e43]">{formatBdtInteger(t.amount)}</span>
+                      <span className="mt-1 block text-xs text-slate-600">
+                        {billingPeriodLabel(t.billing_period)}
+                        {t.commitment_months != null ? ` · min ${t.commitment_months} mo` : ""}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {plotOptional ? (
+              <p className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+                Land-share booking applies to the parcel as a whole. Plot map selection is not required for this listing
+                type.
+              </p>
+            ) : plotProperty ? (
+              <LandPlotSelector property={plotProperty} value={selectedPlot} onChange={setSelectedPlot} />
+            ) : null}
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
               value={fullName}
