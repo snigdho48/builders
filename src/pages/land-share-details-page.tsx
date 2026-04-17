@@ -54,6 +54,12 @@ function billingLabel(period: LandShareBillingPeriod): string {
   return "Monthly billing"
 }
 
+function billingShortLabel(period: LandShareBillingPeriod): string {
+  if (period === "yearly") return "yr"
+  if (period === "one_time") return "one-time"
+  return "mo"
+}
+
 function tierSummary(listing: LandShareListing): string {
   if (!listing.payment_options.length) {
     return `From ${formatBdtInteger(listing.land_price)}`
@@ -67,6 +73,35 @@ function tierSummary(listing: LandShareListing): string {
   }
   const base = normalized[0].raw
   return `From ${formatBdtInteger(base.amount)} (${billingLabel(base.billing_period)})`
+}
+
+function otherPaymentOptionsPreview(
+  listing: LandShareListing,
+): { title: string; badges: string[]; moreCount: number } | null {
+  const normalized = listing.payment_options
+    .map((t) => ({ raw: t, amount: Number.parseFloat(t.amount) }))
+    .filter((item) => Number.isFinite(item.amount) && item.amount > 0)
+    .sort((a, b) => a.amount - b.amount)
+  if (normalized.length <= 1) return null
+
+  const extras = normalized.slice(1)
+  const previewItems = extras.slice(0, 3)
+  const moreCount = extras.length - previewItems.length
+  const allSameBilling = previewItems.every((item) => item.raw.billing_period === extras[0].raw.billing_period)
+
+  if (allSameBilling) {
+    return {
+      title: `Also available (${billingLabel(extras[0].raw.billing_period)})`,
+      badges: previewItems.map((item) => formatBdtInteger(item.raw.amount)),
+      moreCount,
+    }
+  }
+
+  return {
+    title: "Also available",
+    badges: previewItems.map((item) => `${formatBdtInteger(item.raw.amount)} ${billingShortLabel(item.raw.billing_period)}`),
+    moreCount,
+  }
 }
 
 function videoWatchUrl(videoUrl: string | undefined): string | null {
@@ -279,6 +314,7 @@ export function LandShareDetailsPage() {
             }
           }
           const sizeLabel = listing.size_sqft != null ? `${listing.size_sqft} sqft` : "—"
+          const paymentOptionsPreview = otherPaymentOptionsPreview(listing)
 
           return (
             <motion.main
@@ -406,29 +442,39 @@ export function LandShareDetailsPage() {
                       ) : null}
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
-                      <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#4fd1c5]">
+                    <motion.section
+                      variants={sectionVariants}
+                      className="rounded-3xl border border-[#d9f3ef] bg-linear-to-br from-[#fbfffe] via-white to-[#f4fbff] p-6 shadow-[0_16px_40px_rgba(15,32,68,0.06)] sm:p-8"
+                    >
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2bb6a8] sm:text-sm">
                         {language === "bn" ? "প্রক্রিয়া" : "Process"}
                       </p>
-                      <h3 className="mt-2 text-[2rem] leading-tight font-bold text-[#0b1f44]">
+                      <h3 className="mt-2 text-[1.75rem] leading-tight font-extrabold text-[#0b1f44] sm:text-[2rem]">
                         {language === "bn" ? "কীভাবে কাজ করে?" : "What's the process?"}
                       </h3>
-                      <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{fractionalHowItWorks.intro}</p>
+                      <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-[0.97rem]">
+                        {fractionalHowItWorks.intro}
+                      </p>
 
-                      <ol className="mt-7 space-y-6">
+                      <ol className="relative mt-7 space-y-4">
                         {fractionalHowItWorks.steps.map((step, idx) => (
-                          <li key={step.title} className="flex gap-4">
+                          <li
+                            key={step.title}
+                            className="flex gap-4 rounded-2xl border border-[#e8f2f7] bg-white/95 p-4 shadow-[0_8px_24px_rgba(15,32,68,0.05)] transition hover:border-[#d4e9f2] sm:p-5"
+                          >
                             <div className="flex w-8 shrink-0 flex-col items-center">
-                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#4fd1c5] text-sm font-bold text-white!">
+                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#4fd1c5] bg-[#4fd1c5]/12 text-sm font-bold text-[#1d7f75]">
                                 {idx + 1}
                               </span>
                               {idx !== fractionalHowItWorks.steps.length - 1 ? (
-                                <span className="mt-1 h-full w-px bg-slate-200" />
+                                <span className="mt-1 h-full w-px bg-slate-200/90" />
                               ) : null}
                             </div>
                             <div className="min-w-0 pb-1">
-                              <h4 className="text-[1.15rem] leading-snug font-semibold text-[#111827]">{step.title}</h4>
-                              <p className="mt-1 text-[1.01rem] leading-7 text-slate-500">{step.body}</p>
+                              <h4 className="text-[1.05rem] leading-snug font-semibold text-[#111827] sm:text-[1.12rem]">
+                                {step.title}
+                              </h4>
+                              <p className="mt-1.5 text-[0.96rem] leading-7 text-slate-500">{step.body}</p>
                               {step.bullets.length > 0 ? (
                                 <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-500">
                                   {step.bullets.map((bullet) => (
@@ -444,27 +490,61 @@ export function LandShareDetailsPage() {
 
                     <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-5 lg:hidden">
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
-                      <div className="mt-4 space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {ratingLabel ? (
-                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                              {ratingLabel}
-                            </span>
-                          ) : null}
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
-                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
-                            {tierSummary(listing)}
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Starting from</p>
+                            <p className="mt-1 break-words text-[1.7rem] leading-tight font-extrabold text-[#0b1f44]">
+                              {tierSummary(listing)}
+                            </p>
+                            {paymentOptionsPreview ? (
+                              <div className="mt-2 rounded-xl border border-slate-200 bg-white/90 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                  {paymentOptionsPreview.title}
+                                </p>
+                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                  {paymentOptionsPreview.badges.map((badge) => (
+                                    <span
+                                      key={badge}
+                                      className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+                                    >
+                                      {badge}
+                                    </span>
+                                  ))}
+                                  {paymentOptionsPreview.moreCount > 0 ? (
+                                    <span className="inline-flex items-center rounded-full border border-[#dbe6ff] bg-[#f6f8ff] px-2.5 py-1 text-[11px] font-semibold text-[#3557a3]">
+                                      +{paymentOptionsPreview.moreCount} more
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff3eb] text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} />
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
-                            {areaBadgeLabel(listing)}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
-                            <span className="max-w-[28ch] truncate">{listing.location_name}</span>
-                          </span>
+                        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Area</p>
+                            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faRulerCombined} className="text-[0.8rem] text-slate-500" />
+                              {areaBadgeLabel(listing)}
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Location</p>
+                            <p className="mt-1 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faLocationDot} className="text-[0.8rem] text-slate-500" />
+                              <span className="truncate">{listing.location_name}</span>
+                            </p>
+                          </div>
+                          {ratingLabel ? (
+                            <div className="rounded-xl border border-[#dbe6ff] bg-[#f6f8ff] px-3 py-2.5 sm:col-span-2">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Rating</p>
+                              <p className="mt-1 text-sm font-semibold text-[#0b1f44]">{ratingLabel}</p>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </motion.section>
@@ -721,27 +801,61 @@ export function LandShareDetailsPage() {
                       className="hidden rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:order-2"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
-                      <div className="mt-4 space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {ratingLabel ? (
-                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                              {ratingLabel}
-                            </span>
-                          ) : null}
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
-                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
-                            {tierSummary(listing)}
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Starting from</p>
+                            <p className="mt-1 break-words text-[1.85rem] leading-tight font-extrabold text-[#0b1f44]">
+                              {tierSummary(listing)}
+                            </p>
+                            {paymentOptionsPreview ? (
+                              <div className="mt-2 rounded-xl border border-slate-200 bg-white/90 p-2.5">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                  {paymentOptionsPreview.title}
+                                </p>
+                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                  {paymentOptionsPreview.badges.map((badge) => (
+                                    <span
+                                      key={badge}
+                                      className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+                                    >
+                                      {badge}
+                                    </span>
+                                  ))}
+                                  {paymentOptionsPreview.moreCount > 0 ? (
+                                    <span className="inline-flex items-center rounded-full border border-[#dbe6ff] bg-[#f6f8ff] px-2.5 py-1 text-[11px] font-semibold text-[#3557a3]">
+                                      +{paymentOptionsPreview.moreCount} more
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff3eb] text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} />
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
-                            {areaBadgeLabel(listing)}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
-                            <span className="max-w-[30ch] truncate">{listing.location_name}</span>
-                          </span>
+                        <div className="mt-4 grid grid-cols-1 gap-2">
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Area</p>
+                            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faRulerCombined} className="text-[0.8rem] text-slate-500" />
+                              {areaBadgeLabel(listing)}
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Location</p>
+                            <p className="mt-1 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faLocationDot} className="text-[0.8rem] text-slate-500" />
+                              <span className="truncate">{listing.location_name}</span>
+                            </p>
+                          </div>
+                          {ratingLabel ? (
+                            <div className="rounded-xl border border-[#dbe6ff] bg-[#f6f8ff] px-3 py-2.5">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Rating</p>
+                              <p className="mt-1 text-sm font-semibold text-[#0b1f44]">{ratingLabel}</p>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </motion.section>

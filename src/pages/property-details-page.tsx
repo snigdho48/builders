@@ -502,27 +502,39 @@ export function PropertyDetailsPage() {
 
                     <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-5 lg:hidden">
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
-                      <div className="mt-4 space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {ratingLabel ? (
-                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                              {ratingLabel}
-                            </span>
-                          ) : null}
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
-                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
-                            {propertyPrimaryPriceLine(property)}
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Guide price</p>
+                            <p className="mt-1 break-words text-[1.85rem] leading-tight font-extrabold text-[#0b1f44]">
+                              {propertyPrimaryPriceLine(property)}
+                            </p>
+                          </div>
+                          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff3eb] text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} />
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
-                            {areaBadgeLabel(property)}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
-                            <span className="max-w-[28ch] truncate">{property.location_name}</span>
-                          </span>
+                        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Area</p>
+                            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faRulerCombined} className="text-[0.8rem] text-slate-500" />
+                              {areaBadgeLabel(property)}
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Location</p>
+                            <p className="mt-1 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faLocationDot} className="text-[0.8rem] text-slate-500" />
+                              <span className="truncate">{property.location_name}</span>
+                            </p>
+                          </div>
+                          {ratingLabel ? (
+                            <div className="rounded-xl border border-[#dbe6ff] bg-[#f6f8ff] px-3 py-2.5 sm:col-span-2">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Rating</p>
+                              <p className="mt-1 text-sm font-semibold text-[#0b1f44]">{ratingLabel}</p>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </motion.section>
@@ -839,27 +851,39 @@ export function PropertyDetailsPage() {
                       className="hidden rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:order-2"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
-                      <div className="mt-4 space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {ratingLabel ? (
-                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                              {ratingLabel}
-                            </span>
-                          ) : null}
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
-                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
-                            {propertyPrimaryPriceLine(property)}
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Guide price</p>
+                            <p className="mt-1 break-words text-[2rem] leading-tight font-extrabold text-[#0b1f44]">
+                              {propertyPrimaryPriceLine(property)}
+                            </p>
+                          </div>
+                          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff3eb] text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} />
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
-                            {areaBadgeLabel(property)}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
-                            <span className="max-w-[30ch] truncate">{property.location_name}</span>
-                          </span>
+                        <div className="mt-4 grid grid-cols-1 gap-2">
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Area</p>
+                            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faRulerCombined} className="text-[0.8rem] text-slate-500" />
+                              {areaBadgeLabel(property)}
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Location</p>
+                            <p className="mt-1 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-slate-800">
+                              <FontAwesomeIcon icon={faLocationDot} className="text-[0.8rem] text-slate-500" />
+                              <span className="truncate">{property.location_name}</span>
+                            </p>
+                          </div>
+                          {ratingLabel ? (
+                            <div className="rounded-xl border border-[#dbe6ff] bg-[#f6f8ff] px-3 py-2.5">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Rating</p>
+                              <p className="mt-1 text-sm font-semibold text-[#0b1f44]">{ratingLabel}</p>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </motion.section>
