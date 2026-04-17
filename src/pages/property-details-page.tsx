@@ -14,7 +14,9 @@ import {
   faLink,
   faLocationDot,
   faPhone,
+  faRulerCombined,
   faShareNodes,
+  faTag,
 } from "@fortawesome/free-solid-svg-icons"
 import { faBookmark as faBookmarkRegular } from "@fortawesome/free-regular-svg-icons"
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons"
@@ -44,15 +46,9 @@ function formatRatingBadge(average: string | null | undefined, count: number): s
   return null
 }
 
-function offeringBadgeLabel(property: Property): string {
-  const priceStr = formatBdtInteger(property.land_price)
-  if (property.property_type === "land" && property.size_sqft != null) {
-    return `${property.size_sqft.toLocaleString()} sqft · ${priceStr}`
-  }
-  if (property.size_sqft != null) {
-    return `${property.size_sqft.toLocaleString()} sqft · ${priceStr}`
-  }
-  return priceStr || "Land parcel"
+function areaBadgeLabel(property: Property): string {
+  const sqft = property.size_sqft ?? property.land_area_sqft
+  return sqft != null ? `${sqft.toLocaleString()} Sqft` : "Area N/A"
 }
 
 function minimumInvestLabel(property: Property): string {
@@ -504,21 +500,31 @@ export function PropertyDetailsPage() {
                       ) : null}
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3 lg:hidden">
-                      {ratingLabel ? (
-                        <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                          {ratingLabel}
-                        </span>
-                      ) : null}
-                      <span
-                        className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
-                        title="Land size and price summary"
-                      >
-                        {offeringBadgeLabel(property)}
-                      </span>
-                      <span className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium text-[#c55f1a]">
-                        {property.location_name}
-                      </span>
+                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-5 lg:hidden">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
+                      <div className="mt-4 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {ratingLabel ? (
+                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
+                              {ratingLabel}
+                            </span>
+                          ) : null}
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
+                            {propertyPrimaryPriceLine(property)}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
+                            {areaBadgeLabel(property)}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
+                            <span className="max-w-[28ch] truncate">{property.location_name}</span>
+                          </span>
+                        </div>
+                      </div>
                     </motion.section>
 
                     <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
@@ -833,21 +839,28 @@ export function PropertyDetailsPage() {
                       className="hidden rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:order-2"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        {ratingLabel ? (
-                          <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                            {ratingLabel}
+                      <div className="mt-4 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {ratingLabel ? (
+                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
+                              {ratingLabel}
+                            </span>
+                          ) : null}
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
+                            {propertyPrimaryPriceLine(property)}
                           </span>
-                        ) : null}
-                        <span
-                          className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
-                          title="Land size and price summary"
-                        >
-                          {offeringBadgeLabel(property)}
-                        </span>
-                        <span className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium text-[#c55f1a]">
-                          {property.location_name}
-                        </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
+                            {areaBadgeLabel(property)}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
+                            <span className="max-w-[30ch] truncate">{property.location_name}</span>
+                          </span>
+                        </div>
                       </div>
                     </motion.section>
 

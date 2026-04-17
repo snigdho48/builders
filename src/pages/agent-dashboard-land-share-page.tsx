@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 
 import { DashboardModal, dashboardModalFieldClass, dashboardModalFieldClassTight } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { useToast } from "@/components/ui/use-toast"
 import { createLandShareListing, getLandShareListingsPaged, updateLandShareListing } from "@/services/api"
 import type { LandShareListing, LandShareListingUpsertPayload, PropertyKind } from "@/types/domain"
-import { propertyPrimaryPriceLine } from "@/utils/property-display"
+import { landShareOpenForStaffBooking, propertyPrimaryPriceLine } from "@/utils/property-display"
 
 function slugify(s: string) {
   return s
@@ -260,6 +261,15 @@ export function AgentDashboardLandSharePage() {
                     <td className="px-4 py-3 align-middle text-slate-300">{p.listing_active ? "Yes" : "No"}</td>
                     <td className="px-4 py-3 align-middle text-right">
                       <span className="inline-flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                        {landShareOpenForStaffBooking(p) ? (
+                          <Link
+                            to={`/land-share-listings/${p.id}/book`}
+                            className="font-medium text-emerald-400 hover:underline"
+                            title="Book this land share for an investor (select or create investor on the next page)"
+                          >
+                            Book for client
+                          </Link>
+                        ) : null}
                         <button type="button" className="font-medium text-[#f58e43] hover:underline" onClick={() => openEdit(p)}>
                           Edit
                         </button>

@@ -58,8 +58,8 @@ export function AdminDashboardHomePage() {
       <div>
         <h2 className="text-xl font-semibold text-slate-900">Admin overview</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Manage <Link to="/dashboard/admin/properties" className="text-[#f58e43] hover:underline">land listings</Link>
-          ,{" "}
+          Manage <Link to="/dashboard/admin/properties" className="text-[#f58e43] hover:underline">plot listings</Link>{" "}
+          (use <strong className="font-semibold text-slate-800">Book for client</strong> on an active listing),{" "}
           <Link to="/dashboard/admin/bookings" className="text-[#f58e43] hover:underline">booking requests</Link>, agents,
           and investors from the sidebar.
         </p>

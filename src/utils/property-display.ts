@@ -1,4 +1,14 @@
 import type { CatalogListing, LandShareListing, Property, SaleType } from "@/types/domain"
+
+/** Same gate as `PropertyLandBookPage`: staff can start a plot booking for an investor. */
+export function propertyOpenForStaffBooking(p: Pick<Property, "listing_active" | "status">): boolean {
+  return p.listing_active && p.status === "available"
+}
+
+/** Same gate as `LandShareLandBookPage`: staff can start a land-share booking for an investor. */
+export function landShareOpenForStaffBooking(p: Pick<LandShareListing, "listing_active" | "status">): boolean {
+  return p.listing_active && p.status === "available"
+}
 import { formatBdtInteger } from "@/utils/currency"
 
 export function isLandShareListing(x: CatalogListing): x is LandShareListing {

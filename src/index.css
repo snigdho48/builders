@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans+Bengali:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Tiro+Bangla:ital@0;1&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -11,7 +11,7 @@
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: "Manrope", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Manrope", "Tiro Bangla", ui-sans-serif, system-ui, sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -182,137 +182,149 @@
   }
 }
 
-/* Manrope variable (200–800): weight helpers; `font-sans` / `--font-sans` cover app-wide text */
+/* Manrope (Latin) + Tiro Bangla (Bengali script); weight helpers use `var(--font-sans)`. */
 @layer utilities {
   .manrope-ui {
-    font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-style: normal;
   }
 
   .manrope-thin {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 200;
     font-style: normal;
   }
 
   .manrope-extralight {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 200;
     font-style: normal;
   }
 
   .manrope-light {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 300;
     font-style: normal;
   }
 
   .manrope-regular {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
   }
 
   .manrope-medium {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 500;
     font-style: normal;
   }
 
   .manrope-semibold {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 600;
     font-style: normal;
   }
 
   .manrope-bold {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 700;
     font-style: normal;
   }
 
   .manrope-extrabold {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 800;
     font-style: normal;
   }
 
   .manrope-black {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 800;
     font-style: normal;
   }
 
   .manrope-thin-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 200;
     font-style: italic;
   }
 
   .manrope-extralight-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 200;
     font-style: italic;
   }
 
   .manrope-light-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 300;
     font-style: italic;
   }
 
   .manrope-regular-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: italic;
   }
 
   .manrope-medium-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 500;
     font-style: italic;
   }
 
   .manrope-semibold-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 600;
     font-style: italic;
   }
 
   .manrope-bold-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 700;
     font-style: italic;
   }
 
   .manrope-extrabold-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 800;
     font-style: italic;
   }
 
   .manrope-black-italic {
-    font-family: "Manrope", sans-serif;
+    font-family: var(--font-sans);
     font-optical-sizing: auto;
     font-weight: 800;
+    font-style: italic;
+  }
+
+  .tiro-bangla-regular {
+    font-family: "Tiro Bangla", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  .tiro-bangla-regular-italic {
+    font-family: "Tiro Bangla", serif;
+    font-weight: 400;
     font-style: italic;
   }
 }

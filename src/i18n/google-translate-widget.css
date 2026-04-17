@@ -170,6 +170,17 @@ body.translated-rtl {
   padding-top: 0 !important;
 }
 
+/* Follow root `--font-sans` (updated in JS when EN/BN changes). */
+html.translated-ltr,
+html.translated-rtl {
+  font-family: var(--font-sans);
+}
+
+html.translated-ltr font,
+html.translated-rtl font {
+  font-family: inherit !important;
+}
+
 body {
   top: 0 !important;
   position: relative !important;

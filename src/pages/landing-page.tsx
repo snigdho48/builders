@@ -276,6 +276,12 @@ export function LandingPage() {
                   ? "প্লট ক্রয়, ফ্র্যাকশনাল ল্যান্ড শেয়ার, এবং NRB লিগ্যাল সাপোর্ট বিষয়ে সাধারণ প্রশ্ন।"
                   : "Common questions about plot buying, fractional land share, and NRB legal support."}
               </p>
+              <Link
+                to="/faq"
+                className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:text-sm"
+              >
+                {language === "bn" ? "সম্পূর্ণ FAQ পেজ দেখুন" : "Open full FAQ page"}
+              </Link>
             </RevealOnView>
             <div className="mb-5 flex flex-wrap gap-2">
               {(

@@ -12,11 +12,15 @@ import {
   faLink,
   faLocationDot,
   faPhone,
+  faRulerCombined,
   faShareNodes,
+  faTag,
 } from "@fortawesome/free-solid-svg-icons"
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons"
 
+import { getEurostarServicesPageCopy } from "@/content/eurostar-services-content"
 import { useToast } from "@/components/ui/use-toast"
+import { useLanguage } from "@/i18n/language-context"
 import { normalizeStoredRole } from "@/routes/protected-route"
 import { getLandShareListing, getLandShareListings } from "@/services/api"
 import type { LandShareBillingPeriod, LandShareListing } from "@/types/domain"
@@ -39,12 +43,9 @@ function formatRatingBadge(average: string | null | undefined, count: number): s
   return null
 }
 
-function offeringBadgeLabel(listing: LandShareListing): string {
-  const priceStr = formatBdtInteger(listing.land_price)
-  if (listing.size_sqft != null) {
-    return `${listing.size_sqft.toLocaleString()} sqft · ${priceStr}`
-  }
-  return priceStr || "Land share listing"
+function areaBadgeLabel(listing: LandShareListing): string {
+  const sqft = listing.size_sqft ?? listing.land_area_sqft
+  return sqft != null ? `${sqft.toLocaleString()} Sqft` : "Area N/A"
 }
 
 function billingLabel(period: LandShareBillingPeriod): string {
@@ -86,6 +87,7 @@ function videoWatchUrl(videoUrl: string | undefined): string | null {
 export function LandShareDetailsPage() {
   const { id = "" } = useParams()
   const navigate = useNavigate()
+  const { language } = useLanguage()
   const [listing, setListing] = useState<LandShareListing | null>(null)
   const [related, setRelated] = useState<LandShareListing[]>([])
   const [activeImage, setActiveImage] = useState(0)
@@ -161,6 +163,11 @@ export function LandShareDetailsPage() {
     if (!listing) return 0
     return listing.listing_active && listing.status === "available" ? 100 : 0
   }, [listing])
+
+  const fractionalHowItWorks = useMemo(
+    () => getEurostarServicesPageCopy(language).fractionalHowItWorks,
+    [language],
+  )
 
   const galleryImages = useMemo(() => {
     if (!listing) return [] as string[]
@@ -399,21 +406,67 @@ export function LandShareDetailsPage() {
                       ) : null}
                     </motion.section>
 
-                    <motion.section variants={sectionVariants} className="flex flex-wrap items-center gap-3 lg:hidden">
-                      {ratingLabel ? (
-                        <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                          {ratingLabel}
-                        </span>
-                      ) : null}
-                      <span
-                        className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
-                        title="Land size and price summary"
-                      >
-                        {offeringBadgeLabel(listing)}
-                      </span>
-                      <span className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium text-[#c55f1a]">
-                        {listing.location_name}
-                      </span>
+                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
+                      <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#4fd1c5]">
+                        {language === "bn" ? "প্রক্রিয়া" : "Process"}
+                      </p>
+                      <h3 className="mt-2 text-[2rem] leading-tight font-bold text-[#0b1f44]">
+                        {language === "bn" ? "কীভাবে কাজ করে?" : "What's the process?"}
+                      </h3>
+                      <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{fractionalHowItWorks.intro}</p>
+
+                      <ol className="mt-7 space-y-6">
+                        {fractionalHowItWorks.steps.map((step, idx) => (
+                          <li key={step.title} className="flex gap-4">
+                            <div className="flex w-8 shrink-0 flex-col items-center">
+                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#4fd1c5] text-sm font-bold text-white!">
+                                {idx + 1}
+                              </span>
+                              {idx !== fractionalHowItWorks.steps.length - 1 ? (
+                                <span className="mt-1 h-full w-px bg-slate-200" />
+                              ) : null}
+                            </div>
+                            <div className="min-w-0 pb-1">
+                              <h4 className="text-[1.15rem] leading-snug font-semibold text-[#111827]">{step.title}</h4>
+                              <p className="mt-1 text-[1.01rem] leading-7 text-slate-500">{step.body}</p>
+                              {step.bullets.length > 0 ? (
+                                <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-500">
+                                  {step.bullets.map((bullet) => (
+                                    <li key={bullet}>{bullet}</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </motion.section>
+
+                    <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-5 lg:hidden">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
+                      <div className="mt-4 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {ratingLabel ? (
+                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
+                              {ratingLabel}
+                            </span>
+                          ) : null}
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
+                            {tierSummary(listing)}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
+                            {areaBadgeLabel(listing)}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
+                            <span className="max-w-[28ch] truncate">{listing.location_name}</span>
+                          </span>
+                        </div>
+                      </div>
                     </motion.section>
 
                     <motion.section variants={sectionVariants} className="rounded-3xl border border-slate-200 bg-white p-8">
@@ -668,21 +721,28 @@ export function LandShareDetailsPage() {
                       className="hidden rounded-3xl border border-slate-200 bg-white p-6 lg:block lg:order-2"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f58e43]">Price</p>
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        {ratingLabel ? (
-                          <span className="inline-flex rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
-                            {ratingLabel}
+                      <div className="mt-4 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {ratingLabel ? (
+                            <span className="inline-flex items-center rounded-full bg-[#0b1f44] px-3 py-1 text-sm font-semibold text-white!">
+                              {ratingLabel}
+                            </span>
+                          ) : null}
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-semibold text-[#c55f1a]">
+                            <FontAwesomeIcon icon={faTag} className="text-[0.75rem]" />
+                            {tierSummary(listing)}
                           </span>
-                        ) : null}
-                        <span
-                          className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium capitalize text-[#c55f1a]"
-                          title="Land size and price summary"
-                        >
-                          {offeringBadgeLabel(listing)}
-                        </span>
-                        <span className="rounded-full bg-[#fff3eb] px-3 py-1 text-sm font-medium text-[#c55f1a]">
-                          {listing.location_name}
-                        </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faRulerCombined} className="text-[0.75rem]" />
+                            {areaBadgeLabel(listing)}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            <FontAwesomeIcon icon={faLocationDot} className="text-[0.75rem]" />
+                            <span className="max-w-[30ch] truncate">{listing.location_name}</span>
+                          </span>
+                        </div>
                       </div>
                     </motion.section>
 

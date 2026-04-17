@@ -1,4 +1,6 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+
+import { syncRootFontForScriptLang } from "@/i18n/sync-root-font-for-lang"
 
 export type AppLanguage = "en" | "bn"
 
@@ -107,6 +109,18 @@ function readInitialLanguage(): AppLanguage {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLang] = useState<AppLanguage>(() => readInitialLanguage())
+
+  useEffect(() => {
+    syncRootFontForScriptLang()
+  }, [language])
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === LANGUAGE_KEY) syncRootFontForScriptLang()
+    }
+    window.addEventListener("storage", onStorage)
+    return () => window.removeEventListener("storage", onStorage)
+  }, [])
 
   const setLanguage = (next: AppLanguage) => {
     setLang(next)

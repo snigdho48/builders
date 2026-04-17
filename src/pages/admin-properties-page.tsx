@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
 
 import { DashboardModal, dashboardModalFieldClass } from "@/components/dashboard/dashboard-modal"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
@@ -12,7 +13,7 @@ import {
   updateProperty,
 } from "@/services/api"
 import type { AgentUser, Property, PropertyKind, PropertyUpsertPayload, SaleType } from "@/types/domain"
-import { propertyPrimaryPriceLine, saleTypeLabel } from "@/utils/property-display"
+import { propertyOpenForStaffBooking, propertyPrimaryPriceLine, saleTypeLabel } from "@/utils/property-display"
 
 function slugify(s: string) {
   return s
@@ -337,6 +338,15 @@ export function AdminPropertiesPage() {
                     <td className="px-4 py-3 align-middle text-slate-300">{p.listing_active ? "Yes" : "No"}</td>
                     <td className="px-4 py-3 align-middle text-right">
                       <span className="inline-flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                        {propertyOpenForStaffBooking(p) ? (
+                          <Link
+                            to={`/properties/${p.id}/book`}
+                            className="font-medium text-emerald-400 hover:underline"
+                            title="Book this plot for an investor (select or create investor on the next page)"
+                          >
+                            Book for client
+                          </Link>
+                        ) : null}
                         <button type="button" className="font-medium text-[#f58e43] hover:underline" onClick={() => openEdit(p)}>
                           Edit
                         </button>

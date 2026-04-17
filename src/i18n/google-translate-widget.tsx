@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
 import "@/i18n/google-translate-widget.css"
+import { syncRootFontForScriptLang } from "@/i18n/sync-root-font-for-lang"
 
 const WIDGET_CONTAINER_ID = "google_translate_element"
 const GOOGTRANS_COOKIE = "googtrans"
@@ -69,6 +70,13 @@ function tryClickGoogTeBannerRestore(): boolean {
 
 type GoogleTranslateWidgetProps = {
   className?: string
+}
+
+function scheduleRootFontSync() {
+  syncRootFontForScriptLang()
+  queueMicrotask(() => syncRootFontForScriptLang())
+  window.setTimeout(() => syncRootFontForScriptLang(), 400)
+  window.setTimeout(() => syncRootFontForScriptLang(), 1200)
 }
 
 export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetProps) {
@@ -152,15 +160,18 @@ export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetP
       clearGoogtransCookieEverywhere()
       if (tryInvokeGoogleTranslateRestore()) {
         window.requestAnimationFrame(() => clearGoogtransCookieEverywhere())
+        scheduleRootFontSync()
         return
       }
       if (tryClickGoogTeBannerRestore()) {
         window.requestAnimationFrame(() => clearGoogtransCookieEverywhere())
+        scheduleRootFontSync()
         return
       }
     }
 
     if (applyGoogTeCombo(next)) {
+      scheduleRootFontSync()
       return
     }
 
@@ -168,6 +179,8 @@ export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetP
       window.clearInterval(languagePollRef.current)
       languagePollRef.current = null
     }
+
+    scheduleRootFontSync()
 
     let attempts = 0
     const maxAttempts = 60
@@ -178,6 +191,7 @@ export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetP
           window.clearInterval(languagePollRef.current)
           languagePollRef.current = null
         }
+        scheduleRootFontSync()
       }
     }, 100)
   }
@@ -191,6 +205,10 @@ export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetP
       }
     }
   }, [])
+
+  useEffect(() => {
+    scheduleRootFontSync()
+  }, [language])
 
   /** Google injects a top banner iframe and sets inline `body`/`html` offsets — hide bar and reset layout. */
   useEffect(() => {

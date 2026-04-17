@@ -32,6 +32,8 @@ type LandBookingFlowProps = {
   /** Called after a successful API submit (e.g. navigate away). */
   onSuccess?: () => void
   allowStaffBookingForInvestor?: boolean
+  /** When staff starts booking from the dashboard wizard, investor is already chosen — hide duplicate assignment UI. */
+  prefilledInvestor?: RetailInvestor | null
 }
 
 function renderInstructionText(line: string) {
@@ -166,6 +168,7 @@ export function LandBookingFlow({
   listing,
   onSuccess,
   allowStaffBookingForInvestor = false,
+  prefilledInvestor = null,
 }: LandBookingFlowProps) {
   const plotProperty: Property | null = isLandShareListing(listing) ? null : listing
   const listingIsInvestment = isLandShareListing(listing) || (plotProperty != null && propertyUsesInvestmentBooking(plotProperty))
@@ -260,6 +263,18 @@ export function LandBookingFlow({
       .catch(() => setInvestorRows([]))
   }, [isStaffBookingForInvestor])
 
+  useEffect(() => {
+    if (!isStaffBookingForInvestor || !prefilledInvestor) return
+    const inv = prefilledInvestor
+    setSelectedInvestor(inv)
+    setInvestorSearch(inv.username)
+    const name = [inv.first_name, inv.last_name].filter(Boolean).join(" ").trim()
+    setFullName(name || inv.username)
+    setEmail(inv.email || "")
+    setPhone(inv.phone || "")
+    setCreatingInvestor(false)
+  }, [isStaffBookingForInvestor, prefilledInvestor])
+
   const investorMatches = investorRows
     .filter((inv) =>
       investorSearch.trim()
@@ -347,7 +362,7 @@ export function LandBookingFlow({
       showToast("Name, email, and phone are required.", "error")
       return
     }
-    if (isStaffBookingForInvestor && !selectedInvestor) {
+    if (isStaffBookingForInvestor && !selectedInvestor && !prefilledInvestor) {
       showToast("Select or create an investor before booking.", "error")
       return
     }
@@ -372,8 +387,9 @@ export function LandBookingFlow({
         contact_notes: contactNotes.trim(),
         referral_code_used: referralCode.trim(),
       }
-      if (isStaffBookingForInvestor && selectedInvestor) {
-        payload.investor = selectedInvestor.id
+      const staffInvestor = selectedInvestor ?? prefilledInvestor ?? null
+      if (isStaffBookingForInvestor && staffInvestor) {
+        payload.investor = staffInvestor.id
       }
       if (isLandShareListing(listing)) {
         payload.land_share_listing = listing.id
@@ -518,7 +534,18 @@ export function LandBookingFlow({
           </div>
 
           <div className="space-y-3">
-            {isStaffBookingForInvestor ? (
+            {isStaffBookingForInvestor && prefilledInvestor ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 shadow-sm">
+                <p className="text-sm font-semibold text-[#0b1f44]">Investor (from dashboard)</p>
+                <p className="mt-2 text-sm text-[#0b1f44]">
+                  <span className="font-semibold">{prefilledInvestor.username}</span>
+                  <span className="text-slate-600"> · #{prefilledInvestor.id}</span>
+                </p>
+                {prefilledInvestor.email ? (
+                  <p className="mt-0.5 text-xs text-slate-600">{prefilledInvestor.email}</p>
+                ) : null}
+              </div>
+            ) : isStaffBookingForInvestor ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
                 <p className="text-sm font-semibold text-[#0b1f44]">Investor assignment</p>
                 <p className="mt-1 text-xs text-slate-600">

@@ -17,6 +17,7 @@ import { AgentInvestorsPage } from "@/pages/agent-investors-page"
 import { AuthPage } from "@/pages/auth-page"
 import { AboutPage } from "@/pages/about-page"
 import { ContactPage } from "@/pages/contact-page"
+import { FaqPage } from "@/pages/faq-page"
 import { LegalPage } from "@/pages/legal-page"
 import { LegalTermsPage } from "@/pages/legal-terms-page"
 import { DashboardRouterPage } from "@/pages/dashboard-router-page"
@@ -39,6 +40,7 @@ import { LandShareLandBookPage } from "@/pages/land-share-land-book-page"
 import { PropertyDetailsPage } from "@/pages/property-details-page"
 import { PropertyLandBookPage } from "@/pages/property-land-book-page"
 import { RegisterPage } from "@/pages/register-page"
+import { StaffCreateBookingPage } from "@/pages/staff-create-booking-page"
 import { StaffLandBookingsPage } from "@/pages/staff-land-bookings-page"
 import { StaffInstallmentTrackerPage } from "@/pages/staff-installment-tracker-page"
 import { ProtectedRoute } from "@/routes/protected-route"
@@ -74,6 +76,7 @@ function AppShell() {
           <Route path="/p2p/:id" element={<P2pDetailPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FaqPage />} />
           <Route path="/legal" element={<LegalPage />} />
           <Route path="/legal/terms" element={<LegalTermsPage />} />
           <Route
@@ -154,6 +157,7 @@ function AppShell() {
             <Route path="properties" element={<AdminPropertiesPage />} />
             <Route path="land-share" element={<AdminLandShareListingsPage />} />
             <Route path="bookings" element={<StaffLandBookingsPage mode="bookings" />} />
+            <Route path="create-booking" element={<StaffCreateBookingPage />} />
             <Route path="installments" element={<StaffInstallmentTrackerPage />} />
           </Route>
           <Route
@@ -168,6 +172,7 @@ function AppShell() {
             <Route path="properties" element={<AgentDashboardPropertiesPage />} />
             <Route path="land-share" element={<AgentDashboardLandSharePage />} />
             <Route path="bookings" element={<StaffLandBookingsPage mode="bookings" />} />
+            <Route path="create-booking" element={<StaffCreateBookingPage />} />
             <Route path="installments" element={<StaffInstallmentTrackerPage />} />
             <Route path="investors" element={<AgentInvestorsPage />} />
           </Route>

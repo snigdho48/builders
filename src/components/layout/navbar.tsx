@@ -15,6 +15,7 @@ const publicLinks = [
   { to: "/listings/buy-plots", key: "nav.buyPlots", fallback: "Buy plots" },
   { to: "/listings/buy-land-share", key: "nav.buyLandShare", fallback: "Land share" },
   { to: "/p2p", key: "nav.p2p", fallback: "P2P" },
+  { to: "/faq", key: "nav.faq", fallback: "FAQ" },
   { to: "/legal", key: "nav.legal", fallback: "Legal" },
   { to: "/about", key: "nav.about", fallback: "About" },
   { to: "/contact", key: "nav.contact", fallback: "Contact" },

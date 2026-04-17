@@ -54,9 +54,12 @@ export function AgentDashboardHomePage() {
       <div>
         <h2 className="text-xl font-semibold text-slate-900">Agent workspace</h2>
         <p className="mt-2 text-sm text-slate-600">
-          You manage assigned land listings. Review{" "}
-          <Link to="/dashboard/agent/bookings" className="text-[#f58e43] hover:underline">booking requests</Link> for
-          those lands.
+          Use <strong className="font-semibold text-slate-800">Book for client</strong> on{" "}
+          <Link to="/dashboard/agent/properties" className="text-[#f58e43] hover:underline">My plot listings</Link> or{" "}
+          <Link to="/dashboard/agent/land-share" className="text-[#f58e43] hover:underline">My land share</Link> to
+          start a booking for an investor. Review{" "}
+          <Link to="/dashboard/agent/bookings" className="text-[#f58e43] hover:underline">booking requests</Link> when
+          they come in.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

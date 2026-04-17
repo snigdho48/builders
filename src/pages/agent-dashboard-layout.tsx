@@ -18,6 +18,7 @@ const sections: DashboardNavSection[] = [
     id: "bookings",
     title: "Bookings",
     items: [
+      { to: "/dashboard/agent/create-booking", label: "New booking (dashboard)" },
       { to: "/dashboard/agent/bookings", label: "Booking requests" },
       { to: "/dashboard/agent/installments", label: "Installment tracker" },
     ],
