@@ -8,8 +8,6 @@ import { Swiper, SwiperSlide } from "swiper/react"
 import { EverythingNeedSection } from "@/components/everything-need-section"
 import { ExclusiveOfferSection } from "@/components/exclusive-offer-section"
 import { RevealOnView, RevealStagger } from "@/components/motion/reveal-on-view"
-import { eurostarFaqLandShare, eurostarFaqNrbLegal, eurostarFaqPlotBuy } from "@/content/eurostar-faq-content"
-import { useLanguage } from "@/i18n/language-context"
 import { PropertyLandingCarousel } from "@/components/property-landing-carousel"
 import { getBookingPromoSettings, getLandShareListings, getProperties } from "@/services/api"
 import type { BookingPromoSettings, LandShareListing, Property } from "@/types/domain"
@@ -33,14 +31,11 @@ const marqueeLogosB = [
 ]
 
 const LANE_CARD_LIMIT = 5
-type LandingFaqTab = "plot" | "share" | "nrb"
 
 const landingSectionCtaClass =
   "landing-cta-pill btn-alive inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#E85A2A] px-5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(232,90,42,0.26)] transition hover:bg-[#ea7045] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E85A2A] sm:w-auto"
 
 export function LandingPage() {
-  const { language } = useLanguage()
-  const [faqTab, setFaqTab] = useState<LandingFaqTab>("plot")
   const [properties, setProperties] = useState<Property[]>([])
   const [landShareListings, setLandShareListings] = useState<LandShareListing[]>([])
   const [bookingPromo, setBookingPromo] = useState<BookingPromoSettings | null>(null)
@@ -92,19 +87,6 @@ export function LandingPage() {
     () => pickLandShareTop(landShareAvailable, LANE_CARD_LIMIT),
     [landShareAvailable],
   )
-
-  const faqItems = useMemo(() => {
-    const source =
-      faqTab === "plot"
-        ? eurostarFaqPlotBuy
-        : faqTab === "share"
-          ? eurostarFaqLandShare
-          : eurostarFaqNrbLegal
-    return source.map((row) => ({
-      question: language === "bn" ? row.questionBn : row.question,
-      answer: language === "bn" ? row.answerBn : row.answer,
-    }))
-  }, [faqTab, language])
 
   return (
     <main className="landing-main relative bg-[#f6f7fb] text-slate-900">
@@ -258,71 +240,6 @@ export function LandingPage() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-      <section id="faq" className="landing-section">
-        <div className="landing-inner">
-          <div className="landing-surface landing-surface--pad">
-            <RevealOnView className="mb-8 w-full sm:mb-10" variant="fade-up">
-              <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
-                FAQ
-              </p>
-              <h2 className="mt-2 text-[1.65rem] font-bold tracking-tight text-slate-900 sm:text-[2rem]">
-                {language === "bn" ? "প্রায়শই জিজ্ঞাসিত প্রশ্ন" : "Frequently asked questions"}
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm text-slate-600">
-                {language === "bn"
-                  ? "প্লট ক্রয়, ফ্র্যাকশনাল ল্যান্ড শেয়ার, এবং NRB লিগ্যাল সাপোর্ট বিষয়ে সাধারণ প্রশ্ন।"
-                  : "Common questions about plot buying, fractional land share, and NRB legal support."}
-              </p>
-              <Link
-                to="/faq"
-                className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:text-sm"
-              >
-                {language === "bn" ? "সম্পূর্ণ FAQ পেজ দেখুন" : "Open full FAQ page"}
-              </Link>
-            </RevealOnView>
-            <div className="mb-5 flex flex-wrap gap-2">
-              {(
-                [
-                  { id: "plot", en: "Plot buying FAQ", bn: "প্লট ক্রয় FAQ" },
-                  { id: "share", en: "Land share FAQ", bn: "ল্যান্ড শেয়ার FAQ" },
-                  { id: "nrb", en: "NRB legal FAQ", bn: "NRB লিগ্যাল FAQ" },
-                ] as const
-              ).map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setFaqTab(tab.id)}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold sm:text-sm ${
-                    faqTab === tab.id
-                      ? "bg-[#0b1f44] text-white!"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {language === "bn" ? tab.bn : tab.en}
-                </button>
-              ))}
-            </div>
-            <RevealStagger className="grid gap-4">
-              {faqItems.map((item) => (
-                <details
-                  key={item.question}
-                  className="group rounded-2xl border border-slate-200/95 bg-slate-50/40 px-5 py-4 shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-white hover:shadow-[0_14px_30px_rgba(15,23,42,0.09)] sm:px-6 sm:py-5"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] leading-snug font-semibold text-slate-900 marker:content-[''] sm:text-base">
-                    <span>{item.question}</span>
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold text-slate-500 transition group-open:rotate-45 group-open:border-[#f58e43] group-open:text-[#f58e43]">
-                      +
-                    </span>
-                  </summary>
-                  <p className="group-open:animate-fade-in mt-3 border-t border-slate-100 pt-3 whitespace-pre-line text-sm leading-7 text-slate-600">
-                    {item.answer}
-                  </p>
-                </details>
-              ))}
-            </RevealStagger>
           </div>
         </div>
       </section>
