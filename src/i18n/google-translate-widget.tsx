@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 import "@/i18n/google-translate-widget.css"
+import { useLanguage } from "@/i18n/language-context"
 import { syncRootFontForScriptLang } from "@/i18n/sync-root-font-for-lang"
 
 const WIDGET_CONTAINER_ID = "google_translate_element"
@@ -80,20 +81,8 @@ function scheduleRootFontSync() {
 }
 
 export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetProps) {
-  const [language, setLanguage] = useState<"en" | "bn">("en")
+  const { language, setLanguage: setAppLanguage } = useLanguage()
   const languagePollRef = useRef<ReturnType<typeof window.setInterval> | null>(null)
-
-  const readCurrentLanguage = (): "en" | "bn" => {
-    if (typeof document === "undefined") return "en"
-    const raw = document.cookie
-      .split("; ")
-      .find((part) => part.startsWith(`${GOOGTRANS_COOKIE}=`))
-      ?.split("=")[1]
-    if (!raw) return "en"
-    const decoded = decodeURIComponent(raw)
-    if (decoded.endsWith("/bn")) return "bn"
-    return "en"
-  }
 
   /** Apply language via Google's hidden `<select class="goog-te-combo">` (no full page reload). */
   function applyGoogTeCombo(next: "en" | "bn"): boolean {
@@ -152,7 +141,7 @@ export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetP
   }
 
   const setGoogleLanguage = (next: "en" | "bn") => {
-    setLanguage(next)
+    setAppLanguage(next)
 
     if (next === "bn") {
       document.cookie = `${GOOGTRANS_COOKIE}=${encodeURIComponent("/en/bn")};path=/;max-age=31536000`
@@ -197,7 +186,6 @@ export function GoogleTranslateWidget({ className = "" }: GoogleTranslateWidgetP
   }
 
   useEffect(() => {
-    setLanguage(readCurrentLanguage())
     return () => {
       if (languagePollRef.current) {
         window.clearInterval(languagePollRef.current)

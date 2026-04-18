@@ -28,7 +28,11 @@ export function FaqPage() {
   }, [faqTab, language])
 
   return (
-    <main className="bg-[#f6f7fb] text-slate-900">
+    <main
+      className="notranslate bg-[#f6f7fb] text-slate-900"
+      translate="no"
+      lang={language === "bn" ? "bn" : "en"}
+    >
       <section className="border-b border-slate-200/70 bg-white">
         <div className="landing-inner py-10 sm:py-12">
           <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#f58e43]">FAQ</p>
@@ -75,13 +79,13 @@ export function FaqPage() {
                   key={item.question}
                   className="group rounded-2xl border border-slate-200/95 bg-slate-50/40 px-5 py-4 shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:bg-white hover:shadow-[0_14px_30px_rgba(15,23,42,0.09)] sm:px-6 sm:py-5"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] leading-snug font-semibold text-slate-900 marker:content-[''] sm:text-base">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] leading-snug font-bold text-[#0b1f44] marker:content-[''] sm:text-base sm:leading-snug">
                     <span>{item.question}</span>
                     <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-300 text-sm font-bold text-slate-500 transition group-open:rotate-45 group-open:border-[#f58e43] group-open:text-[#f58e43]">
                       +
                     </span>
                   </summary>
-                  <p className="mt-3 border-t border-slate-100 pt-3 whitespace-pre-line text-sm leading-7 text-slate-600">
+                  <p className="mt-3 border-t border-slate-100 pt-3 whitespace-pre-line text-sm leading-7 font-medium text-slate-700">
                     {item.answer}
                   </p>
                 </details>

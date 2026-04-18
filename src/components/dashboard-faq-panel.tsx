@@ -24,7 +24,7 @@ export function DashboardFaqPanel() {
   }, [tab])
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <article className="notranslate rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" translate="no">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#f58e43]">FAQ</p>
@@ -32,7 +32,7 @@ export function DashboardFaqPanel() {
             {isBn ? "ড্যাশবোর্ড FAQ" : "Dashboard FAQ"}
           </h3>
         </div>
-        <Link to="/#faq" className="text-xs font-semibold text-[#f58e43] hover:underline">
+        <Link to="/faq" className="text-xs font-semibold text-[#f58e43] hover:underline">
           {isBn ? "হোম FAQ দেখুন" : "View home FAQ"}
         </Link>
       </div>
@@ -55,10 +55,10 @@ export function DashboardFaqPanel() {
       <div className="mt-4 max-h-128 space-y-2 overflow-y-auto pr-1">
         {rows.map((row, i) => (
           <details key={`${tab}-${i}`} className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5">
-            <summary className="cursor-pointer text-sm font-semibold text-[#0b1f44]">
+            <summary className="cursor-pointer text-sm font-bold text-[#0b1f44] leading-snug">
               {isBn ? row.questionBn : row.question}
             </summary>
-            <p className="mt-2 whitespace-pre-line text-xs leading-6 text-slate-600">
+            <p className="mt-2 whitespace-pre-line text-xs leading-6 font-medium text-slate-700">
               {isBn ? row.answerBn : row.answer}
             </p>
           </details>
