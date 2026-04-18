@@ -14,19 +14,6 @@ type P = {
   onChange: (patch: Partial<PlotBookingApplicationData>) => void
 }
 
-export function BookingFormIdRow({ values, onChange }: P) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <FormLabeled label="ID No. (English)">
-        <input className={FORM_INP} value={values.form_id_no} onChange={(e) => onChange({ form_id_no: e.target.value })} />
-      </FormLabeled>
-      <FormLabeled label="File No. (English)">
-        <input className={FORM_INP} value={values.form_file_no} onChange={(e) => onChange({ form_file_no: e.target.value })} />
-      </FormLabeled>
-    </div>
-  )
-}
-
 export function BookingFormPersonalInformations({ values, onChange }: P) {
   return (
     <fieldset className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
@@ -169,9 +156,16 @@ export function BookingFormContactDetail({ values, onChange }: P) {
 type PAttach = P & {
   attachmentFiles: PlotBookingAttachmentFiles
   onAttachmentFileChange: (slot: PlotBookingAttachmentSlot, file: File | null) => void
+  attachmentFieldErrors?: Partial<Record<string, true>>
 }
 
-export function BookingFormApplicantAttachmentDraft({ values, onChange, attachmentFiles, onAttachmentFileChange }: PAttach) {
+export function BookingFormApplicantAttachmentDraft({
+  values,
+  onChange,
+  attachmentFiles,
+  onAttachmentFileChange,
+  attachmentFieldErrors,
+}: PAttach) {
   return (
     <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <legend className="px-1 text-sm font-bold text-[#0b1f44]">Attachment</legend>
@@ -199,6 +193,7 @@ export function BookingFormApplicantAttachmentDraft({ values, onChange, attachme
           files={attachmentFiles}
           onChange={onAttachmentFileChange}
           showSectionHeader={false}
+          fieldErrors={attachmentFieldErrors}
         />
       </div>
     </fieldset>

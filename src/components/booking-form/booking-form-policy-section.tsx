@@ -4,12 +4,19 @@ import { FORM_CHK } from "@/components/booking-form/form-shared"
 type Props = {
   checked: boolean
   onCheckedChange: (checked: boolean) => void
+  /** Submit validation: policy + declaration checkboxes incomplete. */
+  invalid?: boolean
 }
 
 /** Policy text (expandable) plus mandatory acknowledgment before final declarations. */
-export function BookingFormPolicyAcknowledgement({ checked, onCheckedChange }: Props) {
+export function BookingFormPolicyAcknowledgement({ checked, onCheckedChange, invalid }: Props) {
   return (
-    <fieldset className="rounded-2xl border border-[#0b1f44]/15 bg-white p-4 shadow-sm sm:p-5">
+    <fieldset
+      id="booking-field-declarations"
+      className={`rounded-2xl border bg-white p-4 shadow-sm sm:p-5 ${
+        invalid ? "border-red-500 ring-2 ring-red-500/25" : "border-[#0b1f44]/15"
+      }`}
+    >
       <legend className="px-1 text-sm font-bold text-[#0b1f44]">প্লট বুকিং ও বরাদ্দ নীতিমালা</legend>
       <details className="group mt-3 rounded-xl border border-slate-200 bg-white open:shadow-sm">
         <summary className="cursor-pointer list-none rounded-xl px-4 py-3 text-sm font-semibold text-[#0b1f44] marker:content-none [&::-webkit-details-marker]:hidden">

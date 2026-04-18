@@ -51,6 +51,30 @@ type RequestOptions = {
   retry?: boolean
 }
 
+/** API returned structured validation (`error.details`). Use `details` for field highlighting. */
+export class ApiRequestError extends Error {
+  readonly status: number
+  readonly details?: Record<string, unknown>
+
+  constructor(message: string, status: number, details?: Record<string, unknown>) {
+    super(message)
+    this.name = "ApiRequestError"
+    this.status = status
+    this.details = details
+  }
+}
+
+function extractApiErrorDetails(payload: unknown): Record<string, unknown> | undefined {
+  if (!payload || typeof payload !== "object") return undefined
+  const p = payload as Record<string, unknown>
+  const wrap = p.error
+  if (wrap && typeof wrap === "object") {
+    const d = (wrap as { details?: unknown }).details
+    if (d && typeof d === "object" && !Array.isArray(d)) return d as Record<string, unknown>
+  }
+  return undefined
+}
+
 function extractErrorMessage(payload: unknown, status: number): string {
   if (payload && typeof payload === "object") {
     const drf = payload as Record<string, unknown>
@@ -119,13 +143,25 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
   }
 
   if (!response.ok) {
-    throw new Error(extractErrorMessage(payload, response.status))
+    throw new ApiRequestError(
+      extractErrorMessage(payload, response.status),
+      response.status,
+      extractApiErrorDetails(payload),
+    )
   }
   if (!payload) {
     throw new Error("Unexpected empty response")
   }
   if (!payload.success) {
-    throw new Error(payload.error?.message ?? "Request failed")
+    const code =
+      typeof payload.error === "object" && payload.error && "code" in payload.error
+        ? Number((payload.error as { code?: number }).code)
+        : NaN
+    throw new ApiRequestError(
+      payload.error?.message ?? "Request failed",
+      Number.isFinite(code) ? code : response.status,
+      extractApiErrorDetails(payload),
+    )
   }
   return payload
 }
@@ -508,6 +544,26 @@ export async function register(payload: {
   return res.data
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+  await request("/auth/password/forgot/", {
+    method: "POST",
+    body: { email },
+    skipAuthRefresh: true,
+  })
+}
+
+export async function confirmPasswordReset(payload: {
+  uid: string
+  token: string
+  new_password: string
+}): Promise<void> {
+  await request("/auth/password/reset/", {
+    method: "POST",
+    body: payload,
+    skipAuthRefresh: true,
+  })
+}
+
 export async function getMe(token: string): Promise<MeResponse> {
   const res = await request<MeResponse>("/auth/me/", { token })
   return res.data
@@ -718,6 +774,53 @@ export async function uploadLandBookingApplicationAttachments(
     isFormData: true,
   })
   return normalizeLandBooking(res.data as Record<string, unknown>)
+}
+
+/** Plot-buy Money Receipt PDF (not JSON envelope — raw PDF bytes). Opens in a new tab for inline viewing (browser PDF UI includes download). */
+export async function openLandBookingMoneyReceiptPdf(bookingId: number, token?: string | null): Promise<void> {
+  const authToken =
+    token ?? (typeof window !== "undefined" ? localStorage.getItem("accessToken") : null)
+  const res = await fetch(`${API_BASE}/land-bookings/${bookingId}/money-receipt/`, {
+    method: "GET",
+    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  })
+  if (!res.ok) {
+    let msg = `Receipt failed (${res.status})`
+    try {
+      const data = (await res.json()) as Record<string, unknown>
+      const envErr =
+        data.error && typeof data.error === "object" ? (data.error as { message?: string }) : null
+      if (typeof envErr?.message === "string" && envErr.message.trim()) msg = envErr.message
+      else if (typeof data.detail === "string" && data.detail.trim()) msg = data.detail
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg)
+  }
+  const blob = await res.blob()
+  const pdfBlob = new Blob([blob], { type: "application/pdf" })
+  const url = URL.createObjectURL(pdfBlob)
+  const newWin = window.open(url, "_blank", "noopener,noreferrer")
+  if (!newWin) {
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `eurostar-money-receipt-${bookingId}.pdf`
+    a.rel = "noopener"
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 30_000)
+    throw new Error("Popup blocked — PDF was downloaded instead. Allow popups to preview in a new tab.")
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 120_000)
+}
+
+/** @deprecated Use openLandBookingMoneyReceiptPdf — opens in new tab, not download-only */
+export async function downloadLandBookingMoneyReceipt(
+  bookingId: number,
+  token?: string | null,
+): Promise<void> {
+  return openLandBookingMoneyReceiptPdf(bookingId, token)
 }
 
 export async function acceptLandBooking(id: number, token: string): Promise<LandBooking> {

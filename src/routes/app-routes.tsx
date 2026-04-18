@@ -15,6 +15,8 @@ import { AgentDashboardLandSharePage } from "@/pages/agent-dashboard-land-share-
 import { AgentDashboardPropertiesPage } from "@/pages/agent-dashboard-properties-page"
 import { AgentInvestorsPage } from "@/pages/agent-investors-page"
 import { AuthPage } from "@/pages/auth-page"
+import { ForgotPasswordPage } from "@/pages/forgot-password-page"
+import { ResetPasswordPage } from "@/pages/reset-password-page"
 import { AboutPage } from "@/pages/about-page"
 import { ContactPage } from "@/pages/contact-page"
 import { FaqPage } from "@/pages/faq-page"
@@ -179,6 +181,8 @@ function AppShell() {
             <Route path="investors" element={<AgentInvestorsPage />} />
           </Route>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />

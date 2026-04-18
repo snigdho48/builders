@@ -188,9 +188,6 @@ export type JointApplicantRow = {
 }
 
 export type PlotBookingApplicationData = {
-  form_id_no: string
-  form_file_no: string
-
   applicant_full_name_en: string
   applicant_full_name_bn: string
   father_name_en: string
@@ -268,9 +265,6 @@ export type PlotBookingApplicationData = {
 }
 
 export const emptyPlotBookingApplicationData = (): PlotBookingApplicationData => ({
-  form_id_no: "",
-  form_file_no: "",
-
   applicant_full_name_en: "",
   applicant_full_name_bn: "",
   father_name_en: "",

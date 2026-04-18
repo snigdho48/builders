@@ -23,6 +23,9 @@ export const BOOKING_ATTACHMENT_LABELS: Record<PlotBookingAttachmentSlot, { titl
 export const BOOKING_ATTACHMENT_FILE_INPUT_CLASS =
   "block w-full cursor-pointer rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#0b1f44]/10 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-[#0b1f44] hover:border-[#f58e43]/60"
 
+export const BOOKING_ATTACHMENT_FILE_INPUT_INVALID =
+  "border-red-500 ring-2 ring-red-500/25 file:bg-red-50 hover:border-red-400"
+
 const inp = BOOKING_ATTACHMENT_FILE_INPUT_CLASS
 
 type FieldProps = {
@@ -31,10 +34,12 @@ type FieldProps = {
   onChange: (file: File | null) => void
   /** When false, missing file shows optional styling (default: required). */
   required?: boolean
+  /** True after submit if this slot was missing. */
+  invalid?: boolean
 }
 
 /** Single booking attachment row — reused in Attachment section and elsewhere. */
-export function PlotBookingAttachmentField({ slot, file, onChange, required = true }: FieldProps) {
+export function PlotBookingAttachmentField({ slot, file, onChange, required = true, invalid }: FieldProps) {
   const { showToast } = useToast()
   const meta = BOOKING_ATTACHMENT_LABELS[slot]
 
@@ -52,16 +57,24 @@ export function PlotBookingAttachmentField({ slot, file, onChange, required = tr
   }
 
   return (
-    <label className="flex flex-col gap-1">
+    <label className="flex flex-col gap-1" id={`booking-field-attachment_${slot}`}>
       <span className="text-xs font-semibold text-slate-800">{meta.title}</span>
       <span className="text-[11px] text-slate-500">{meta.hint}</span>
-      <input type="file" className={inp} accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.pdf,application/pdf" onChange={(e) => handlePick(e.target.files)} />
+      <input
+        type="file"
+        aria-invalid={invalid ? true : undefined}
+        className={`${inp} ${invalid ? BOOKING_ATTACHMENT_FILE_INPUT_INVALID : ""}`}
+        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.pdf,application/pdf"
+        onChange={(e) => handlePick(e.target.files)}
+      />
       {file ? (
         <span className="text-[11px] font-medium text-emerald-700">
           Selected: {file.name} ({(file.size / 1024).toFixed(0)} KB)
         </span>
       ) : (
-        <span className={`text-[11px] ${required ? "text-amber-700" : "text-slate-500"}`}>{required ? "Required" : "Optional"}</span>
+        <span className={`text-[11px] ${invalid ? "font-medium text-red-600" : required ? "text-amber-700" : "text-slate-500"}`}>
+          {required ? "Required" : "Optional"}
+        </span>
       )}
     </label>
   )
@@ -74,9 +87,11 @@ type Props = {
   slots?: PlotBookingAttachmentSlot[]
   /** Show section title + intro (standalone block). Hidden when embedded in Attachment. */
   showSectionHeader?: boolean
+  /** Keys: `attachment_${slot}` after submit validation. */
+  fieldErrors?: Partial<Record<string, true>>
 }
 
-export function PlotBookingAttachmentFileInputs({ files, onChange, slots, showSectionHeader = true }: Props) {
+export function PlotBookingAttachmentFileInputs({ files, onChange, slots, showSectionHeader = true, fieldErrors }: Props) {
   const keys = slots ?? PLOT_BOOKING_ATTACHMENT_SLOTS
 
   return (
@@ -90,7 +105,13 @@ export function PlotBookingAttachmentFileInputs({ files, onChange, slots, showSe
         </>
       ) : null}
       {keys.map((slot) => (
-        <PlotBookingAttachmentField key={slot} slot={slot} file={files[slot]} onChange={(f) => onChange(slot, f)} />
+        <PlotBookingAttachmentField
+          key={slot}
+          slot={slot}
+          file={files[slot]}
+          invalid={Boolean(fieldErrors?.[`attachment_${slot}`])}
+          onChange={(f) => onChange(slot, f)}
+        />
       ))}
     </div>
   )

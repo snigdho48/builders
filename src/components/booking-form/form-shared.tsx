@@ -4,6 +4,13 @@ export const FORM_INP =
   "rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-[#f58e43]/0 transition focus:border-[#f58e43] focus:ring-2 focus:ring-[#f58e43]/25"
 export const FORM_CHK = "h-4 w-4 rounded border-slate-300 text-[#0b1f44] focus:ring-[#f58e43]"
 
+/** Visual error state after submit validation (pair with aria-invalid). */
+export function cnFormInp(invalid?: boolean): string {
+  return invalid
+    ? `${FORM_INP} border-red-500 ring-2 ring-red-500/25 focus:border-red-600 focus:ring-red-500/35`
+    : FORM_INP
+}
+
 export function FormLabeled({
   label,
   children,

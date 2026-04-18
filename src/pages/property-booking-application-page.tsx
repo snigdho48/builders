@@ -10,18 +10,41 @@ import {
   type NomineeAttachmentRow,
 } from "@/content/plot-booking-joint-attachments"
 import {
+  dummyJointApplicantAttachmentRows,
+  dummyNomineeAttachmentRows,
+  dummyPlotBookingApplicationData,
+  dummyPlotBookingAttachmentFiles,
+} from "@/content/plot-booking-dummy-data"
+import {
+  attachmentFieldErrorKey,
+  landBookingApiDetailsToFieldErrors,
+  scrollToFirstPlotBookingFieldError,
+  type PlotBookingFieldErrors,
+} from "@/content/plot-booking-field-errors"
+import {
   emptyPlotBookingApplicationData,
   emptyPlotBookingAttachmentFiles,
   type PlotBookingApplicationData,
   type PlotBookingAttachmentFiles,
   type PlotBookingAttachmentSlot,
 } from "@/content/plot-booking-application-form"
+import { cnFormInp } from "@/components/booking-form/form-shared"
 import { normalizeStoredRole } from "@/routes/protected-route"
-import { createLandBooking, getMe, getProperty, uploadLandBookingApplicationAttachments } from "@/services/api"
+import {
+  ApiRequestError,
+  createLandBooking,
+  getMe,
+  getProperty,
+  openLandBookingMoneyReceiptPdf,
+  uploadLandBookingApplicationAttachments,
+} from "@/services/api"
 import type { PlotBookingApplicationLocationState } from "@/types/plot-booking"
 import { isPlotBookingApplicationState } from "@/types/plot-booking"
 import type { LandBookingCreatePayload, Property } from "@/types/domain"
 import { formatBdtInteger } from "@/utils/currency"
+
+const SHOW_DUMMY_BOOKING_FILL =
+  import.meta.env.DEV || import.meta.env.VITE_ENABLE_DUMMY_BOOKING_FILL === "true"
 
 function planLabel(plan: PlotBookingApplicationLocationState["plan_type"]): string {
   if (plan === "one_percent_installment") return "1% installment plan"
@@ -69,6 +92,16 @@ export function PropertyBookingApplicationPage() {
   const [nomineeAttachmentRows, setNomineeAttachmentRows] = useState<NomineeAttachmentRow[]>(() =>
     emptyNomineeAttachmentRows(),
   )
+  const [fieldErrors, setFieldErrors] = useState<PlotBookingFieldErrors>({})
+
+  function dismissFieldError(key: string) {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }
 
   useEffect(() => {
     if (!isPlotBookingApplicationState(state)) {
@@ -121,6 +154,36 @@ export function PropertyBookingApplicationPage() {
     }))
   }, [property, state])
 
+  useEffect(() => {
+    setFieldErrors((prev) => {
+      const next = { ...prev }
+      let changed = false
+      if (prev.primary_full_name && extra.applicant_full_name_en.trim()) {
+        delete next.primary_full_name
+        changed = true
+      }
+      if (prev.primary_email && extra.contact_email.trim()) {
+        delete next.primary_email
+        changed = true
+      }
+      if (prev.primary_phone && extra.contact_mobile_phone.trim()) {
+        delete next.primary_phone
+        changed = true
+      }
+      return changed ? next : prev
+    })
+  }, [extra.applicant_full_name_en, extra.contact_email, extra.contact_mobile_phone])
+
+  useEffect(() => {
+    if (!isPlotBookingApplicationState(state) || state.investor_id == null) return
+    setFieldErrors((prev) => {
+      if (!prev.staff_investor) return prev
+      const next = { ...prev }
+      delete next.staff_investor
+      return next
+    })
+  }, [state])
+
   const mapSelectionHint = useMemo(() => {
     if (!property || !isPlotBookingApplicationState(state)) return undefined
     const pl = state.plot
@@ -128,6 +191,7 @@ export function PropertyBookingApplicationPage() {
   }, [property, state])
 
   async function submitApplication() {
+    setFieldErrors({})
     if (!token || !property || !isPlotBookingApplicationState(state)) {
       showToast("Session or listing invalid. Go back and try again.", "error")
       return
@@ -136,7 +200,13 @@ export function PropertyBookingApplicationPage() {
     const resolvedEmail = email.trim() || extra.contact_email.trim()
     const resolvedPhone = phone.trim() || extra.contact_mobile_phone.trim()
     if (!resolvedName || !resolvedEmail || !resolvedPhone) {
+      const nextErr: PlotBookingFieldErrors = {}
+      if (!resolvedName) nextErr.primary_full_name = true
+      if (!resolvedEmail) nextErr.primary_email = true
+      if (!resolvedPhone) nextErr.primary_phone = true
+      setFieldErrors(nextErr)
       showToast("Full name, email, and phone are required (primary section or extended form).", "error")
+      queueMicrotask(() => scrollToFirstPlotBookingFieldError(nextErr))
       return
     }
     if (
@@ -146,16 +216,28 @@ export function PropertyBookingApplicationPage() {
       !extra.declares_read_and_agreed_project_terms ||
       !extra.declares_company_may_accept_or_reject_application
     ) {
+      const nextErr: PlotBookingFieldErrors = { declarations: true }
+      setFieldErrors(nextErr)
       showToast(
         "প্লট বুকিং নীতিমালা পঠন সম্মতি, ইংরেজি ঘোষণা ও নিচের চেকবক্সগুলো সম্পূর্ণ করুন। / Confirm policy read, English declaration, and all confirmations.",
         "error",
       )
+      queueMicrotask(() => scrollToFirstPlotBookingFieldError(nextErr))
       return
     }
 
     const plot = state.plot
     if (!plot.plot_id?.trim()) {
       showToast("Plot selection missing. Go back and choose a plot.", "error")
+      return
+    }
+
+    const isStaffUser = role === "admin" || role === "agent"
+    if (isStaffUser && state.investor_id == null) {
+      const nextErr: PlotBookingFieldErrors = { staff_investor: true }
+      setFieldErrors(nextErr)
+      showToast("Staff: assign an investor on the plan & plot step before submitting.", "error")
+      queueMicrotask(() => scrollToFirstPlotBookingFieldError(nextErr))
       return
     }
 
@@ -193,7 +275,13 @@ export function PropertyBookingApplicationPage() {
     const nid = attachmentFiles.nid_or_id
     const receipt = attachmentFiles.booking_money_receipt
     if (!fp1 || !nid || !receipt) {
+      const nextErr: PlotBookingFieldErrors = {}
+      if (!fp1) nextErr.attachment_passport_photo_1 = true
+      if (!nid) nextErr.attachment_nid_or_id = true
+      if (!receipt) nextErr.attachment_booking_money_receipt = true
+      setFieldErrors(nextErr)
       showToast("তিনটি ফাইল আপলোড করুন। / Upload all three documents.", "error")
+      queueMicrotask(() => scrollToFirstPlotBookingFieldError(nextErr))
       return
     }
 
@@ -203,10 +291,15 @@ export function PropertyBookingApplicationPage() {
       for (let i = 0; i < nJoint; i++) {
         const jr = jointAttachmentRows[i]
         if (!jr?.passport || !jr?.nid) {
+          const nextErr: PlotBookingFieldErrors = {}
+          if (!jr?.passport) nextErr[`joint_${i}_passport`] = true
+          if (!jr?.nid) nextErr[`joint_${i}_nid`] = true
+          setFieldErrors(nextErr)
           showToast(
             `যৌথ আবেদনকারী ${String(i + 1).padStart(2, "0")}: পাসপোর্ট ছবি ও NID আপলোড করুন। / Joint applicant ${i + 1}: upload passport photo and NID/ID.`,
             "error",
           )
+          queueMicrotask(() => scrollToFirstPlotBookingFieldError(nextErr))
           return
         }
       }
@@ -217,10 +310,15 @@ export function PropertyBookingApplicationPage() {
       for (let i = 0; i < nNom; i++) {
         const nr = nomineeAttachmentRows[i]
         if (!nr?.passport || !nr?.nid) {
+          const nextErr: PlotBookingFieldErrors = {}
+          if (!nr?.passport) nextErr[`nominee_${i}_passport`] = true
+          if (!nr?.nid) nextErr[`nominee_${i}_nid`] = true
+          setFieldErrors(nextErr)
           showToast(
             `নমিনি ${String(i + 1).padStart(2, "0")}: পাসপোর্ট ছবি ও NID আপলোড করুন। / Nominee ${i + 1}: upload passport photo and NID/ID.`,
             "error",
           )
+          queueMicrotask(() => scrollToFirstPlotBookingFieldError(nextErr))
           return
         }
       }
@@ -250,7 +348,20 @@ export function PropertyBookingApplicationPage() {
         return
       }
 
-      showToast("Booking and documents submitted. Track status in your dashboard.", "success")
+      try {
+        await openLandBookingMoneyReceiptPdf(booking.id, token)
+        showToast("Booking submitted. Money Receipt opened in a new tab (use the viewer’s download button to save).", "success")
+      } catch (receiptErr) {
+        const isPopupFallback =
+          receiptErr instanceof Error && receiptErr.message.startsWith("Popup blocked")
+        showToast(
+          isPopupFallback
+            ? `Booking submitted. ${receiptErr.message}`
+            : `Booking submitted. Money Receipt could not open: ${receiptErr instanceof Error ? receiptErr.message : "Unknown error"}. Your booking is saved — try again from the dashboard.`,
+          isPopupFallback ? "success" : "error",
+        )
+      }
+
       const inv = role === "investor"
       navigate(
         inv
@@ -261,7 +372,15 @@ export function PropertyBookingApplicationPage() {
         { replace: true },
       )
     } catch (e) {
-      showToast(e instanceof Error ? e.message : "Booking failed", "error")
+      const msg = e instanceof Error ? e.message : "Booking failed"
+      if (e instanceof ApiRequestError && e.details && typeof e.details === "object") {
+        const fe = landBookingApiDetailsToFieldErrors(e.details as Record<string, unknown>)
+        if (Object.keys(fe).length > 0) {
+          setFieldErrors((prev) => ({ ...prev, ...fe }))
+          queueMicrotask(() => scrollToFirstPlotBookingFieldError(fe))
+        }
+      }
+      showToast(msg, "error")
     } finally {
       setBusy(false)
     }
@@ -310,14 +429,50 @@ export function PropertyBookingApplicationPage() {
           <p className="mt-1 text-sm text-slate-600">{property.title}</p>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        {isStaff ? (
+          <section
+            id="booking-field-staff_investor"
+            className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${
+              fieldErrors.staff_investor
+                ? "border-red-500 bg-red-50/90 ring-2 ring-red-500/25"
+                : "border-emerald-200 bg-emerald-50/70"
+            }`}
+          >
+            <h2 className="text-sm font-bold text-[#0b1f44]">Investor for this booking</h2>
+            {state.investor_id != null ? (
+              <p className="mt-2 text-sm text-slate-800">
+                Booking for investor account ID <strong className="tabular-nums">#{state.investor_id}</strong> (chosen on
+                the previous step).
+              </p>
+            ) : (
+              <div className="mt-2 space-y-2">
+                <p className="text-sm font-medium text-red-800">
+                  No investor is assigned. Staff must select or create an investor before this application can be
+                  submitted.
+                </p>
+                <Link
+                  to={`/properties/${property.id}/book`}
+                  className="inline-flex text-sm font-semibold text-[#f58e43] hover:underline"
+                >
+                  ← Back to plan &amp; plot to assign an investor
+                </Link>
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        <section
+          className={`rounded-2xl border bg-white p-4 shadow-sm sm:p-6 ${
+            fieldErrors.selected_plot_code || fieldErrors.plan_type_api ? "border-red-500 ring-2 ring-red-500/25" : "border-slate-200"
+          }`}
+        >
           <h2 className="text-sm font-bold uppercase tracking-wide text-[#f58e43]">Selection summary</h2>
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-            <div>
+            <div id="booking-field-plan_type_api">
               <dt className="text-slate-500">Plan</dt>
               <dd className="font-semibold text-[#0b1f44]">{planLabel(state.plan_type)}</dd>
             </div>
-            <div>
+            <div id="booking-field-selected_plot_code">
               <dt className="text-slate-500">Plot</dt>
               <dd className="font-semibold text-[#0b1f44]">{plot.plot_id}</dd>
             </div>
@@ -332,6 +487,30 @@ export function PropertyBookingApplicationPage() {
           </dl>
         </section>
 
+        {SHOW_DUMMY_BOOKING_FILL ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-medium text-amber-950">Dev / QA: load sample applicant + nominee + files</p>
+            <button
+              type="button"
+              className="rounded-lg bg-amber-600 px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-700"
+              onClick={() => {
+                const d = dummyPlotBookingApplicationData()
+                setExtra(d)
+                setFullName(d.applicant_full_name_en)
+                setEmail(d.contact_email)
+                setPhone(d.contact_mobile_phone)
+                setAttachmentFiles(dummyPlotBookingAttachmentFiles())
+                setJointAttachmentRows(dummyJointApplicantAttachmentRows())
+                setNomineeAttachmentRows(dummyNomineeAttachmentRows())
+                setFieldErrors({})
+                showToast("Dummy data filled. Plot details follow your selected plot when loaded.", "success")
+              }}
+            >
+              Fill dummy data
+            </button>
+          </div>
+        ) : null}
+
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-lg font-semibold text-[#0b1f44]">Primary contact</h2>
           <p className="mt-1 text-xs text-slate-600">Must match your account; used for booking confirmation.</p>
@@ -339,34 +518,54 @@ export function PropertyBookingApplicationPage() {
             <label className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-slate-700">Full name</span>
               <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                id="booking-field-primary_full_name"
+                aria-invalid={fieldErrors.primary_full_name ? true : undefined}
+                className={cnFormInp(fieldErrors.primary_full_name)}
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value)
+                  dismissFieldError("primary_full_name")
+                }}
               />
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-slate-700">Email</span>
               <input
+                id="booking-field-primary_email"
                 type="email"
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                aria-invalid={fieldErrors.primary_email ? true : undefined}
+                className={cnFormInp(fieldErrors.primary_email)}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  dismissFieldError("primary_email")
+                }}
               />
             </label>
             <label className="flex flex-col gap-1 sm:col-span-2">
               <span className="text-xs font-semibold text-slate-700">Phone</span>
               <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                id="booking-field-primary_phone"
+                aria-invalid={fieldErrors.primary_phone ? true : undefined}
+                className={cnFormInp(fieldErrors.primary_phone)}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value)
+                  dismissFieldError("primary_phone")
+                }}
               />
             </label>
             <label className="flex flex-col gap-1 sm:col-span-2">
               <span className="text-xs font-semibold text-slate-700">Referral code (optional)</span>
               <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                id="booking-field-referral_code_used"
+                aria-invalid={fieldErrors.referral_code_used ? true : undefined}
+                className={cnFormInp(fieldErrors.referral_code_used)}
                 value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
+                onChange={(e) => {
+                  setReferralCode(e.target.value)
+                  dismissFieldError("referral_code_used")
+                }}
               />
             </label>
           </div>
@@ -376,15 +575,18 @@ export function PropertyBookingApplicationPage() {
           values={extra}
           onChange={(patch) => setExtra((prev) => ({ ...prev, ...patch }))}
           attachmentFiles={attachmentFiles}
-          onAttachmentFileChange={(slot: PlotBookingAttachmentSlot, file) =>
+          onAttachmentFileChange={(slot: PlotBookingAttachmentSlot, file) => {
             setAttachmentFiles((prev) => ({ ...prev, [slot]: file }))
-          }
+            dismissFieldError(attachmentFieldErrorKey(slot))
+          }}
           mapSelectionHint={mapSelectionHint}
           selectedPlotSnapshot={state.plot}
           jointAttachmentRows={jointAttachmentRows}
           setJointAttachmentRows={setJointAttachmentRows}
           nomineeAttachmentRows={nomineeAttachmentRows}
           setNomineeAttachmentRows={setNomineeAttachmentRows}
+          fieldErrors={fieldErrors}
+          onDismissFieldError={dismissFieldError}
         />
 
         <button

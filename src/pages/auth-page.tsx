@@ -90,11 +90,17 @@ export function AuthPage() {
             Login
           </button>
         </form>
-        <p className="mt-4 text-sm text-slate-300">
-          New investor?{" "}
-          <Link to="/register" className="font-semibold text-emerald-300 hover:text-emerald-200">
-            Create account
+        <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
+          <Link to="/auth/forgot-password" className="font-semibold text-emerald-300 hover:text-emerald-200">
+            Forgot password?
           </Link>
+          <span className="text-slate-500">·</span>
+          <span>
+            New investor?{" "}
+            <Link to="/register" className="font-semibold text-emerald-300 hover:text-emerald-200">
+              Create account
+            </Link>
+          </span>
         </p>
         {message ? <p className="mt-4 text-sm text-slate-300">{message}</p> : null}
       </div>

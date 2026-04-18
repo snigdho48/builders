@@ -1,6 +1,9 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { BOOKING_ATTACHMENT_FILE_INPUT_CLASS } from "@/components/plot-booking-attachment-file-inputs"
+import {
+  BOOKING_ATTACHMENT_FILE_INPUT_CLASS,
+  BOOKING_ATTACHMENT_FILE_INPUT_INVALID,
+} from "@/components/plot-booking-attachment-file-inputs"
 import type { JointApplicantAttachmentRow } from "@/content/plot-booking-joint-attachments"
 import { jointApplicantAttachmentLabelIndex } from "@/content/plot-booking-joint-attachments"
 import type { JointApplicantRow, PlotBookingApplicationData } from "@/content/plot-booking-application-form"
@@ -23,6 +26,8 @@ type Props = {
   /** Passport + NID uploads per joint row (same order as `joint_applicants`). */
   jointAttachmentRows: JointApplicantAttachmentRow[]
   setJointAttachmentRows: Dispatch<SetStateAction<JointApplicantAttachmentRow[]>>
+  fieldErrors?: Partial<Record<string, true>>
+  onDismissFieldError?: (key: string) => void
 }
 
 function Labeled({
@@ -67,6 +72,8 @@ export function PlotBookingSelectedPlotFields({
   selectedPlotSnapshot,
   jointAttachmentRows,
   setJointAttachmentRows,
+  fieldErrors,
+  onDismissFieldError,
 }: Props) {
   const { showToast } = useToast()
   const inp =
@@ -85,6 +92,7 @@ export function PlotBookingSelectedPlotFields({
       showToast(`File too large (max ${JOINT_FILE_MAX_BYTES / (1024 * 1024)} MB).`, "error")
       return
     }
+    if (f) onDismissFieldError?.(`joint_${idx}_${key}`)
     setJointAttachmentRows((prev) => {
       const next = [...prev]
       while (next.length <= idx) next.push({ passport: null, nid: null })
@@ -299,12 +307,15 @@ export function PlotBookingSelectedPlotFields({
                       Passport-size photo and NID / valid ID (same rules as primary applicant). Required for each joint applicant.
                     </p>
                     <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                      <label className="flex flex-col gap-1">
+                      <label className="flex flex-col gap-1" id={`booking-field-joint_${idx}_passport`}>
                         <span className="text-xs font-semibold text-slate-800">{en("Passport-size photo")}</span>
                         <span className="text-[11px] text-slate-500">JPG, PNG, WebP, or PDF · max 10 MB</span>
                         <input
                           type="file"
-                          className={BOOKING_ATTACHMENT_FILE_INPUT_CLASS}
+                          aria-invalid={fieldErrors?.[`joint_${idx}_passport`] ? true : undefined}
+                          className={`${BOOKING_ATTACHMENT_FILE_INPUT_CLASS} ${
+                            fieldErrors?.[`joint_${idx}_passport`] ? BOOKING_ATTACHMENT_FILE_INPUT_INVALID : ""
+                          }`}
                           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.pdf,application/pdf"
                           onChange={(e) => pickJointFile(idx, "passport", e.target.files)}
                         />
@@ -313,15 +324,22 @@ export function PlotBookingSelectedPlotFields({
                             Selected: {jf.passport.name} ({(jf.passport.size / 1024).toFixed(0)} KB)
                           </span>
                         ) : (
-                          <span className="text-[11px] text-amber-700">Required</span>
+                          <span
+                            className={`text-[11px] ${fieldErrors?.[`joint_${idx}_passport`] ? "font-medium text-red-600" : "text-amber-700"}`}
+                          >
+                            Required
+                          </span>
                         )}
                       </label>
-                      <label className="flex flex-col gap-1">
+                      <label className="flex flex-col gap-1" id={`booking-field-joint_${idx}_nid`}>
                         <span className="text-xs font-semibold text-slate-800">{en("NID / valid ID")}</span>
                         <span className="text-[11px] text-slate-500">JPG, PNG, WebP, or PDF · max 10 MB</span>
                         <input
                           type="file"
-                          className={BOOKING_ATTACHMENT_FILE_INPUT_CLASS}
+                          aria-invalid={fieldErrors?.[`joint_${idx}_nid`] ? true : undefined}
+                          className={`${BOOKING_ATTACHMENT_FILE_INPUT_CLASS} ${
+                            fieldErrors?.[`joint_${idx}_nid`] ? BOOKING_ATTACHMENT_FILE_INPUT_INVALID : ""
+                          }`}
                           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.pdf,application/pdf"
                           onChange={(e) => pickJointFile(idx, "nid", e.target.files)}
                         />
@@ -330,7 +348,11 @@ export function PlotBookingSelectedPlotFields({
                             Selected: {jf.nid.name} ({(jf.nid.size / 1024).toFixed(0)} KB)
                           </span>
                         ) : (
-                          <span className="text-[11px] text-amber-700">Required</span>
+                          <span
+                            className={`text-[11px] ${fieldErrors?.[`joint_${idx}_nid`] ? "font-medium text-red-600" : "text-amber-700"}`}
+                          >
+                            Required
+                          </span>
                         )}
                       </label>
                     </div>

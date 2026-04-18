@@ -1,7 +1,10 @@
 import type { Dispatch, SetStateAction } from "react"
 
 import { useToast } from "@/components/ui/use-toast"
-import { BOOKING_ATTACHMENT_FILE_INPUT_CLASS } from "@/components/plot-booking-attachment-file-inputs"
+import {
+  BOOKING_ATTACHMENT_FILE_INPUT_CLASS,
+  BOOKING_ATTACHMENT_FILE_INPUT_INVALID,
+} from "@/components/plot-booking-attachment-file-inputs"
 import type { NomineePersonDraft, PlotBookingApplicationData } from "@/content/plot-booking-application-form"
 import { emptyNomineePersonDraft } from "@/content/plot-booking-application-form"
 import {
@@ -20,15 +23,19 @@ function NomineePersonFields({
   onChange,
   namePrefix,
   indexOneBased,
+  nomineeIndexZero,
   attachmentRow,
   onPickAttachment,
+  fieldErrors,
 }: {
   value: NomineePersonDraft
   onChange: (patch: Partial<NomineePersonDraft>) => void
   namePrefix: string
   indexOneBased: number
+  nomineeIndexZero: number
   attachmentRow: NomineeAttachmentRow
   onPickAttachment: (key: keyof NomineeAttachmentRow, files: FileList | null) => void
+  fieldErrors?: Partial<Record<string, true>>
 }) {
   return (
     <div>
@@ -181,12 +188,15 @@ function NomineePersonFields({
           পাসপোর্ট সাইজের ছবি ও পরিচয়পত্রের কপি আপলোড করুন (প্রাথমিক আবেদনকারীর নিয়ম অনুযায়ী)। প্রতিটি নমিনির জন্য বাধ্যতামূলক।
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1">
+          <label className="flex flex-col gap-1" id={`booking-field-nominee_${nomineeIndexZero}_passport`}>
             <span className="text-xs font-semibold text-slate-800">{en("Passport-size photo")}</span>
             <span className="text-[11px] text-slate-500">JPG, PNG, WebP, or PDF · max 10 MB</span>
             <input
               type="file"
-              className={BOOKING_ATTACHMENT_FILE_INPUT_CLASS}
+              aria-invalid={fieldErrors?.[`nominee_${nomineeIndexZero}_passport`] ? true : undefined}
+              className={`${BOOKING_ATTACHMENT_FILE_INPUT_CLASS} ${
+                fieldErrors?.[`nominee_${nomineeIndexZero}_passport`] ? BOOKING_ATTACHMENT_FILE_INPUT_INVALID : ""
+              }`}
               accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.pdf,application/pdf"
               onChange={(e) => onPickAttachment("passport", e.target.files)}
             />
@@ -195,17 +205,26 @@ function NomineePersonFields({
                 Selected: {attachmentRow.passport.name} ({(attachmentRow.passport.size / 1024).toFixed(0)} KB)
               </span>
             ) : (
-              <span className="text-[11px] text-amber-700">Required</span>
+              <span
+                className={`text-[11px] ${
+                  fieldErrors?.[`nominee_${nomineeIndexZero}_passport`] ? "font-medium text-red-600" : "text-amber-700"
+                }`}
+              >
+                Required
+              </span>
             )}
           </label>
-          <label className="flex flex-col gap-1">
+          <label className="flex flex-col gap-1" id={`booking-field-nominee_${nomineeIndexZero}_nid`}>
             <span className="text-xs font-semibold text-slate-800 leading-snug">
               জাতীয় পরিচয়পত্র বা নির্বাচিত পরিচয়পত্রের কপি / Photo identity document
             </span>
             <span className="text-[11px] text-slate-500">JPG, PNG, WebP, or PDF · max 10 MB</span>
             <input
               type="file"
-              className={BOOKING_ATTACHMENT_FILE_INPUT_CLASS}
+              aria-invalid={fieldErrors?.[`nominee_${nomineeIndexZero}_nid`] ? true : undefined}
+              className={`${BOOKING_ATTACHMENT_FILE_INPUT_CLASS} ${
+                fieldErrors?.[`nominee_${nomineeIndexZero}_nid`] ? BOOKING_ATTACHMENT_FILE_INPUT_INVALID : ""
+              }`}
               accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.pdf,application/pdf"
               onChange={(e) => onPickAttachment("nid", e.target.files)}
             />
@@ -214,7 +233,13 @@ function NomineePersonFields({
                 Selected: {attachmentRow.nid.name} ({(attachmentRow.nid.size / 1024).toFixed(0)} KB)
               </span>
             ) : (
-              <span className="text-[11px] text-amber-700">Required</span>
+              <span
+                className={`text-[11px] ${
+                  fieldErrors?.[`nominee_${nomineeIndexZero}_nid`] ? "font-medium text-red-600" : "text-amber-700"
+                }`}
+              >
+                Required
+              </span>
             )}
           </label>
         </div>
@@ -228,6 +253,8 @@ type Props = {
   onChange: (patch: Partial<PlotBookingApplicationData>) => void
   nomineeAttachmentRows: NomineeAttachmentRow[]
   setNomineeAttachmentRows: Dispatch<SetStateAction<NomineeAttachmentRow[]>>
+  fieldErrors?: Partial<Record<string, true>>
+  onDismissFieldError?: (key: string) => void
 }
 
 export function BookingFormNomineeBlocks({
@@ -235,6 +262,8 @@ export function BookingFormNomineeBlocks({
   onChange,
   nomineeAttachmentRows,
   setNomineeAttachmentRows,
+  fieldErrors,
+  onDismissFieldError,
 }: Props) {
   const { showToast } = useToast()
   const nominees = values.nominees
@@ -255,6 +284,7 @@ export function BookingFormNomineeBlocks({
       showToast(`File too large (max ${NOMINEE_FILE_MAX_BYTES / (1024 * 1024)} MB).`, "error")
       return
     }
+    if (f) onDismissFieldError?.(`nominee_${idx}_${key}`)
     setNomineeAttachmentRows((prev) => {
       const next = [...prev]
       while (next.length <= idx) next.push({ passport: null, nid: null })
@@ -314,11 +344,13 @@ export function BookingFormNomineeBlocks({
               <div className="mt-4">
                 <NomineePersonFields
                   indexOneBased={idx + 1}
+                  nomineeIndexZero={idx}
                   namePrefix={`nm${idx}`}
                   value={nom}
                   onChange={(patch) => updateAt(idx, patch)}
                   attachmentRow={nomineeAttachmentRows[idx] ?? { passport: null, nid: null }}
                   onPickAttachment={(key, files) => pickNomineeFile(idx, key, files)}
+                  fieldErrors={fieldErrors}
                 />
               </div>
             </fieldset>

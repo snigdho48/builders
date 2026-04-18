@@ -4,12 +4,10 @@ import { PlotBookingSelectedPlotFields } from "@/components/plot-booking-selecte
 import {
   BookingFormApplicantAttachmentDraft,
   BookingFormContactDetail,
-  BookingFormIdRow,
   BookingFormPersonalInformations,
 } from "@/components/booking-form/booking-form-applicant-section"
 import { BookingFormDeclarationSection } from "@/components/booking-form/booking-form-declaration-section"
 import { BookingFormNomineeBlocks } from "@/components/booking-form/booking-form-nominee-section"
-import { BookingFormOfficialUseSection } from "@/components/booking-form/booking-form-official-use-section"
 import { BookingFormPolicyAcknowledgement } from "@/components/booking-form/booking-form-policy-section"
 import { FormLabeled, FORM_INP } from "@/components/booking-form/form-shared"
 import { en } from "@/components/booking-form/label-lang"
@@ -34,6 +32,10 @@ type Props = {
   setJointAttachmentRows: Dispatch<SetStateAction<JointApplicantAttachmentRow[]>>
   nomineeAttachmentRows: NomineeAttachmentRow[]
   setNomineeAttachmentRows: Dispatch<SetStateAction<NomineeAttachmentRow[]>>
+  /** Submit validation highlights — keys from `@/content/plot-booking-field-errors`. */
+  fieldErrors?: Partial<Record<string, true>>
+  /** Clear one validation key when the user fixes that control. */
+  onDismissFieldError?: (key: string) => void
 }
 
 export function PlotBookingApplicationFormFields({
@@ -47,16 +49,13 @@ export function PlotBookingApplicationFormFields({
   setJointAttachmentRows,
   nomineeAttachmentRows,
   setNomineeAttachmentRows,
+  fieldErrors,
+  onDismissFieldError,
 }: Props) {
+  const declInvalid = Boolean(fieldErrors?.declarations)
+
   return (
     <div className="space-y-8">
-      <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <legend className="px-1 text-sm font-bold text-[#0b1f44]">{en("Application reference")}</legend>
-        <div className="mt-4">
-          <BookingFormIdRow values={values} onChange={onChange} />
-        </div>
-      </fieldset>
-
       <BookingFormPersonalInformations values={values} onChange={onChange} />
       <BookingFormContactDetail values={values} onChange={onChange} />
       <BookingFormApplicantAttachmentDraft
@@ -64,6 +63,7 @@ export function PlotBookingApplicationFormFields({
         onChange={onChange}
         attachmentFiles={attachmentFiles}
         onAttachmentFileChange={onAttachmentFileChange}
+        attachmentFieldErrors={fieldErrors}
       />
 
       <PlotBookingSelectedPlotFields
@@ -73,6 +73,8 @@ export function PlotBookingApplicationFormFields({
         selectedPlotSnapshot={selectedPlotSnapshot ?? null}
         jointAttachmentRows={jointAttachmentRows}
         setJointAttachmentRows={setJointAttachmentRows}
+        fieldErrors={fieldErrors}
+        onDismissFieldError={onDismissFieldError}
       />
 
       <BookingFormNomineeBlocks
@@ -80,6 +82,8 @@ export function PlotBookingApplicationFormFields({
         onChange={onChange}
         nomineeAttachmentRows={nomineeAttachmentRows}
         setNomineeAttachmentRows={setNomineeAttachmentRows}
+        fieldErrors={fieldErrors}
+        onDismissFieldError={onDismissFieldError}
       />
 
       <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -113,8 +117,6 @@ export function PlotBookingApplicationFormFields({
         </div>
       </fieldset>
 
-      <BookingFormOfficialUseSection values={values} onChange={onChange} />
-
       <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <legend className="px-1 text-sm font-bold text-[#0b1f44]">{en("Instruction (if any)")}</legend>
         <p className="mt-1 text-xs text-slate-600">অতিরিক্ত নির্দেশনা থাকলে লিখুন। খালি রাখতে পারেন।</p>
@@ -128,10 +130,21 @@ export function PlotBookingApplicationFormFields({
 
       <BookingFormPolicyAcknowledgement
         checked={values.declares_booking_policy_read_full}
-        onCheckedChange={(checked) => onChange({ declares_booking_policy_read_full: checked })}
+        invalid={declInvalid}
+        onCheckedChange={(checked) => {
+          onDismissFieldError?.("declarations")
+          onChange({ declares_booking_policy_read_full: checked })
+        }}
       />
 
-      <BookingFormDeclarationSection values={values} onChange={onChange} />
+      <BookingFormDeclarationSection
+        values={values}
+        invalid={declInvalid}
+        onChange={(patch) => {
+          onDismissFieldError?.("declarations")
+          onChange(patch)
+        }}
+      />
     </div>
   )
 }

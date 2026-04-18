@@ -7,13 +7,18 @@ const ENGLISH_DECLARATION =
 type P = {
   values: PlotBookingApplicationData
   onChange: (patch: Partial<PlotBookingApplicationData>) => void
+  invalid?: boolean
 }
 
-export function BookingFormDeclarationSection({ values, onChange }: P) {
+export function BookingFormDeclarationSection({ values, onChange, invalid }: P) {
   const chk = FORM_CHK
 
   return (
-    <div className="rounded-2xl border border-amber-200 bg-amber-50/90 p-4 sm:p-5">
+    <div
+      className={`rounded-2xl border bg-amber-50/90 p-4 sm:p-5 ${
+        invalid ? "border-red-500 ring-2 ring-red-500/25" : "border-amber-200"
+      }`}
+    >
       <h3 className="text-sm font-bold text-[#0b1f44]">Final declaration (last step)</h3>
       <p className="mt-1 text-xs text-slate-600">নীতিমালা পঠন নিশ্চিত করার পর ঘোষণা সম্পূর্ণ করুন। / Complete after policy acknowledgment above.</p>
       <p className="mt-3 rounded-lg border border-amber-100 bg-white/90 p-3 text-[13px] leading-relaxed text-slate-800">
