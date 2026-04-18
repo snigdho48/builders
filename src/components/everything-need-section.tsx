@@ -14,6 +14,8 @@ type ServiceItem = {
   icon: string
   alt: string
   label: string
+  /** Compact title for narrow screens (hero glass strip). */
+  labelShort: string
   /** Short label above the bold title (glass bar). */
   kicker: string
 }
@@ -25,6 +27,7 @@ const SERVICE_CARDS: ServiceItem[] = [
     alt: "Buy plot",
     kicker: "Explore",
     label: "Buy plot",
+    labelShort: "Plot",
   },
   {
     href: "/listings/buy-land-share",
@@ -32,6 +35,7 @@ const SERVICE_CARDS: ServiceItem[] = [
     alt: "Buy land share",
     kicker: "Plans",
     label: "Buy land share",
+    labelShort: "Share",
   },
   {
     href: "/legal",
@@ -39,6 +43,7 @@ const SERVICE_CARDS: ServiceItem[] = [
     alt: "Legal services",
     kicker: "Support",
     label: "Legal services",
+    labelShort: "Legal",
   },
 ]
 
@@ -63,16 +68,16 @@ export function EverythingNeedSection({ embeddedInHero = false }: EverythingNeed
           Quick services: buy plot, buy land share, legal services, and all listings
         </p>
         <div className="everything-need-glass__shell overflow-hidden rounded-[1.35rem] border border-white/55 bg-zinc-700/35 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-[3px] sm:rounded-[1.5rem]">
-          <div className="flex flex-col divide-y divide-slate-300/35 sm:flex-row sm:divide-x sm:divide-y-0">
+          <div className="flex flex-row divide-x divide-y-0 divide-slate-300/35">
             {SERVICE_CARDS.map((item) => (
               <Link
                 key={item.label}
                 to={item.href}
-                className="group flex min-h-17 flex-1 items-center gap-3 px-4 py-3.5 text-white! transition hover:bg-white/45 hover:text-[#0b2348]! sm:min-h-18 sm:px-5 sm:py-4"
+                className="group flex min-h-17 min-w-0 flex-1 items-center gap-2 px-2.5 py-3 text-white! transition hover:bg-white/45 hover:text-[#0b2348]! sm:min-h-18 sm:gap-3 sm:px-5 sm:py-4"
               >
                 <figure className="shrink-0">
                   <img
-                    className="h-10 w-10 object-contain sm:h-11 sm:w-11"
+                    className="h-9 w-9 object-contain sm:h-11 sm:w-11"
                     loading="lazy"
                     decoding="async"
                     src={iconSrc(item.icon)}
@@ -87,14 +92,15 @@ export function EverythingNeedSection({ embeddedInHero = false }: EverythingNeed
                   />
                 </figure>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white! transition group-hover:text-[#0b2348]! sm:text-[11px]">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white! transition group-hover:text-[#0b2348]! sm:text-[11px] sm:tracking-[0.16em]">
                     {item.kicker}
                   </p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-[0.8125rem] font-bold leading-snug text-white! group-hover:text-[#0b2348]! sm:text-[0.9375rem]">
-                    <span className="truncate capitalize">{item.label}</span>
+                  <p className="mt-0.5 flex items-center gap-1 text-[0.6875rem] font-bold leading-snug text-white! group-hover:text-[#0b2348]! sm:gap-1.5 sm:text-[0.9375rem]">
+                    <span className="truncate capitalize sm:hidden">{item.labelShort}</span>
+                    <span className="truncate capitalize hidden sm:inline">{item.label}</span>
                     <FontAwesomeIcon
                       icon={faChevronDown}
-                      className="text-[9px] shrink-0 text-white! transition group-hover:text-[#0b2348]! sm:text-[10px]"
+                      className="text-[8px] shrink-0 text-white! transition group-hover:text-[#0b2348]! sm:text-[10px]"
                       aria-hidden
                     />
                   </p>

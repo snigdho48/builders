@@ -8,6 +8,7 @@ import {
 import { faFacebookF, faInstagram, faLinkedinIn, faXTwitter } from "@fortawesome/free-brands-svg-icons"
 import { Link, useLocation } from "react-router-dom"
 
+import { siteContact } from "@/content/eurostar-company-copy"
 import { publicUrl } from "@/utils/public-url"
 
 const accent = "#f15a24"
@@ -22,11 +23,11 @@ const galleryImages = [
 ]
 
 const quickLinks: { label: string; to: string }[] = [
-  { label: "Startup Business", to: "/listings" },
-  { label: "Financial Advice", to: "/plans" },
-  { label: "Management", to: "/contact" },
-  { label: "Business Advice", to: "/legal" },
-  { label: "Strategy Services", to: "/p2p" },
+  { label: "Home", to: "/" },
+  { label: "Buy plots", to: "/listings/buy-plots" },
+  { label: "Land share", to: "/listings/buy-land-share" },
+  { label: "P2P", to: "/p2p" },
+  { label: "Contact", to: "/contact" },
 ]
 
 const discoverLinks: { label: string; to: string }[] = [
@@ -34,7 +35,7 @@ const discoverLinks: { label: string; to: string }[] = [
   { label: "FAQ", to: "/faq" },
   { label: "Our Team", to: "/about#team" },
   { label: "Testimonials", to: "/about#testimonials" },
-  { label: "Gallery", to: "/listings" },
+  { label: "Legal", to: "/legal" },
   { label: "Contact", to: "/contact" },
 ]
 
@@ -103,7 +104,7 @@ export function Footer() {
               </span>
               <div className="min-w-0">
                 <p className="text-[16px] leading-[1.45] text-white/95">Address</p>
-                <p className="text-[16px] leading-[1.45] text-white">6391 Elgin St, Delaware</p>
+                <p className="text-[16px] leading-[1.45] text-white">{siteContact.addressLines.join(", ")}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 sm:px-6">
@@ -113,10 +114,10 @@ export function Footer() {
               <div className="min-w-0">
                 <p className="text-[16px] leading-[1.45] text-white/95">Send Email</p>
                 <a
-                  href="mailto:contact@example.com"
+                  href={siteContact.emailHref}
                   className="block text-[16px] leading-[1.45] text-white underline-offset-2 hover:underline"
                 >
-                  contact@example.com
+                  {siteContact.email}
                 </a>
               </div>
             </div>
@@ -127,10 +128,10 @@ export function Footer() {
               <div className="min-w-0">
                 <p className="text-[16px] leading-[1.45] text-white/95">Call Emergency</p>
                 <a
-                  href="tel:+88012365499"
+                  href={siteContact.phoneHref}
                   className="block text-[16px] leading-[1.45] text-white underline-offset-2 hover:underline"
                 >
-                  +88 0123 654 99
+                  {siteContact.phoneDisplay}
                 </a>
               </div>
             </div>
@@ -157,8 +158,8 @@ export function Footer() {
             </span>
           </Link>
           <p className="text-[16px] leading-[1.65] text-slate-400">
-            Nullam interdum libero vitae pretium aliquam donec nibh purus laoreet in ullamcorper vel malesuada sit amet
-            enim.
+            Eurostar Group provides plot sales, land share ownership, and legal support so families, investors, and NRBs
+            can invest with confidence.
           </p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <span className="text-[16px] leading-[1.5] uppercase tracking-[0.14em] text-slate-400">Follow on</span>
@@ -205,7 +206,7 @@ export function Footer() {
         </div>
 
         <div className="min-w-0">
-          <FooterHeading>Quick Link</FooterHeading>
+          <FooterHeading>Quick Links</FooterHeading>
           <nav className="flex flex-col gap-0.5" aria-label="Quick links">
             {quickLinks.map((item) => (
               <ChevronLink key={item.label} to={item.to}>

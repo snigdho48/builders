@@ -35,6 +35,10 @@ const LANE_CARD_LIMIT = 5
 const landingSectionCtaClass =
   "landing-cta-pill btn-alive inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#E85A2A] px-5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(232,90,42,0.26)] transition hover:bg-[#ea7045] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E85A2A] sm:w-auto"
 
+/** Compact “View” next to section title on smaller breakpoints (matches lg+ listing CTA targets). */
+const landingSectionViewCompactClass =
+  "landing-cta-pill btn-alive inline-flex shrink-0 items-center justify-center rounded-[10px] bg-[#E85A2A] px-3.5 py-2 text-xs font-bold text-white shadow-[0_6px_18px_rgba(232,90,42,0.22)] transition hover:bg-[#ea7045] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E85A2A]"
+
 export function LandingPage() {
   const [properties, setProperties] = useState<Property[]>([])
   const [landShareListings, setLandShareListings] = useState<LandShareListing[]>([])
@@ -137,9 +141,27 @@ export function LandingPage() {
               variant="fade-up"
             >
               <div className="min-w-0 max-w-full">
-                <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
-                  Buy Plots
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="min-w-0 flex-1 text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
+                    Buy Plots
+                  </p>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Link
+                      to="/plans"
+                      className={`${landingSectionViewCompactClass} lg:hidden`}
+                      aria-label="See plot plans"
+                    >
+                      Plans
+                    </Link>
+                    <Link
+                      to="/listings/buy-plots"
+                      className={`${landingSectionViewCompactClass} lg:hidden`}
+                      aria-label="View buy plots listings"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </div>
                 <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">
                   Top properties to buy
                 </h2>
@@ -148,7 +170,7 @@ export function LandingPage() {
                   ownership (up to {LANE_CARD_LIMIT}).
                 </p>
               </div>
-              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:justify-self-end">
+              <div className="hidden w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:items-center lg:justify-self-end">
                 <Link to="/plans" className={landingSectionCtaClass}>
                   <FontAwesomeIcon icon={faFileLines} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
                   See plans
@@ -179,9 +201,18 @@ export function LandingPage() {
               variant="fade-up"
             >
               <div className="min-w-0 max-w-full">
-                <p className="text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
-                  Buy Land share
-                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="min-w-0 flex-1 text-sm font-bold tracking-[0.12em] text-[#f58e43] uppercase">
+                    Buy Land share
+                  </p>
+                  <Link
+                    to="/listings/buy-land-share"
+                    className={`${landingSectionViewCompactClass} lg:hidden`}
+                    aria-label="View land share listings"
+                  >
+                    View
+                  </Link>
+                </div>
                 <h2 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">
                   Top properties for investment
                 </h2>
@@ -190,7 +221,7 @@ export function LandingPage() {
                   rating (up to {LANE_CARD_LIMIT}).
                 </p>
               </div>
-              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:justify-self-end">
+              <div className="hidden w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:items-center lg:justify-self-end">
                 <Link to="/listings/buy-land-share" className={landingSectionCtaClass}>
                   <FontAwesomeIcon icon={faListUl} className="h-[1.05rem] w-[1.05rem] shrink-0" aria-hidden />
                   View land share
