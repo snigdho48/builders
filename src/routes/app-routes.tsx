@@ -38,6 +38,7 @@ import { ProfilePage } from "@/pages/profile-page"
 import { LandShareDetailsPage } from "@/pages/land-share-details-page"
 import { LandShareLandBookPage } from "@/pages/land-share-land-book-page"
 import { PropertyDetailsPage } from "@/pages/property-details-page"
+import { PropertyBookingApplicationPage } from "@/pages/property-booking-application-page"
 import { PropertyLandBookPage } from "@/pages/property-land-book-page"
 import { RegisterPage } from "@/pages/register-page"
 import { StaffCreateBookingPage } from "@/pages/staff-create-booking-page"
@@ -68,6 +69,7 @@ function AppShell() {
           <Route path="/listings/buy-land-share" element={<ListingsPage presetSaleType="installment" />} />
           <Route path="/listings" element={<ListingsPage />} />
           <Route path="/properties" element={<ListingsPage />} />
+          <Route path="/properties/:id/book/application" element={<PropertyBookingApplicationPage />} />
           <Route path="/properties/:id/book" element={<PropertyLandBookPage />} />
           <Route path="/properties/:id" element={<PropertyDetailsPage />} />
           <Route path="/land-share-listings/:id/book" element={<LandShareLandBookPage />} />

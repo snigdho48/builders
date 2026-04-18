@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
 import { LandPlotSelector, type PlotOption } from "@/components/land-plot-selector"
 import { useToast } from "@/components/ui/use-toast"
@@ -22,10 +22,11 @@ import type {
 } from "@/types/domain"
 import { formatBdtInteger } from "@/utils/currency"
 import { isLandShareListing, listingDetailPath, propertyUsesInvestmentBooking } from "@/utils/property-display"
+import type { PlotBookingApplicationLocationState } from "@/types/plot-booking"
 
 type PlotInstallmentPlan = "one_percent_installment" | "fifty_percent_installment"
 
-type Step = "choose" | "form"
+type Step = "choose" | "pick_plot" | "form"
 
 type LandBookingFlowProps = {
   listing: CatalogListing
@@ -164,12 +165,168 @@ function billingPeriodLabel(p: string): string {
   return "per month"
 }
 
+type StaffInvestorAssignmentProps = {
+  prefilledInvestor: RetailInvestor | null
+  investorSearch: string
+  onInvestorSearchChange: (v: string) => void
+  investorMatches: RetailInvestor[]
+  selectedInvestor: RetailInvestor | null
+  pickInvestor: (inv: RetailInvestor) => void
+  creatingInvestor: boolean
+  setCreatingInvestor: Dispatch<SetStateAction<boolean>>
+  createInvestorEmail: string
+  setCreateInvestorEmail: (v: string) => void
+  createInvestorPassword: string
+  setCreateInvestorPassword: (v: string) => void
+  createInvestorFirstName: string
+  setCreateInvestorFirstName: (v: string) => void
+  createInvestorLastName: string
+  setCreateInvestorLastName: (v: string) => void
+  createInvestorPhone: string
+  setCreateInvestorPhone: (v: string) => void
+  createInvestorBusy: boolean
+  handleCreateInvestor: () => void | Promise<void>
+}
+
+function StaffInvestorAssignment(props: StaffInvestorAssignmentProps) {
+  const {
+    prefilledInvestor,
+    investorSearch,
+    onInvestorSearchChange,
+    investorMatches,
+    selectedInvestor,
+    pickInvestor,
+    creatingInvestor,
+    setCreatingInvestor,
+    createInvestorEmail,
+    setCreateInvestorEmail,
+    createInvestorPassword,
+    setCreateInvestorPassword,
+    createInvestorFirstName,
+    setCreateInvestorFirstName,
+    createInvestorLastName,
+    setCreateInvestorLastName,
+    createInvestorPhone,
+    setCreateInvestorPhone,
+    createInvestorBusy,
+    handleCreateInvestor,
+  } = props
+
+  if (prefilledInvestor) {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 shadow-sm">
+        <p className="text-sm font-semibold text-[#0b1f44]">Investor (from dashboard)</p>
+        <p className="mt-2 text-sm text-[#0b1f44]">
+          <span className="font-semibold">{prefilledInvestor.username}</span>
+          <span className="text-slate-600"> · #{prefilledInvestor.id}</span>
+        </p>
+        {prefilledInvestor.email ? (
+          <p className="mt-0.5 text-xs text-slate-600">{prefilledInvestor.email}</p>
+        ) : null}
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
+      <p className="text-sm font-semibold text-[#0b1f44]">Investor assignment</p>
+      <p className="mt-1 text-xs text-slate-600">
+        Type investor username to search. If not found, create and auto-assign.
+      </p>
+      <input
+        className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+        value={investorSearch}
+        onChange={(e) => {
+          onInvestorSearchChange(e.target.value)
+        }}
+        placeholder="Investor username"
+      />
+      {investorMatches.length > 0 ? (
+        <div className="mt-2 space-y-1">
+          {investorMatches.map((inv) => (
+            <button
+              key={inv.id}
+              type="button"
+              onClick={() => pickInvestor(inv)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs hover:border-slate-300"
+            >
+              <span className="font-semibold text-[#0b1f44]">{inv.username}</span>
+              <span className="ml-2 text-slate-500">{inv.email}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {selectedInvestor ? (
+        <p className="mt-2 text-xs text-emerald-700">
+          Assigned investor: {selectedInvestor.username} (#{selectedInvestor.id})
+        </p>
+      ) : null}
+      {!selectedInvestor && investorSearch.trim() ? (
+        <div className="mt-3">
+          <button
+            type="button"
+            className="text-xs font-semibold text-[#f58e43] hover:underline"
+            onClick={() => setCreatingInvestor((v) => !v)}
+          >
+            {creatingInvestor ? "Cancel create investor" : `Create investor "${investorSearch.trim()}"`}
+          </button>
+        </div>
+      ) : null}
+      {creatingInvestor ? (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <input
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
+            value={createInvestorEmail}
+            onChange={(e) => setCreateInvestorEmail(e.target.value)}
+            placeholder="Investor email"
+            type="email"
+          />
+          <input
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
+            value={createInvestorPassword}
+            onChange={(e) => setCreateInvestorPassword(e.target.value)}
+            placeholder="Temporary password"
+            type="text"
+          />
+          <input
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+            value={createInvestorFirstName}
+            onChange={(e) => setCreateInvestorFirstName(e.target.value)}
+            placeholder="First name (optional)"
+          />
+          <input
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
+            value={createInvestorLastName}
+            onChange={(e) => setCreateInvestorLastName(e.target.value)}
+            placeholder="Last name (optional)"
+          />
+          <input
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
+            value={createInvestorPhone}
+            onChange={(e) => setCreateInvestorPhone(e.target.value)}
+            placeholder="Phone (optional)"
+          />
+          <button
+            type="button"
+            disabled={createInvestorBusy}
+            onClick={() => void handleCreateInvestor()}
+            className="rounded-lg bg-[#0b1f44] px-3 py-2.5 text-sm font-semibold text-white! disabled:opacity-60 sm:col-span-2"
+          >
+            {createInvestorBusy ? "Creating…" : "Create & assign investor"}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export function LandBookingFlow({
   listing,
   onSuccess,
   allowStaffBookingForInvestor = false,
   prefilledInvestor = null,
 }: LandBookingFlowProps) {
+  const navigate = useNavigate()
   const plotProperty: Property | null = isLandShareListing(listing) ? null : listing
   const listingIsInvestment = isLandShareListing(listing) || (plotProperty != null && propertyUsesInvestmentBooking(plotProperty))
   const plotOptional = isLandShareListing(listing)
@@ -349,7 +506,30 @@ export function LandBookingFlow({
     setBookingKind("plot_buy")
     setPlanType(pt)
     setSelectedPlot(null)
-    setStep("form")
+    setStep("pick_plot")
+  }
+
+  function continueToPlotApplicationPage() {
+    if (!plotProperty || bookingKind !== "plot_buy") return
+    if (planType !== "one_percent_installment" && planType !== "fifty_percent_installment") return
+    if (!selectedPlot) {
+      showToast("Select a plot on the map to continue.", "error")
+      return
+    }
+    if (isStaffBookingForInvestor && !selectedInvestor && !prefilledInvestor) {
+      showToast("Select or create an investor before continuing.", "error")
+      return
+    }
+    const state: PlotBookingApplicationLocationState = {
+      booking_kind: "plot_buy",
+      plan_type: planType,
+      plot: selectedPlot,
+    }
+    const staffInv = selectedInvestor ?? prefilledInvestor
+    if (isStaffBookingForInvestor && staffInv) {
+      state.investor_id = staffInv.id
+    }
+    navigate(`/properties/${listing.id}/book/application`, { state })
   }
 
   async function submit() {
@@ -418,8 +598,37 @@ export function LandBookingFlow({
     }
   }
 
-  const plotPlan =
+  const plotPickPlan =
     planType === "one_percent_installment" || planType === "fifty_percent_installment" ? planType : null
+
+  const staffInvestorPanel =
+    isStaffBookingForInvestor ? (
+      <StaffInvestorAssignment
+        prefilledInvestor={prefilledInvestor}
+        investorSearch={investorSearch}
+        onInvestorSearchChange={(v) => {
+          setInvestorSearch(v)
+          setSelectedInvestor(null)
+        }}
+        investorMatches={investorMatches}
+        selectedInvestor={selectedInvestor}
+        pickInvestor={pickInvestor}
+        creatingInvestor={creatingInvestor}
+        setCreatingInvestor={setCreatingInvestor}
+        createInvestorEmail={createInvestorEmail}
+        setCreateInvestorEmail={setCreateInvestorEmail}
+        createInvestorPassword={createInvestorPassword}
+        setCreateInvestorPassword={setCreateInvestorPassword}
+        createInvestorFirstName={createInvestorFirstName}
+        setCreateInvestorFirstName={setCreateInvestorFirstName}
+        createInvestorLastName={createInvestorLastName}
+        setCreateInvestorLastName={setCreateInvestorLastName}
+        createInvestorPhone={createInvestorPhone}
+        setCreateInvestorPhone={setCreateInvestorPhone}
+        createInvestorBusy={createInvestorBusy}
+        handleCreateInvestor={handleCreateInvestor}
+      />
+    ) : null
 
   return (
     <>
@@ -504,156 +713,73 @@ export function LandBookingFlow({
         </section>
       ) : null}
 
-      {step === "form" ? (
+      {step === "pick_plot" && promoReady && plotBuyInstallmentPlansOpen && plotProperty && !listingIsInvestment ? (
         <section className="mx-auto w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            {listingIsInvestment ? (
-              <Link to={listingDetailPath(listing)} className="text-sm font-medium text-[#f58e43] hover:underline">
-                ← Back to listing
-              </Link>
-            ) : (
-              <button
-                type="button"
-                className="text-sm font-medium text-[#f58e43] hover:underline"
-                onClick={() => {
-                  setStep("choose")
-                  setBookingKind(null)
-                  setPlanType(null)
-                  setSelectedPlot(null)
-                  setSelectedTierIndex(null)
-                }}
-              >
-                ← Change plan
-              </button>
-            )}
-            {!listingIsInvestment ? (
-              <p className="text-xs text-slate-500">
-                Selected: <strong className="text-[#0b1f44]">{planType != null ? planTypeLabel(planType) : "—"}</strong>
-              </p>
-            ) : null}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              className="text-sm font-medium text-[#f58e43] hover:underline"
+              onClick={() => {
+                setStep("choose")
+                setBookingKind(null)
+                setPlanType(null)
+                setSelectedPlot(null)
+              }}
+            >
+              ← Change plan
+            </button>
+            <p className="text-xs text-slate-500">
+              Selected: <strong className="text-[#0b1f44]">{planType != null ? planTypeLabel(planType) : "—"}</strong>
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {isStaffBookingForInvestor && prefilledInvestor ? (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 shadow-sm">
-                <p className="text-sm font-semibold text-[#0b1f44]">Investor (from dashboard)</p>
-                <p className="mt-2 text-sm text-[#0b1f44]">
-                  <span className="font-semibold">{prefilledInvestor.username}</span>
-                  <span className="text-slate-600"> · #{prefilledInvestor.id}</span>
-                </p>
-                {prefilledInvestor.email ? (
-                  <p className="mt-0.5 text-xs text-slate-600">{prefilledInvestor.email}</p>
-                ) : null}
-              </div>
-            ) : isStaffBookingForInvestor ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
-                <p className="text-sm font-semibold text-[#0b1f44]">Investor assignment</p>
-                <p className="mt-1 text-xs text-slate-600">
-                  Type investor username to search. If not found, create and auto-assign.
-                </p>
-                <input
-                  className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                  value={investorSearch}
-                  onChange={(e) => {
-                    setInvestorSearch(e.target.value)
-                    setSelectedInvestor(null)
-                  }}
-                  placeholder="Investor username"
-                />
-                {investorMatches.length > 0 ? (
-                  <div className="mt-2 space-y-1">
-                    {investorMatches.map((inv) => (
-                      <button
-                        key={inv.id}
-                        type="button"
-                        onClick={() => pickInvestor(inv)}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs hover:border-slate-300"
-                      >
-                        <span className="font-semibold text-[#0b1f44]">{inv.username}</span>
-                        <span className="ml-2 text-slate-500">{inv.email}</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-                {selectedInvestor ? (
-                  <p className="mt-2 text-xs text-emerald-700">
-                    Assigned investor: {selectedInvestor.username} (#{selectedInvestor.id})
-                  </p>
-                ) : null}
-                {!selectedInvestor && investorSearch.trim() ? (
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-[#f58e43] hover:underline"
-                      onClick={() => setCreatingInvestor((v) => !v)}
-                    >
-                      {creatingInvestor ? "Cancel create investor" : `Create investor "${investorSearch.trim()}"`}
-                    </button>
-                  </div>
-                ) : null}
-                {creatingInvestor ? (
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    <input
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
-                      value={createInvestorEmail}
-                      onChange={(e) => setCreateInvestorEmail(e.target.value)}
-                      placeholder="Investor email"
-                      type="email"
-                    />
-                    <input
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
-                      value={createInvestorPassword}
-                      onChange={(e) => setCreateInvestorPassword(e.target.value)}
-                      placeholder="Temporary password"
-                      type="text"
-                    />
-                    <input
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                      value={createInvestorFirstName}
-                      onChange={(e) => setCreateInvestorFirstName(e.target.value)}
-                      placeholder="First name (optional)"
-                    />
-                    <input
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                      value={createInvestorLastName}
-                      onChange={(e) => setCreateInvestorLastName(e.target.value)}
-                      placeholder="Last name (optional)"
-                    />
-                    <input
-                      className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm sm:col-span-2"
-                      value={createInvestorPhone}
-                      onChange={(e) => setCreateInvestorPhone(e.target.value)}
-                      placeholder="Phone (optional)"
-                    />
-                    <button
-                      type="button"
-                      disabled={createInvestorBusy}
-                      onClick={() => void handleCreateInvestor()}
-                      className="rounded-lg bg-[#0b1f44] px-3 py-2.5 text-sm font-semibold text-white! disabled:opacity-60 sm:col-span-2"
-                    >
-                      {createInvestorBusy ? "Creating…" : "Create & assign investor"}
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
+          <div className="space-y-5">
+            {staffInvestorPanel}
 
-            {plotPlan != null ? (
-              <div className={`mb-2 rounded-2xl border p-4 shadow-sm ${PLAN_THEME[plotPlan].wrap}`}>
+            {plotPickPlan != null ? (
+              <div className={`rounded-2xl border p-4 shadow-sm ${PLAN_THEME[plotPickPlan].wrap}`}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className={`text-sm font-semibold ${PLAN_THEME[plotPlan].title}`}>
-                    {PLAN_INSTRUCTIONS[plotPlan].title}
+                  <h3 className={`text-sm font-semibold ${PLAN_THEME[plotPickPlan].title}`}>
+                    {PLAN_INSTRUCTIONS[plotPickPlan].title}
                   </h3>
                 </div>
-                <ul className="space-y-2 text-xs leading-relaxed text-slate-700">
-                  {PLAN_INSTRUCTIONS[plotPlan].points.map((line, idx) => (
-                    <li key={`${plotPlan}-${idx}`} className={`rounded-lg border px-3 py-2 ${PLAN_THEME[plotPlan].item}`}>
+                <ul className="max-h-[min(40vh,22rem)] space-y-2 overflow-y-auto text-xs leading-relaxed text-slate-700">
+                  {PLAN_INSTRUCTIONS[plotPickPlan].points.map((line, idx) => (
+                    <li
+                      key={`${plotPickPlan}-${idx}`}
+                      className={`rounded-lg border px-3 py-2 ${PLAN_THEME[plotPickPlan].item}`}
+                    >
                       {renderInstructionText(line)}
                     </li>
                   ))}
                 </ul>
               </div>
             ) : null}
+
+            <LandPlotSelector property={plotProperty} value={selectedPlot} onChange={setSelectedPlot} />
+
+            <button
+              type="button"
+              className="w-full rounded-xl bg-[#0b1f44] py-3 font-semibold text-white! disabled:opacity-50"
+              onClick={() => continueToPlotApplicationPage()}
+            >
+              Continue to application form
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {step === "form" && listingIsInvestment ? (
+        <section className="mx-auto w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <Link to={listingDetailPath(listing)} className="text-sm font-medium text-[#f58e43] hover:underline">
+              ← Back to listing
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {staffInvestorPanel}
+
             {listingIsInvestment && paymentTiers.length > 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 shadow-sm">
                 <p className="text-sm font-semibold text-[#0b1f44]">Choose payment option</p>

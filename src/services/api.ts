@@ -1,3 +1,4 @@
+import type { JointApplicantAttachmentRow, NomineeAttachmentRow } from "@/content/plot-booking-joint-attachments"
 import type {
   AdminDashboardData,
   AgentDashboardData,
@@ -8,6 +9,7 @@ import type {
   InvestorKycStatus,
   InvestorUpsertPayload,
   LandBooking,
+  LandBookingApplicationAttachment,
   InstallmentLedgerRow,
   P2PBidIncoming,
   P2PBidSent,
@@ -36,8 +38,8 @@ function normalizeDevApiBase(url: string): string {
 }
 
 const API_BASE = normalizeDevApiBase(
-  import.meta.env.VITE_API_BASE_URL ?? "https://api.eurostar.land/api"
-  // import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api"
+  // import.meta.env.VITE_API_BASE_URL ?? "https://api.eurostar.land/api"
+  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api"
 )
 
 type RequestOptions = {
@@ -50,6 +52,11 @@ type RequestOptions = {
 }
 
 function extractErrorMessage(payload: unknown, status: number): string {
+  if (payload && typeof payload === "object") {
+    const drf = payload as Record<string, unknown>
+    if (typeof drf.detail === "string" && drf.detail.trim()) return drf.detail
+    if (Array.isArray(drf.detail) && drf.detail.length > 0) return String(drf.detail[0])
+  }
   if (payload && typeof payload === "object" && "error" in payload && payload.error && typeof payload.error === "object") {
     const err = payload.error as { message?: string; details?: unknown }
     const d = err.details
@@ -356,7 +363,20 @@ export function normalizeLandShareListing(raw: Record<string, unknown>): LandSha
   }
 }
 
+function normalizeLandBookingAttachment(raw: Record<string, unknown>): LandBookingApplicationAttachment {
+  return {
+    id: Number(raw.id),
+    kind: String(raw.kind ?? ""),
+    file: String(raw.file ?? ""),
+    created_at: String(raw.created_at ?? ""),
+  }
+}
+
 function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
+  const att = raw.application_attachments
+  const application_attachments =
+    Array.isArray(att) ? att.map((x) => normalizeLandBookingAttachment(x as Record<string, unknown>)) : undefined
+
   return {
     id: Number(raw.id),
     property: raw.property != null && raw.property !== "" ? Number(raw.property) : null,
@@ -389,6 +409,11 @@ function normalizeLandBooking(raw: Record<string, unknown>): LandBooking {
       raw.investment_option_billing_period != null && String(raw.investment_option_billing_period).trim() !== ""
         ? String(raw.investment_option_billing_period).trim().toLowerCase()
         : null,
+    application_data:
+      raw.application_data != null && typeof raw.application_data === "object" && !Array.isArray(raw.application_data)
+        ? (raw.application_data as Record<string, unknown>)
+        : undefined,
+    application_attachments,
     status: raw.status as LandBooking["status"],
     reviewed_by: raw.reviewed_by != null ? Number(raw.reviewed_by) : null,
     reviewed_by_username: raw.reviewed_by_username != null ? String(raw.reviewed_by_username) : undefined,
@@ -653,6 +678,45 @@ export async function getLandBooking(id: number, token: string): Promise<LandBoo
 
 export async function createLandBooking(body: LandBookingCreatePayload, token: string): Promise<LandBooking> {
   const res = await request<Record<string, unknown>>("/land-bookings/", { method: "POST", body, token })
+  return normalizeLandBooking(res.data as Record<string, unknown>)
+}
+
+/** Upload required trio + optional joint / nominee photo+NID pairs after `createLandBooking`. */
+export async function uploadLandBookingApplicationAttachments(
+  bookingId: number,
+  files: {
+    passport_photo_1: File
+    nid_or_id: File
+    booking_money_receipt: File
+    /** Row `i` → form fields `joint_applicant_{i+1}_passport_photo` / `_nid_or_id`. */
+    jointApplicantRows?: JointApplicantAttachmentRow[]
+    /** Row `i` → form fields `nominee_{i+1}_passport_photo` / `_nid_or_id`. */
+    nomineeAttachmentRows?: NomineeAttachmentRow[]
+  },
+  token: string,
+): Promise<LandBooking> {
+  const fd = new FormData()
+  fd.append("passport_photo_1", files.passport_photo_1)
+  fd.append("nid_or_id", files.nid_or_id)
+  fd.append("booking_money_receipt", files.booking_money_receipt)
+  const rows = files.jointApplicantRows ?? []
+  rows.forEach((row, i) => {
+    const pad = String(i + 1).padStart(2, "0")
+    if (row.passport) fd.append(`joint_applicant_${pad}_passport_photo`, row.passport)
+    if (row.nid) fd.append(`joint_applicant_${pad}_nid_or_id`, row.nid)
+  })
+  const nomRows = files.nomineeAttachmentRows ?? []
+  nomRows.forEach((row, i) => {
+    const pad = String(i + 1).padStart(2, "0")
+    if (row.passport) fd.append(`nominee_${pad}_passport_photo`, row.passport)
+    if (row.nid) fd.append(`nominee_${pad}_nid_or_id`, row.nid)
+  })
+  const res = await request<Record<string, unknown>>(`/land-bookings/${bookingId}/application-attachments/`, {
+    method: "POST",
+    body: fd,
+    token,
+    isFormData: true,
+  })
   return normalizeLandBooking(res.data as Record<string, unknown>)
 }
 

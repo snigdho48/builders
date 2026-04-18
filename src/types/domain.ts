@@ -145,6 +145,14 @@ export type LandBookingPlanType =
 
 export type LandBookingStatus = "pending" | "accepted" | "rejected"
 
+/** Uploaded files linked to a plot-buy application (`application-attachments` API). */
+export type LandBookingApplicationAttachment = {
+  id: number
+  kind: string
+  file: string
+  created_at: string
+}
+
 export type LandBooking = {
   id: number
   property: number | null
@@ -166,6 +174,9 @@ export type LandBooking = {
   investment_option_amount?: string | null
   investment_option_duration_years?: number | null
   investment_option_billing_period?: string | null
+  /** Extended plot booking answers (JSON). */
+  application_data?: Record<string, unknown>
+  application_attachments?: LandBookingApplicationAttachment[]
   status: LandBookingStatus
   reviewed_by: number | null
   reviewed_by_username?: string | null
@@ -338,6 +349,8 @@ export type LandBookingCreatePayload = {
   investment_option_duration_years?: number
   /** Required when the land-share listing defines payment tiers. */
   investment_option_billing_period?: string | null
+  /** Plot booking extended form (draft fields). */
+  application_data?: Record<string, unknown>
 }
 
 export type BookingPromoSettings = {
@@ -360,6 +373,10 @@ export type LandPlot = {
   coordinates: [number, number][]
   created_at: string
   updated_at: string
+  /** Optional layout metadata when provided by API (shown read-only on booking form). */
+  road_no?: string | null
+  road_size?: string | null
+  sector_or_block?: string | null
 }
 
 export type RetailInvestor = {
