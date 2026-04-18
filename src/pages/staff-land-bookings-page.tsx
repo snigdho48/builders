@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import L from "leaflet"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons"
 
 import { DashboardModal } from "@/components/dashboard/dashboard-modal"
+import { PlotMap, type PlotMapLayer } from "@/components/plot-map"
 import { CompactFormSelect } from "@/components/ui/compact-form-select"
 import { useLanguage } from "@/i18n/language-context"
 import { useToast } from "@/components/ui/use-toast"
@@ -48,9 +48,6 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
   const [bookingPageSize, setBookingPageSize] = useState(10)
   const [modalPlots, setModalPlots] = useState<LandPlot[]>([])
   const [loadingModalPlots, setLoadingModalPlots] = useState(false)
-  const plotMapDivRef = useRef<HTMLDivElement | null>(null)
-  const plotMapRef = useRef<L.Map | null>(null)
-  const plotLayerRef = useRef<L.LayerGroup | null>(null)
 
   const load = useCallback(async () => {
     const token = localStorage.getItem("accessToken")
@@ -235,50 +232,30 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
     }
   }, [selected])
 
-  useEffect(() => {
-    if (!selected || !selected.selected_plot_code) {
-      plotLayerRef.current?.clearLayers()
-      if (plotMapRef.current) {
-        plotMapRef.current.remove()
-        plotMapRef.current = null
-        plotLayerRef.current = null
-      }
-      return
-    }
-    if (!plotMapDivRef.current || plotMapRef.current) return
-    const map = L.map(plotMapDivRef.current, { zoomControl: true }).setView([23.8103, 90.4125], 16)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map)
-    plotMapRef.current = map
-    plotLayerRef.current = L.layerGroup().addTo(map)
-    return () => {
-      map.remove()
-      plotMapRef.current = null
-      plotLayerRef.current = null
-    }
-  }, [selected])
-
-  useEffect(() => {
-    const map = plotMapRef.current
-    const group = plotLayerRef.current
-    if (!map || !group || !selected || !selected.selected_plot_code) return
-    group.clearLayers()
-    const bounds = L.latLngBounds([])
+  const modalPlotLayers = useMemo<PlotMapLayer[]>(() => {
+    if (!selected?.selected_plot_code) return []
     const pickedPlot = modalPlots.find((plot) => plot.plot_id === selected.selected_plot_code)
-    if (!pickedPlot) return
-    const latlngs = pickedPlot.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
-    const polygon = L.polygon(latlngs, {
-      color: "#0b1f44",
-      fillColor: "#f58e43",
-      fillOpacity: 0.72,
-      weight: 3,
-    }).addTo(group)
-    polygon.bindTooltip(`Selected ${pickedPlot.plot_id}`, { permanent: true, direction: "center", opacity: 0.9 }).openTooltip()
-    bounds.extend(L.latLngBounds(latlngs))
-    if (bounds.isValid()) {
-      map.fitBounds(bounds.pad(0.2))
-    }
+    if (!pickedPlot) return []
+    return [
+      {
+        id: pickedPlot.plot_id,
+        path: pickedPlot.coordinates,
+        strokeColor: "#0b1f44",
+        fillColor: "#f58e43",
+        fillOpacity: 0.72,
+        strokeWeight: 3,
+        centerLabel: `Selected ${pickedPlot.plot_id}`,
+      },
+    ]
+  }, [modalPlots, selected])
+
+  const modalMapCenter = useMemo<[number, number]>(() => {
+    if (!selected?.selected_plot_code) return [23.8103, 90.4125]
+    const pickedPlot = modalPlots.find((plot) => plot.plot_id === selected.selected_plot_code)
+    const first = pickedPlot?.coordinates?.[0]
+    if (!first) return [23.8103, 90.4125]
+    const [lng, lat] = first
+    return [lat, lng]
   }, [modalPlots, selected])
 
   return (
@@ -531,7 +508,14 @@ export function StaffLandBookingsPage({ mode = "both" }: StaffLandBookingsPagePr
                 <p className="mb-2 text-xs font-medium text-slate-600">
                   {language === "bn" ? "নির্বাচিত প্লটের ম্যাপ" : "Selected plot map"}
                 </p>
-                <div ref={plotMapDivRef} className="h-[230px] w-full overflow-hidden rounded-md border border-slate-200 bg-white" />
+                <PlotMap
+                  center={modalMapCenter}
+                  zoom={16}
+                  layers={modalPlotLayers}
+                  fitToLayers={modalPlotLayers.length > 0}
+                  invalidateOn={selected.id}
+                  className="h-[230px] w-full overflow-hidden rounded-md border border-slate-200 bg-white"
+                />
                 {loadingModalPlots ? (
                   <p className="mt-1 text-xs text-slate-500">{language === "bn" ? "ম্যাপ লোড হচ্ছে..." : "Loading map..."}</p>
                 ) : null}

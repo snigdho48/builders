@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react"
-import L, { type Layer } from "leaflet"
+import { useEffect, useMemo, useState } from "react"
 
+import { PlotMap, type PlotMapLayer } from "@/components/plot-map"
 import { listPlotsByProperty } from "@/services/api"
 import type { LandPlot, Property } from "@/types/domain"
 
@@ -17,9 +17,6 @@ export function LandPlotSelector({ property, value, onChange }: LandPlotSelector
   const [loading, setLoading] = useState(true)
   const [searchCode, setSearchCode] = useState("")
   const [availableOnly, setAvailableOnly] = useState(false)
-  const mapDivRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<L.Map | null>(null)
-  const layerGroupRef = useRef<L.LayerGroup | null>(null)
   const center = useMemo<[number, number]>(
     () => [Number(property.latitude ?? "") || 23.8103, Number(property.longitude ?? "") || 90.4125],
     [property.latitude, property.longitude],
@@ -35,61 +32,20 @@ export function LandPlotSelector({ property, value, onChange }: LandPlotSelector
   )
   const selected = value ? plots.find((p) => p.id === value.id) ?? value : null
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    void listPlotsByProperty({ propertyId: property.id }).then((rows) => {
-      if (cancelled) return
-      setPlots(rows)
-      setLoading(false)
-    }).catch(() => {
-      if (cancelled) return
-      setPlots([])
-      setLoading(false)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [property.id])
-
-  useEffect(() => {
-    if (!mapDivRef.current || mapRef.current) return
-    const map = L.map(mapDivRef.current).setView(center, 17)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map)
-    mapRef.current = map
-    layerGroupRef.current = L.layerGroup().addTo(map)
-    return () => {
-      map.remove()
-      mapRef.current = null
-      layerGroupRef.current = null
-    }
-  }, [center])
-
-  useEffect(() => {
-    const map = mapRef.current
-    const group = layerGroupRef.current
-    if (!map || !group) return
-    group.clearLayers()
-
-    const bounds = L.latLngBounds([])
-    const interactiveLayers: Layer[] = []
-
-    visiblePlots.forEach((plot) => {
-      const latlngs = plot.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+  const plotLayers = useMemo<PlotMapLayer[]>(() => {
+    return visiblePlots.map((plot) => {
       const isSelected = value?.id === plot.id
       const base = plot.status === "available" ? "#22c55e" : plot.status === "booked" ? "#f59e0b" : "#ef4444"
-      const polygon = L.polygon(latlngs, {
-        color: isSelected ? "#0b1f44" : base,
-        weight: isSelected ? 3 : 2,
+      return {
+        id: String(plot.id),
+        path: plot.coordinates,
+        strokeColor: isSelected ? "#0b1f44" : base,
         fillColor: base,
         fillOpacity: isSelected ? 0.8 : 0.55,
-      }).addTo(group)
-
-      polygon.bindTooltip(plot.plot_id, { permanent: map.getZoom() >= 17, direction: "center", opacity: 0.85 })
-      polygon.bindPopup(
-        `<div style="font-size:12px;line-height:1.45">
+        strokeWeight: isSelected ? 3 : 2,
+        hoverFillOpacity: 0.85,
+        onClick: plot.status === "available" ? () => onChange(plot) : undefined,
+        popupHtml: `<div style="font-size:12px;line-height:1.45">
           <strong>Plot ${plot.plot_id}</strong><br/>
           Area: ${plot.area_sqft} sqft<br/>
           Price: ৳${Number(plot.price).toLocaleString()}<br/>
@@ -100,35 +56,29 @@ export function LandPlotSelector({ property, value, onChange }: LandPlotSelector
               : ""
           }
         </div>`,
-      )
-
-      polygon.on("mouseover", () => polygon.setStyle({ fillOpacity: 0.85 }))
-      polygon.on("mouseout", () => polygon.setStyle({ fillOpacity: isSelected ? 0.8 : 0.55 }))
-      polygon.on("click", () => {
-        if (plot.status === "available") onChange(plot)
-      })
-
-      bounds.extend(L.latLngBounds(latlngs))
-      interactiveLayers.push(polygon)
+        centerLabel: plot.plot_id,
+      }
     })
+  }, [visiblePlots, value?.id, onChange])
 
-    if (interactiveLayers.length > 0) map.fitBounds(bounds.pad(0.2))
-
-    const onZoom = () => {
-      interactiveLayers.forEach((layer) => {
-        const polygon = layer as L.Polygon
-        const tooltip = polygon.getTooltip()
-        if (tooltip) {
-          if (map.getZoom() >= 17) polygon.openTooltip()
-          else polygon.closeTooltip()
-        }
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    void listPlotsByProperty({ propertyId: property.id })
+      .then((rows) => {
+        if (cancelled) return
+        setPlots(rows)
+        setLoading(false)
       })
-    }
-    map.on("zoomend", onZoom)
+      .catch(() => {
+        if (cancelled) return
+        setPlots([])
+        setLoading(false)
+      })
     return () => {
-      map.off("zoomend", onZoom)
+      cancelled = true
     }
-  }, [center, onChange, value?.id, visiblePlots])
+  }, [property.id])
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
@@ -159,7 +109,14 @@ export function LandPlotSelector({ property, value, onChange }: LandPlotSelector
         onChange={(e) => setSearchCode(e.target.value)}
       />
 
-      <div ref={mapDivRef} className="h-[360px] w-full overflow-hidden rounded-lg border border-slate-200" />
+      <PlotMap
+        center={center}
+        zoom={17}
+        layers={plotLayers}
+        fitToLayers={plotLayers.length > 0}
+        invalidateOn={property.id}
+        className="h-[360px] w-full overflow-hidden rounded-lg border border-slate-200"
+      />
       {loading ? <p className="mt-2 text-xs text-slate-500">Loading plots...</p> : null}
       {!loading && plots.length === 0 ? (
         <p className="mt-2 text-xs text-rose-600">No predefined plots found for this property.</p>
@@ -175,4 +132,3 @@ export function LandPlotSelector({ property, value, onChange }: LandPlotSelector
     </div>
   )
 }
-
