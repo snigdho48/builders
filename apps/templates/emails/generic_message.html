@@ -1,0 +1,20 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+  {% if headline %}
+    <h1 style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; color: #0f172a; margin: 0 0 16px;">
+      {{ headline }}
+    </h1>
+  {% endif %}
+  <div style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere; word-break: break-word; font-size: 15px; line-height: 1.65; color: #475569;">{{ body }}</div>
+  {% if action_url and action_label %}
+    <p style="margin-top: 24px;">
+      <a
+        href="{{ action_url }}"
+        style="display: inline-block; padding: 11px 18px; background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%); color: #fff !important; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);"
+      >
+        {{ action_label }}
+      </a>
+    </p>
+  {% endif %}
+{% endblock %}

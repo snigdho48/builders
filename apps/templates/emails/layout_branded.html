@@ -1,0 +1,24 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+  {# Logo: keep compact (~112px) so the header doesn’t dominate on mobile #}
+  <div class="es-brand-mark" style="text-align:center;margin:0 auto 22px;padding:0 0 18px;border-bottom:1px solid #e2e8f0;">
+    {% if use_cid_logo %}
+    <img
+      src="cid:brand_logo"
+      width="112"
+      alt="{{ site_name }}"
+      style="width:112px;max-width:112px;height:auto;display:block;margin:0 auto;line-height:0;border:0;outline:none;"
+    />
+    {% elif logo_url %}
+    <img
+      src="{{ logo_url }}"
+      width="112"
+      alt="{{ site_name }}"
+      style="width:112px;max-width:112px;height:auto;display:block;margin:0 auto;line-height:0;border:0;outline:none;"
+    />
+    {% else %}
+    <span style="display:inline-block;font-size:1.125rem;font-weight:700;color:#0f766e;letter-spacing:0.06em;text-transform:uppercase;">{{ site_name }}</span>
+    {% endif %}
+  </div>
+  {% block inner %}{% endblock %}
+{% endblock %}

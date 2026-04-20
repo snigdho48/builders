@@ -1,0 +1,13 @@
+{{ site_name }} — booking update
+
+Hello{% if booking.full_name %} {{ booking.full_name }}{% endif %},
+
+Your booking for "{{ listing_title }}" has been received (reference #{{ booking.id }}).
+
+{% if owner_id %}Owner ID: {{ owner_id }}
+{% endif %}{% if file_no %}File no.: {{ file_no }}
+{% endif %}{% if plot_summary %}Plot: {{ plot_summary }}
+{% endif %}Email on file: {{ booking.email }}
+
+{% if has_money_receipt_pdf %}The money receipt is attached as a PDF to this email.
+{% endif %}View bookings: {{ dashboard_url }}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>{{ email_title|default:"Eurostar Group" }}</title>
+
+  <style type="text/css">
+    body, table, td, p, a, li { -webkit-text-size-adjust: 100%; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; max-width: 100% !important; }
+    table { border-collapse: collapse !important; }
+    .es-body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      background-color: #f8fafc !important; /* slate-50 */
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .es-shell {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+    .es-card {
+      background-color: #ffffff !important;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0; /* slate-200 */
+      box-shadow: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.06);
+      /* Do not use overflow:hidden — it clips long URLs, tables, and pre-wrap text in many clients. */
+      overflow: visible;
+    }
+    .es-card-inner {
+      padding: 24px 26px 30px;
+      max-width: 100%;
+      box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .es-card-inner table {
+      table-layout: fixed;
+      width: 100% !important;
+    }
+    .es-card-inner td {
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .es-accent-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #0f766e 0%, #0d9488 40%, #14b8a6 100%);
+    }
+    /* Branded header logo cap (layout_branded.html); keeps square assets from feeling huge */
+    .es-brand-mark img {
+      width: 112px !important;
+      max-width: 112px !important;
+      height: auto !important;
+    }
+    .es-footer {
+      margin-top: 20px;
+      padding: 0 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #64748b !important; /* slate-500 */
+      text-align: center;
+    }
+    .es-footer a {
+      color: #0d9488 !important;
+      text-decoration: underline;
+    }
+    .es-link {
+      color: #0d9488 !important;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .es-link:hover {
+      text-decoration: underline;
+      color: #0f766e !important;
+    }
+    @media only screen and (max-width: 620px) {
+      .es-card-inner { padding: 20px 16px 24px !important; }
+      .es-shell { padding: 20px 14px 32px !important; }
+    }
+  </style>
+</head>
+<body class="es-body" style="margin:0;padding:0;background-color:#f8fafc;">
+  <div class="es-shell" style="max-width:560px;margin:0 auto;padding:28px 18px 40px;">
+    <div class="es-card" style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;">
+      <div class="es-accent-bar" style="height:3px;background:linear-gradient(90deg,#0f766e,#0d9488,#14b8a6);"></div>
+      <div class="es-card-inner" style="padding:24px 26px 30px;max-width:100%;box-sizing:border-box;word-wrap:break-word;overflow-wrap:anywhere;word-break:break-word;">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+    <p class="es-footer" style="margin-top:20px;font-size:12px;line-height:1.6;color:#64748b;text-align:center;">
+      {% block footer %}This message was sent by <strong style="color:#334155;">Eurostar Group</strong>.{% endblock %}
+    </p>
+  </div>
+</body>
+</html>
